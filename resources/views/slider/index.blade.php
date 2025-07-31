@@ -1,0 +1,487 @@
+@extends('layouts.app')
+
+@section('content')
+    <div class="p-4">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-xl font-semibold">Slider</h1>
+            <div class="flex gap-2">
+                <button onclick="openAddModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Tambah Slider
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Input -->
+        <div class="mb-4">
+            <input type="text" id="searchInput" placeholder="Cari berdasarkan judul..."
+                class="border px-3 py-2 w-full rounded text-sm" onkeyup="searchTable()">
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white border border-gray-200 text-sm">
+                <thead class="bg-gray-100 text-left">
+                    <tr>
+                        <th class="px-4 py-2 border">Gambar</th>
+                        <th class="px-4 py-2 border">Judul</th>
+                        <th class="px-4 py-2 border">Subtitle</th>
+                        <th class="px-4 py-2 border">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="sliderTable">
+                    @forelse ($sliders as $item)
+                        <tr>
+                            <td class="px-4 py-2 border">
+                                @if ($item->image)
+                                    <img src="{{ asset('storage/' . $item->image) }}"
+                                        class="w-24 h-24 object-cover object-center rounded shadow-md aspect-square">
+                                @else
+                                    <div class="w-24 h-24 bg-gray-200 rounded flex items-center justify-center">
+                                        <span class="text-gray-400 text-xs">No Image</span>
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2 border">{{ $item->title ?? '-' }}</td>
+                            <td class="px-4 py-2 border">
+                                <div class="max-w-xs truncate" title="{{ strip_tags($item->subtitle) }}">
+                                    {!! Str::limit($item->subtitle, 50) !!}
+                                </div>
+                            </td>
+                            <td class="px-4 py-2 border space-x-1">
+                                <button onclick="openEditModal(this)" data-slider='@json($item)'
+                                    class="text-blue-600 hover:text-blue-800 px-2 py-1 text-xs border border-blue-300 rounded hover:bg-blue-50">Edit</button>
+                                <button onclick="deleteSlider({{ $item->id }})"
+                                    class="text-red-600 hover:text-red-800 px-2 py-1 text-xs border border-red-300 rounded hover:bg-red-50">Hapus</button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4" class="px-4 py-8 text-center text-gray-500">
+                                Belum ada data slider
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal Tambah -->
+    <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
+            <h2 class="text-lg font-semibold">Tambah Slider</h2>
+            <form action="{{ route('slider.store') }}" method="POST" enctype="multipart/form-data" id="addSliderForm">
+                @csrf
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-1 font-medium">Judul</label>
+                        <input type="text" name="title" class="w-full border rounded p-2 text-sm" value="{{ old('title') }}" />
+                        @error('title')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">YouTube ID</label>
+                        <input type="text" name="youtube_id" class="w-full border rounded p-2 text-sm" placeholder="Contoh: dQw4w9WgXcQ" value="{{ old('youtube_id') }}" />
+                        @error('youtube_id')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block mb-1 font-medium">Subtitle</label>
+                        <textarea name="subtitle" id="editorAddSubtitle" rows="3" class="w-full border rounded p-2 text-sm">{{ old('subtitle') }}</textarea>
+                        @error('subtitle')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Button Text</label>
+                        <input type="text" name="button_text" class="w-full border rounded p-2 text-sm" placeholder="Contoh: Selengkapnya" value="{{ old('button_text') }}" />
+                        @error('button_text')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">URL Link</label>
+                        <input type="url" name="url_link" class="w-full border rounded p-2 text-sm" placeholder="https://example.com" value="{{ old('url_link') }}" />
+                        @error('url_link')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+                    <div class="col-span-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="display_on_home" class="mr-2" value="1" {{ old('display_on_home') ? 'checked' : '' }} />
+                            <span class="font-medium">Tampilkan di Homepage</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Enhanced Image Upload Section -->
+                <div class="mt-4">
+                    <label class="block mb-2 font-medium">Upload Gambar</label>
+                    <div class="relative">
+                        <input type="file" name="image" id="addImageInput" onchange="previewImage(this, 'addPreview')"
+                            accept="image/png,image/jpg,image/jpeg,image/webp" class="hidden" />
+
+                        <div id="addUploadArea" onclick="document.getElementById('addImageInput').click()"
+                             class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                            <div class="flex flex-col items-center">
+                                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                <p class="text-gray-600 mb-2">Klik untuk upload atau drag and drop</p>
+                                <p class="text-sm text-gray-500">PNG, JPG, JPEG, atau WEBP (MAX. 2MB)</p>
+                            </div>
+                        </div>
+
+                        <div id="addPreview" class="mt-4"></div>
+                        @error('image')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button type="button" onclick="closeAddModal()"
+                        class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
+                    <button type="submit"
+                        class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edit -->
+    <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
+            <h2 class="text-lg font-semibold">Edit Slider</h2>
+            <form id="editForm" method="POST" enctype="multipart/form-data">
+                @csrf
+                @method('PUT')
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block mb-1 font-medium">Judul</label>
+                        <input type="text" name="title" id="editTitle" class="w-full border rounded p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">YouTube ID</label>
+                        <input type="text" name="youtube_id" id="editYoutubeId" class="w-full border rounded p-2 text-sm" placeholder="Contoh: dQw4w9WgXcQ" />
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block mb-1 font-medium">Subtitle</label>
+                        <textarea name="subtitle" id="editorEditSubtitle" rows="3" class="w-full border rounded p-2 text-sm"></textarea>
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Button Text</label>
+                        <input type="text" name="button_text" id="editButtonText" class="w-full border rounded p-2 text-sm" placeholder="Contoh: Selengkapnya" />
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">URL Link</label>
+                        <input type="url" name="url_link" id="editUrlLink" class="w-full border rounded p-2 text-sm" placeholder="https://example.com" />
+                    </div>
+                    <div class="col-span-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="display_on_home" id="editDisplayOnHome" class="mr-2" value="1" />
+                            <span class="font-medium">Tampilkan di Homepage</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Enhanced Image Upload Section -->
+                <div class="mt-4">
+                    <label class="block mb-2 font-medium">Ganti Gambar</label>
+                    <div class="relative">
+                        <input type="file" name="image" id="editImageInput" onchange="previewImage(this, 'editPreview')"
+                            accept="image/png,image/jpg,image/jpeg,image/webp" class="hidden" />
+
+                        <div id="editUploadArea" onclick="document.getElementById('editImageInput').click()"
+                             class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                            <div class="flex flex-col items-center">
+                                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                </svg>
+                                <p class="text-gray-600 mb-2">Klik untuk upload atau drag and drop</p>
+                                <p class="text-sm text-gray-500">PNG, JPG, JPEG, atau WEBP (MAX. 2MB)</p>
+                            </div>
+                        </div>
+
+                        <div id="editPreview" class="mt-4"></div>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button type="button" onclick="closeEditModal()"
+                        class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
+                    <button type="submit"
+                        class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- CKEditor -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.3.1/classic/ckeditor.js"></script>
+
+    <script>
+        // Global variables for CKEditor instances
+        let addSubtitleEditor = null;
+        let editSubtitleEditor = null;
+
+        // Initialize CKEditor when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize CKEditor for Add Modal
+            ClassicEditor
+                .create(document.querySelector('#editorAddSubtitle'))
+                .then(editor => {
+                    addSubtitleEditor = editor;
+                })
+                .catch(error => {
+                    console.error('Error initializing add subtitle editor:', error);
+                });
+
+            // Initialize CKEditor for Edit Modal
+            ClassicEditor
+                .create(document.querySelector('#editorEditSubtitle'))
+                .then(editor => {
+                    editSubtitleEditor = editor;
+                })
+                .catch(error => {
+                    console.error('Error initializing edit subtitle editor:', error);
+                });
+        });
+
+        // Search function
+        function searchTable() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let rows = document.querySelectorAll("#sliderTable tr");
+
+            rows.forEach(row => {
+                let title = row.cells[1]?.textContent?.toLowerCase() || '';
+                const shouldShow = title.includes(input);
+                row.style.display = shouldShow ? "" : "none";
+            });
+        }
+
+        // Debounce for better performance
+        let searchTimer;
+        document.getElementById('searchInput').addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(searchTable, 300);
+        });
+
+        // Session success
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}',
+                confirmButtonColor: '#3085d6'
+            });
+        @endif
+
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: '{{ session('error') }}',
+                confirmButtonColor: '#d33'
+            });
+        @endif
+
+        // Show validation errors
+        @if ($errors->any())
+            let errorMessages = '';
+            @foreach ($errors->all() as $error)
+                errorMessages += '{{ $error }}\n';
+            @endforeach
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: errorMessages,
+                confirmButtonColor: '#d33'
+            });
+        @endif
+
+        function deleteSlider(id) {
+            Swal.fire({
+                title: 'Hapus slider ini?',
+                text: "Data yang dihapus tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/slider/${id}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            Swal.fire('Terhapus!', data.message, 'success').then(() => {
+                                location.reload();
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('Error!', 'Terjadi kesalahan saat menghapus slider.', 'error');
+                    });
+                }
+            });
+        }
+
+        function openAddModal() {
+            // Reset form
+            document.getElementById('addSliderForm').reset();
+            document.getElementById('addPreview').innerHTML = '';
+
+            // Show upload area and hide preview
+            document.getElementById('addUploadArea').style.display = 'block';
+
+            // Reset CKEditor content
+            if (addSubtitleEditor) {
+                addSubtitleEditor.setData('');
+            }
+
+            // Show modal
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
+        }
+
+        function openEditModal(button) {
+            const slider = JSON.parse(button.getAttribute('data-slider'));
+            const form = document.getElementById('editForm');
+
+            // Set form action
+            form.action = `/slider/${slider.id}`;
+
+            // Populate form fields
+            document.getElementById('editTitle').value = slider.title || '';
+            document.getElementById('editYoutubeId').value = slider.youtube_id || '';
+            document.getElementById('editButtonText').value = slider.button_text || '';
+            document.getElementById('editUrlLink').value = slider.url_link || '';
+            document.getElementById('editDisplayOnHome').checked = slider.display_on_home || false;
+
+            // Set CKEditor content
+            if (editSubtitleEditor) {
+                editSubtitleEditor.setData(slider.subtitle || '');
+            }
+
+            // Handle image preview
+            const editPreview = document.getElementById('editPreview');
+            const editUploadArea = document.getElementById('editUploadArea');
+
+            if (slider.image) {
+                editPreview.innerHTML = `
+                    <div class="relative inline-block">
+                        <img src="/storage/${slider.image}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Current image">
+                        <button type="button" onclick="removeCurrentImage('edit')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                editUploadArea.style.display = 'none';
+            } else {
+                editPreview.innerHTML = '';
+                editUploadArea.style.display = 'block';
+            }
+
+            // Show modal
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function removeCurrentImage(modalType) {
+            const previewId = modalType === 'edit' ? 'editPreview' : 'addPreview';
+            const uploadAreaId = modalType === 'edit' ? 'editUploadArea' : 'addUploadArea';
+            const inputId = modalType === 'edit' ? 'editImageInput' : 'addImageInput';
+
+            document.getElementById(previewId).innerHTML = '';
+            document.getElementById(uploadAreaId).style.display = 'block';
+            document.getElementById(inputId).value = '';
+        }
+
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            const uploadAreaId = previewId === 'addPreview' ? 'addUploadArea' : 'editUploadArea';
+            const uploadArea = document.getElementById(uploadAreaId);
+
+            preview.innerHTML = '';
+
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+
+                // Validate file type
+                if (!file.type.match('image.*')) {
+                    Swal.fire('Error', 'File harus berupa gambar (PNG/JPG/JPEG/WEBP)', 'error');
+                    input.value = '';
+                    return;
+                }
+
+                // Validate file size (2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    Swal.fire('Error', 'Ukuran file maksimal 2MB', 'error');
+                    input.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `
+                        <div class="relative inline-block">
+                            <img src="${e.target.result}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Preview">
+                            <button type="button" onclick="removeCurrentImage('${previewId === 'addPreview' ? 'add' : 'edit'}')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    uploadArea.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                uploadArea.style.display = 'block';
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('addModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddModal();
+            }
+        });
+
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAddModal();
+                closeEditModal();
+            }
+        });
+    </script>
+@endsection

@@ -1,0 +1,1217 @@
+openapi: 3.0.3
+info:
+  title: 'Laravel API Documentation'
+  description: ''
+  version: 1.0.0
+servers:
+  -
+    url: 'http://localhost'
+tags:
+  -
+    name: 'About Us'
+    description: ''
+  -
+    name: Agenda
+    description: ''
+  -
+    name: Anggota
+    description: ''
+  -
+    name: Career
+    description: ''
+  -
+    name: Endpoints
+    description: ''
+  -
+    name: Kegiatan
+    description: ''
+  -
+    name: Produk
+    description: ''
+  -
+    name: 'Slider API'
+    description: "\nEndpoint untuk mengambil data slider yang ditampilkan di halaman utama."
+  -
+    name: 'TKA (Tingkat Kesiapan Anggota)'
+    description: ''
+paths:
+  /api/about-us:
+    get:
+      summary: 'Menampilkan semua data About Us.'
+      operationId: menampilkanSemuaDataAboutUs
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: true
+                  message: 'Data About Us berhasil diambil'
+                  data:
+                    -
+                      id: 1
+                      title: 'Tentang Kami'
+                      description: 'Isi tentang kami...'
+                      photos:
+                        -
+                          id: 10
+                          about_us_id: 1
+                          image: images/about/1.jpg
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Data About Us berhasil diambil'
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        title: 'Tentang Kami'
+                        description: 'Isi tentang kami...'
+                        photos:
+                          -
+                            id: 10
+                            about_us_id: 1
+                            image: images/about/1.jpg
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        title:
+                          type: string
+                          example: 'Tentang Kami'
+                        description:
+                          type: string
+                          example: 'Isi tentang kami...'
+                        photos:
+                          type: array
+                          example:
+                            -
+                              id: 10
+                              about_us_id: 1
+                              image: images/about/1.jpg
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 10
+                              about_us_id:
+                                type: integer
+                                example: 1
+                              image:
+                                type: string
+                                example: images/about/1.jpg
+      tags:
+        - 'About Us'
+      security: []
+  '/api/about-us/{id}':
+    get:
+      summary: 'Menampilkan detail About Us berdasarkan ID.'
+      operationId: menampilkanDetailAboutUsBerdasarkanID
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: true
+                  message: 'Detail About Us berhasil diambil'
+                  data:
+                    id: 1
+                    title: 'Tentang Kami'
+                    description: 'Isi tentang kami...'
+                    photos:
+                      -
+                        id: 10
+                        about_us_id: 1
+                        image: images/about/1.jpg
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Detail About Us berhasil diambil'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      title:
+                        type: string
+                        example: 'Tentang Kami'
+                      description:
+                        type: string
+                        example: 'Isi tentang kami...'
+                      photos:
+                        type: array
+                        example:
+                          -
+                            id: 10
+                            about_us_id: 1
+                            image: images/about/1.jpg
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 10
+                            about_us_id:
+                              type: integer
+                              example: 1
+                            image:
+                              type: string
+                              example: images/about/1.jpg
+        404:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: false
+                  message: 'Data tidak ditemukan'
+                  data: null
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Data tidak ditemukan'
+                  data:
+                    type: string
+                    example: null
+      tags:
+        - 'About Us'
+      security: []
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'ID About Us. Contoh: 1'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/agendas:
+    get:
+      summary: 'Menampilkan semua agenda beserta pembicara.'
+      operationId: menampilkanSemuaAgendaBesertaPembicara
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: 'List agenda'
+                  data:
+                    -
+                      id: 1
+                      title: 'Seminar Nasional'
+                      date: '2025-08-01'
+                      location: 'Universitas ABC'
+                      speakers:
+                        -
+                          id: 1
+                          name: 'Dr. Budi Santosa'
+                          position: 'Dosen Psikologi'
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'List agenda'
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        title: 'Seminar Nasional'
+                        date: '2025-08-01'
+                        location: 'Universitas ABC'
+                        speakers:
+                          -
+                            id: 1
+                            name: 'Dr. Budi Santosa'
+                            position: 'Dosen Psikologi'
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        title:
+                          type: string
+                          example: 'Seminar Nasional'
+                        date:
+                          type: string
+                          example: '2025-08-01'
+                        location:
+                          type: string
+                          example: 'Universitas ABC'
+                        speakers:
+                          type: array
+                          example:
+                            -
+                              id: 1
+                              name: 'Dr. Budi Santosa'
+                              position: 'Dosen Psikologi'
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                                example: 1
+                              name:
+                                type: string
+                                example: 'Dr. Budi Santosa'
+                              position:
+                                type: string
+                                example: 'Dosen Psikologi'
+      tags:
+        - Agenda
+      security: []
+  '/api/agendas/{id}':
+    get:
+      summary: 'Menampilkan detail satu agenda berdasarkan ID.'
+      operationId: menampilkanDetailSatuAgendaBerdasarkanID
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: true
+                  message: 'Detail agenda'
+                  data:
+                    id: 1
+                    title: 'Seminar Nasional'
+                    date: '2025-08-01'
+                    location: 'Universitas ABC'
+                    speakers:
+                      -
+                        id: 1
+                        name: 'Dr. Budi Santosa'
+                        position: 'Dosen Psikologi'
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Detail agenda'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      title:
+                        type: string
+                        example: 'Seminar Nasional'
+                      date:
+                        type: string
+                        example: '2025-08-01'
+                      location:
+                        type: string
+                        example: 'Universitas ABC'
+                      speakers:
+                        type: array
+                        example:
+                          -
+                            id: 1
+                            name: 'Dr. Budi Santosa'
+                            position: 'Dosen Psikologi'
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            name:
+                              type: string
+                              example: 'Dr. Budi Santosa'
+                            position:
+                              type: string
+                              example: 'Dosen Psikologi'
+        404:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  success: false
+                  message: 'Agenda tidak ditemukan'
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Agenda tidak ditemukan'
+      tags:
+        - Agenda
+      security: []
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'ID agenda. Contoh: 1'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/anggota:
+    get:
+      summary: 'Menampilkan semua anggota beserta kategori.'
+      operationId: menampilkanSemuaAnggotaBesertaKategori
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: true
+                  message: 'Data Anggota berhasil diambil'
+                  data:
+                    -
+                      id: 1
+                      name: 'Dian Permata'
+                      email: dian@example.com
+                      category:
+                        id: 1
+                        name: Pengurus
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Data Anggota berhasil diambil'
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        name: 'Dian Permata'
+                        email: dian@example.com
+                        category:
+                          id: 1
+                          name: Pengurus
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        name:
+                          type: string
+                          example: 'Dian Permata'
+                        email:
+                          type: string
+                          example: dian@example.com
+                        category:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            name:
+                              type: string
+                              example: Pengurus
+      tags:
+        - Anggota
+      security: []
+  '/api/anggota/{id}':
+    get:
+      summary: 'Menampilkan detail anggota berdasarkan ID.'
+      operationId: menampilkanDetailAnggotaBerdasarkanID
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: true
+                  message: 'Detail Anggots berhasil diambil'
+                  data:
+                    id: 1
+                    name: 'Dian Permata'
+                    email: dian@example.com
+                    category:
+                      id: 1
+                      name: Pengurus
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Detail Anggots berhasil diambil'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      name:
+                        type: string
+                        example: 'Dian Permata'
+                      email:
+                        type: string
+                        example: dian@example.com
+                      category:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          name:
+                            type: string
+                            example: Pengurus
+        404:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: false
+                  message: 'Data tidak ditemukan'
+                  data: null
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Data tidak ditemukan'
+                  data:
+                    type: string
+                    example: null
+      tags:
+        - Anggota
+      security: []
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'ID Anggota. Contoh: 1'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/career:
+    get:
+      summary: 'Menampilkan daftar semua career.'
+      operationId: menampilkanDaftarSemuaCareer
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: true
+                  message: 'List of careers'
+                  data:
+                    -
+                      id: 1
+                      title: 'UI/UX Designer'
+                      location: Jakarta
+                      type: 'Full Time'
+                      created_at: '2025-07-28T10:00:00.000000Z'
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'List of careers'
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        title: 'UI/UX Designer'
+                        location: Jakarta
+                        type: 'Full Time'
+                        created_at: '2025-07-28T10:00:00.000000Z'
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        title:
+                          type: string
+                          example: 'UI/UX Designer'
+                        location:
+                          type: string
+                          example: Jakarta
+                        type:
+                          type: string
+                          example: 'Full Time'
+                        created_at:
+                          type: string
+                          example: '2025-07-28T10:00:00.000000Z'
+      tags:
+        - Career
+      security: []
+  '/api/career/{id}':
+    get:
+      summary: 'Menampilkan detail career berdasarkan ID.'
+      operationId: menampilkanDetailCareerBerdasarkanID
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: true
+                  message: 'Career detail'
+                  data:
+                    id: 1
+                    title: 'UI/UX Designer'
+                    location: Jakarta
+                    type: 'Full Time'
+                    description: 'Deskripsi pekerjaan...'
+                    created_at: '2025-07-28T10:00:00.000000Z'
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Career detail'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      title:
+                        type: string
+                        example: 'UI/UX Designer'
+                      location:
+                        type: string
+                        example: Jakarta
+                      type:
+                        type: string
+                        example: 'Full Time'
+                      description:
+                        type: string
+                        example: 'Deskripsi pekerjaan...'
+                      created_at:
+                        type: string
+                        example: '2025-07-28T10:00:00.000000Z'
+        404:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: false
+                  message: 'Career not found'
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Career not found'
+      tags:
+        - Career
+      security: []
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'ID Career. Contoh: 1'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/ourblog:
+    get:
+      summary: 'Get all our blogs'
+      operationId: getAllOurBlogs
+      description: 'Mengambil semua data ourblog beserta kategori.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: true
+                  message: 'Data About Us berhasil diambil'
+                  data:
+                    -
+                      id: 1
+                      title: 'Judul Blog'
+                      slug: judul-blog
+                      category:
+                        id: 1
+                        name: 'Kategori A'
+                      created_at: '2025-07-28T10:00:00.000000Z'
+                      updated_at: '2025-07-28T10:00:00.000000Z'
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Data About Us berhasil diambil'
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        title: 'Judul Blog'
+                        slug: judul-blog
+                        category:
+                          id: 1
+                          name: 'Kategori A'
+                        created_at: '2025-07-28T10:00:00.000000Z'
+                        updated_at: '2025-07-28T10:00:00.000000Z'
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        title:
+                          type: string
+                          example: 'Judul Blog'
+                        slug:
+                          type: string
+                          example: judul-blog
+                        category:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 1
+                            name:
+                              type: string
+                              example: 'Kategori A'
+                        created_at:
+                          type: string
+                          example: '2025-07-28T10:00:00.000000Z'
+                        updated_at:
+                          type: string
+                          example: '2025-07-28T10:00:00.000000Z'
+      tags:
+        - Endpoints
+      security: []
+  '/api/ourblog/{id}':
+    get:
+      summary: 'Get detail of an our blog'
+      operationId: getDetailOfAnOurBlog
+      description: 'Mengambil detail sebuah ourblog berdasarkan ID-nya.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: true
+                  message: 'Detail About Us berhasil diambil'
+                  data:
+                    id: 1
+                    title: 'Judul Blog'
+                    slug: judul-blog
+                    category:
+                      id: 1
+                      name: 'Kategori A'
+                    created_at: '2025-07-28T10:00:00.000000Z'
+                    updated_at: '2025-07-28T10:00:00.000000Z'
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Detail About Us berhasil diambil'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      title:
+                        type: string
+                        example: 'Judul Blog'
+                      slug:
+                        type: string
+                        example: judul-blog
+                      category:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          name:
+                            type: string
+                            example: 'Kategori A'
+                      created_at:
+                        type: string
+                        example: '2025-07-28T10:00:00.000000Z'
+                      updated_at:
+                        type: string
+                        example: '2025-07-28T10:00:00.000000Z'
+        404:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: false
+                  message: 'Data tidak ditemukan'
+                  data: null
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Data tidak ditemukan'
+                  data:
+                    type: string
+                    example: null
+      tags:
+        - Endpoints
+      security: []
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'ID dari blog yang ingin ditampilkan. Contoh: 1'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/kegiatan:
+    get:
+      summary: 'Menampilkan daftar semua kegiatan beserta kategori.'
+      operationId: menampilkanDaftarSemuaKegiatanBesertaKategori
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: true
+                  message: 'Data Kegiatan berhasil diambil'
+                  data:
+                    -
+                      id: 1
+                      title: 'Pelatihan Leadership'
+                      date: '2025-08-15'
+                      location: 'Aula Utama'
+                      category:
+                        id: 3
+                        name: Workshop
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Data Kegiatan berhasil diambil'
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        title: 'Pelatihan Leadership'
+                        date: '2025-08-15'
+                        location: 'Aula Utama'
+                        category:
+                          id: 3
+                          name: Workshop
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        title:
+                          type: string
+                          example: 'Pelatihan Leadership'
+                        date:
+                          type: string
+                          example: '2025-08-15'
+                        location:
+                          type: string
+                          example: 'Aula Utama'
+                        category:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 3
+                            name:
+                              type: string
+                              example: Workshop
+      tags:
+        - Kegiatan
+      security: []
+  '/api/kegiatan/{id}':
+    get:
+      summary: 'Menampilkan detail satu kegiatan berdasarkan ID.'
+      operationId: menampilkanDetailSatuKegiatanBerdasarkanID
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: true
+                  message: 'Detail Kegiatan berhasil diambil'
+                  data:
+                    id: 1
+                    title: 'Pelatihan Leadership'
+                    date: '2025-08-15'
+                    location: 'Aula Utama'
+                    description: 'Deskripsi lengkap pelatihan…'
+                    category:
+                      id: 3
+                      name: Workshop
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'Detail Kegiatan berhasil diambil'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+                      title:
+                        type: string
+                        example: 'Pelatihan Leadership'
+                      date:
+                        type: string
+                        example: '2025-08-15'
+                      location:
+                        type: string
+                        example: 'Aula Utama'
+                      description:
+                        type: string
+                        example: 'Deskripsi lengkap pelatihan…'
+                      category:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 3
+                          name:
+                            type: string
+                            example: Workshop
+        404:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: false
+                  message: 'Data tidak ditemukan'
+                  data: null
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Data tidak ditemukan'
+                  data:
+                    type: string
+                    example: null
+      tags:
+        - Kegiatan
+      security: []
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'ID Kegiatan. Contoh: 1'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/product:
+    get:
+      summary: "GET List of Products\n\nAmbil semua data produk digital yang tersedia."
+      operationId: gETListOfProductsAmbilSemuaDataProdukDigitalYangTersedia
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n  \"status\": true,\n  \"message\": \"List of Products\",\n  \"data\": [\n    {\n      \"id\": 1,\n      \"title\": \"Produk A\",\n      \"price\": 10000,\n      \"discount\": 10,\n      \"created_at\": \"2025-07-29T00:00:00.000000Z\",\n      ...\n    }\n  ]\n}"
+      tags:
+        - Produk
+      security: []
+  '/api/product/{id}':
+    get:
+      summary: "GET Product Detail\n\nAmbil detail produk berdasarkan ID."
+      operationId: gETProductDetailAmbilDetailProdukBerdasarkanID
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: success
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "{\n  \"status\": true,\n  \"message\": \"Product detail\",\n  \"data\": {\n    \"id\": 1,\n    \"title\": \"Produk A\",\n    \"price\": 10000,\n    \"discount\": 10,\n    \"created_at\": \"2025-07-29T00:00:00.000000Z\",\n    ...\n  }\n}"
+        404:
+          description: 'not found'
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: false
+                  message: 'Product not found'
+                properties:
+                  status:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: 'Product not found'
+      tags:
+        - Produk
+      security: []
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'ID produk. Contoh: 1'
+        example: 16
+        required: true
+        schema:
+          type: integer
+  /api/slider:
+    get:
+      summary: 'List Slider'
+      operationId: listSlider
+      description: 'Menampilkan semua data slider.'
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  status: true
+                  message: 'List of Slider'
+                  data:
+                    -
+                      id: 1
+                      title: 'Judul Slider'
+                      subtitle: Subjudul
+                      image: slider.jpg
+                      created_at: '2025-07-29T12:00:00.000000Z'
+                      updated_at: '2025-07-29T12:00:00.000000Z'
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: 'List of Slider'
+                  data:
+                    type: array
+                    example:
+                      -
+                        id: 1
+                        title: 'Judul Slider'
+                        subtitle: Subjudul
+                        image: slider.jpg
+                        created_at: '2025-07-29T12:00:00.000000Z'
+                        updated_at: '2025-07-29T12:00:00.000000Z'
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 1
+                        title:
+                          type: string
+                          example: 'Judul Slider'
+                        subtitle:
+                          type: string
+                          example: Subjudul
+                        image:
+                          type: string
+                          example: slider.jpg
+                        created_at:
+                          type: string
+                          example: '2025-07-29T12:00:00.000000Z'
+                        updated_at:
+                          type: string
+                          example: '2025-07-29T12:00:00.000000Z'
+      tags:
+        - 'Slider API'
+      security: []
+  /api/hows:
+    get:
+      summary: 'Menampilkan semua data TKA (Tingkat Kesiapan Anggota).'
+      operationId: menampilkanSemuaDataTKATingkatKesiapanAnggota
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                example:
+                  -
+                    id: 1
+                    step_number: 1
+                    title: 'Langkah Pertama'
+                    description: 'Deskripsi langkah pertama'
+                    image: images/tka/step1.png
+                    created_at: '2025-07-01T10:00:00.000000Z'
+      tags:
+        - 'TKA (Tingkat Kesiapan Anggota)'
+      security: []
+  '/api/hows/{id}':
+    get:
+      summary: 'Menampilkan detail TKA berdasarkan ID.'
+      operationId: menampilkanDetailTKABerdasarkanID
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  id: 1
+                  step_number: 1
+                  title: 'Langkah Pertama'
+                  description: 'Deskripsi langkah pertama'
+                  image: images/tka/step1.png
+                  created_at: '2025-07-01T10:00:00.000000Z'
+                properties:
+                  id:
+                    type: integer
+                    example: 1
+                  step_number:
+                    type: integer
+                    example: 1
+                  title:
+                    type: string
+                    example: 'Langkah Pertama'
+                  description:
+                    type: string
+                    example: 'Deskripsi langkah pertama'
+                  image:
+                    type: string
+                    example: images/tka/step1.png
+                  created_at:
+                    type: string
+                    example: '2025-07-01T10:00:00.000000Z'
+        404:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Not found'
+                properties:
+                  message:
+                    type: string
+                    example: 'Not found'
+      tags:
+        - 'TKA (Tingkat Kesiapan Anggota)'
+      security: []
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'ID TKA. Contoh: 1'
+        example: 16
+        required: true
+        schema:
+          type: integer
