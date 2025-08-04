@@ -21,7 +21,7 @@ class DashboardController extends Controller
             ->orderBy('start_datetime', 'asc')
             ->take(5)
             ->get();
-            
+
         $totalLoker = Career::count();
 
         return view('dashboard', compact('sliders', 'agendas', 'totalLoker'));

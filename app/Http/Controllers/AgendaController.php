@@ -6,9 +6,11 @@ use App\Models\Agenda;
 use App\Models\AgendaSpeaker;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use OpenApi\Annotations as OA;
 
 class AgendaController extends Controller
 {
+
     public function index()
     {
         $agendas = Agenda::with('speakers')->latest()->get();
@@ -30,16 +32,9 @@ class AgendaController extends Controller
         ]);
 
         $data = $request->only([
-            'title',
-            'description',
-            'start_datetime',
-            'end_datetime',
-            'event_organizer',
-            'location',
-            'register_link',
-            'youtube_link',
-            'type',
-            'status'
+            'title', 'description', 'start_datetime', 'end_datetime',
+            'event_organizer', 'location', 'register_link', 'youtube_link',
+            'type', 'status'
         ]);
 
         if ($request->hasFile('image')) {
@@ -59,22 +54,12 @@ class AgendaController extends Controller
     {
         $agenda = Agenda::with('speakers')->findOrFail($id);
 
-        // Jika request AJAX, return JSON
         if (request()->ajax() || request()->wantsJson()) {
             return response()->json($agenda);
         }
 
-        // Jika bukan AJAX, return view
         return view('agenda.show', compact('agenda'));
     }
-
-    // Method edit untuk menampilkan form edit (opsional, jika diperlukan)
-    // public function edit($id)
-    // {
-    //     $agenda = Agenda::with('speakers')->findOrFail($id);
-    //     $speakers = AgendaSpeaker::all();
-    //     return view('agenda.edit', compact('agenda', 'speakers'));
-    // }
 
     public function update(Request $request, $id)
     {
@@ -92,16 +77,9 @@ class AgendaController extends Controller
         ]);
 
         $data = $request->only([
-            'title',
-            'description',
-            'start_datetime',
-            'end_datetime',
-            'event_organizer',
-            'location',
-            'register_link',
-            'youtube_link',
-            'type',
-            'status'
+            'title', 'description', 'start_datetime', 'end_datetime',
+            'event_organizer', 'location', 'register_link', 'youtube_link',
+            'type', 'status'
         ]);
 
         if ($request->hasFile('image')) {
@@ -112,8 +90,6 @@ class AgendaController extends Controller
         }
 
         $agenda->update($data);
-
-        // Update speaker relation
         $agenda->speakers()->sync($request->speaker_ids ?? []);
 
         return redirect()->route('agenda.index')->with('success', 'Agenda updated successfully.');
@@ -127,7 +103,6 @@ class AgendaController extends Controller
             Storage::disk('public')->delete($agenda->image);
         }
 
-        // detach dulu relasinya
         $agenda->speakers()->detach();
         $agenda->delete();
 

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class CareerController extends Controller
 {
+
     public function index()
     {
         $careers = Career::latest()->get();

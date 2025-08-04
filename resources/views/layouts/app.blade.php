@@ -310,7 +310,7 @@
                                 </div>
 
                                 <div class="py-2">
-                                    <a href="/profile"
+                                    <a href="/profile-setting"
                                         class="flex items-center px-4 py-2 text-xs text-gray-700 hover:bg-gray-50 transition-colors">
                                         <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor"
                                             viewBox="0 0 24 24">

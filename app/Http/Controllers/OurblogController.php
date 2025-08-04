@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class OurblogController extends Controller
 {
+
     public function index()
     {
         $ourblogs = Ourblog::with('category')->latest()->get();

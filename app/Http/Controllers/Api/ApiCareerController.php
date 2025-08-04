@@ -6,26 +6,56 @@ use App\Http\Controllers\Controller;
 use App\Models\Career;
 use Illuminate\Http\Request;
 
+/**
+ * @OA\Schema(
+ *     schema="Career",
+ *     type="object",
+ *     required={"id", "job_type", "position_title", "lokasi", "pengalaman", "jam_kerja", "hari_kerja", "ringkasan"},
+ *     @OA\Property(property="id", type="integer", example=1),
+ *     @OA\Property(property="job_type", type="string", example="Full Time"),
+ *     @OA\Property(property="position_title", type="string", example="Software Engineer"),
+ *     @OA\Property(property="lokasi", type="string", example="Bandung"),
+ *     @OA\Property(property="pengalaman", type="string", example="2 tahun"),
+ *     @OA\Property(property="jam_kerja", type="string", example="08:00 - 17:00"),
+ *     @OA\Property(property="hari_kerja", type="string", example="Senin - Jumat"),
+ *     @OA\Property(property="ringkasan", type="string", example="Bertanggung jawab atas pengembangan aplikasi."),
+ *     @OA\Property(
+ *         property="klasifikasi",
+ *         type="array",
+ *         @OA\Items(type="string", example="IT")
+ *     ),
+ *     @OA\Property(
+ *         property="deskripsi",
+ *         type="array",
+ *         @OA\Items(type="string", example="Membuat dan menguji fitur.")
+ *     ),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time")
+ * )
+ */
 class ApiCareerController extends Controller
 {
     /**
-     * Menampilkan daftar semua career.
-     *
-     * @group Career
-     *
-     * @response 200 {
-     *   "status": true,
-     *   "message": "List of careers",
-     *   "data": [
-     *     {
-     *       "id": 1,
-     *       "title": "UI/UX Designer",
-     *       "location": "Jakarta",
-     *       "type": "Full Time",
-     *       "created_at": "2025-07-28T10:00:00.000000Z"
-     *     }
-     *   ]
-     * }
+     * @OA\Get(
+     *     path="/api/career",
+     *     operationId="getAllCareers",
+     *     tags={"Career"},
+     *     summary="Menampilkan daftar Career",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Berhasil mengambil daftar Career",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="List of careers"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Career")
+     *             )
+     *         )
+     *     )
+     * )
      */
     public function index()
     {
@@ -38,29 +68,38 @@ class ApiCareerController extends Controller
     }
 
     /**
-     * Menampilkan detail career berdasarkan ID.
-     *
-     * @group Career
-     *
-     * @urlParam id integer required ID Career. Contoh: 1
-     *
-     * @response 200 {
-     *   "status": true,
-     *   "message": "Career detail",
-     *   "data": {
-     *     "id": 1,
-     *     "title": "UI/UX Designer",
-     *     "location": "Jakarta",
-     *     "type": "Full Time",
-     *     "description": "Deskripsi pekerjaan...",
-     *     "created_at": "2025-07-28T10:00:00.000000Z"
-     *   }
-     * }
-     *
-     * @response 404 {
-     *   "status": false,
-     *   "message": "Career not found"
-     * }
+     * @OA\Get(
+     *     path="/api/career/{id}",
+     *     operationId="getCareerById",
+     *     tags={"Career"},
+     *     summary="Menampilkan detail Career berdasarkan ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID Career",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Berhasil mengambil data Career",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Career detail"),
+     *             @OA\Property(property="data", ref="#/components/schemas/Career")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Career tidak ditemukan",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Career not found")
+     *         )
+     *     )
+     * )
      */
     public function show($id)
     {

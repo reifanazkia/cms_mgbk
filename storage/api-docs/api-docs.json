@@ -1,0 +1,1390 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "CMS API Documentation",
+        "description": "Dokumentasi API untuk CMS MGBK",
+        "contact": {
+            "email": "Admin@gmail.com"
+        },
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/api/about-us": {
+            "get": {
+                "tags": [
+                    "About Us"
+                ],
+                "summary": "Menampilkan semua data About Us",
+                "operationId": "getAllAboutUs",
+                "responses": {
+                    "200": {
+                        "description": "Sukses ambil semua About Us",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data About Us berhasil diambil"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/AboutUs"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/about-us/{id}": {
+            "get": {
+                "tags": [
+                    "About Us"
+                ],
+                "summary": "Menampilkan detail About Us berdasarkan ID",
+                "operationId": "getAboutUsById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID About Us",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sukses ambil detail About Us",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Detail About Us berhasil diambil"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/AboutUs"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Data tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data tidak ditemukan"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/agendas": {
+            "get": {
+                "tags": [
+                    "Agenda"
+                ],
+                "summary": "Menampilkan daftar agenda",
+                "operationId": "getAllAgendas",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil daftar agenda",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "List agenda"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Agenda"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/agendas/{id}": {
+            "get": {
+                "tags": [
+                    "Agenda"
+                ],
+                "summary": "Menampilkan detail satu agenda berdasarkan ID",
+                "operationId": "getAgendaById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID Agenda",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail agenda ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Detail agenda"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Agenda"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Agenda tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Agenda tidak ditemukan"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Terjadi kesalahan server",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Terjadi kesalahan saat mengambil data agenda"
+                                        },
+                                        "error": {
+                                            "type": "string",
+                                            "example": "Error message"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/anggota": {
+            "get": {
+                "tags": [
+                    "Anggota"
+                ],
+                "summary": "Menampilkan daftar seluruh Anggota",
+                "description": "Mengembalikan list data anggota beserta relasi kategori.",
+                "operationId": "getAllAnggota",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil data anggota",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data Anggota berhasil diambil"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Anggota"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/career": {
+            "get": {
+                "tags": [
+                    "Career"
+                ],
+                "summary": "Menampilkan daftar Career",
+                "operationId": "getAllCareers",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil daftar Career",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "List of careers"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Career"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/career/{id}": {
+            "get": {
+                "tags": [
+                    "Career"
+                ],
+                "summary": "Menampilkan detail Career berdasarkan ID",
+                "operationId": "getCareerById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID Career",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil data Career",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Career detail"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Career"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Career tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Career not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/hows": {
+            "get": {
+                "tags": [
+                    "Hows"
+                ],
+                "summary": "Menampilkan daftar Hows",
+                "operationId": "getAllHows",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil daftar Hows",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Hows"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/hows/{id}": {
+            "get": {
+                "tags": [
+                    "Hows"
+                ],
+                "summary": "Menampilkan detail Hows berdasarkan ID",
+                "operationId": "getHowsById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID Hows",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil data Hows",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Hows"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Hows tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/kegiatan": {
+            "get": {
+                "tags": [
+                    "Kegiatan"
+                ],
+                "summary": "Menampilkan daftar Kegiatan",
+                "operationId": "getAllKegiatan",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil daftar Kegiatan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data Kegiatan berhasil diambil"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Kegiatan"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/kegiatan/{id}": {
+            "get": {
+                "tags": [
+                    "Kegiatan"
+                ],
+                "summary": "Menampilkan detail Kegiatan berdasarkan ID",
+                "operationId": "getKegiatanById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID Kegiatan",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil data Kegiatan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Detail Kegiatan berhasil diambil"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Kegiatan"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Kegiatan tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data tidak ditemukan"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ourblog": {
+            "get": {
+                "tags": [
+                    "OurBlog"
+                ],
+                "summary": "Menampilkan daftar OurBlog",
+                "operationId": "getAllOurBlogs",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil daftar OurBlog",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data OurBlog berhasil diambil"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/OurBlog"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/ourblog/{id}": {
+            "get": {
+                "tags": [
+                    "OurBlog"
+                ],
+                "summary": "Menampilkan detail OurBlog berdasarkan ID",
+                "operationId": "getOurBlogById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID OurBlog",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil data OurBlog",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Detail OurBlog berhasil diambil"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/OurBlog"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "OurBlog tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Data tidak ditemukan"
+                                        },
+                                        "data": {
+                                            "type": "null",
+                                            "example": null
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/product": {
+            "get": {
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Menampilkan daftar Product",
+                "operationId": "getAllProducts",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil daftar Product",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "List of Products"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Product"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/product/{id}": {
+            "get": {
+                "tags": [
+                    "Product"
+                ],
+                "summary": "Menampilkan detail Product berdasarkan ID",
+                "operationId": "getProductById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "ID Product",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil data Product",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Product detail"
+                                        },
+                                        "data": {
+                                            "$ref": "#/components/schemas/Product"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Product tidak ditemukan",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Product not found"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/slider": {
+            "get": {
+                "tags": [
+                    "Slider"
+                ],
+                "summary": "Ambil semua data slider untuk admin",
+                "description": "Mengembalikan list semua slider dari database, untuk tampilan admin.",
+                "operationId": "getAllSliders",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil data slider",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "List of Slider"
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Slider"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/slider/home": {
+            "get": {
+                "tags": [
+                    "Slider"
+                ],
+                "summary": "Ambil slider untuk homepage",
+                "description": "Menampilkan semua slider yang tampil di homepage",
+                "operationId": "getHomeSliders",
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil slider homepage",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Slider"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "AboutUs": {
+                "title": "About Us",
+                "required": [
+                    "id",
+                    "sejarah",
+                    "visi",
+                    "misi"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "sejarah": {
+                        "type": "string",
+                        "example": "Sejarah organisasi..."
+                    },
+                    "visi": {
+                        "type": "string",
+                        "example": "Menjadi yang terbaik..."
+                    },
+                    "misi": {
+                        "type": "string",
+                        "example": "Memberikan layanan..."
+                    },
+                    "photos": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "example": 5
+                                },
+                                "photo_path": {
+                                    "type": "string",
+                                    "example": "storage/aboutus/image.jpg"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Agenda": {
+                "required": [
+                    "id",
+                    "title",
+                    "description",
+                    "start_datetime",
+                    "location",
+                    "status"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Seminar Nasional Teknologi"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Deskripsi lengkap acara."
+                    },
+                    "start_datetime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-09-10T09:00:00"
+                    },
+                    "end_datetime": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-09-10T12:00:00"
+                    },
+                    "event_organizer": {
+                        "type": "string",
+                        "example": "Universitas XYZ"
+                    },
+                    "location": {
+                        "type": "string",
+                        "example": "Auditorium A, Kampus Utama"
+                    },
+                    "register_link": {
+                        "type": "string",
+                        "example": "https://example.com/register"
+                    },
+                    "youtube_link": {
+                        "type": "string",
+                        "example": "https://youtube.com/example"
+                    },
+                    "type": {
+                        "type": "string",
+                        "example": "Webinar"
+                    },
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "Soldout",
+                            "Open"
+                        ],
+                        "example": "Open"
+                    },
+                    "speakers": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "id": {
+                                    "type": "integer",
+                                    "example": 3
+                                },
+                                "name": {
+                                    "type": "string",
+                                    "example": "Budi Santoso"
+                                },
+                                "title": {
+                                    "type": "string",
+                                    "example": "CTO di ABC Tech"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "image": {
+                        "type": "string",
+                        "example": "agenda/example.jpg"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Anggota": {
+                "required": [
+                    "id",
+                    "name",
+                    "title",
+                    "category_anggota_id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "category_anggota_id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Andi Saputra"
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Koordinator MGBK"
+                    },
+                    "email": {
+                        "type": "string",
+                        "example": "andi@example.com"
+                    },
+                    "phone_number": {
+                        "type": "string",
+                        "example": "081234567890"
+                    },
+                    "facebook_id": {
+                        "type": "string",
+                        "example": "andi.saputra"
+                    },
+                    "instagram_id": {
+                        "type": "string",
+                        "example": "andi_ig"
+                    },
+                    "tiktok_id": {
+                        "type": "string",
+                        "example": "andi.tiktok"
+                    },
+                    "image": {
+                        "type": "string",
+                        "example": "anggota/foto.jpg"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-01T10:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-01T10:00:00Z"
+                    },
+                    "category": {
+                        "properties": {
+                            "id": {
+                                "type": "integer",
+                                "example": 2
+                            },
+                            "name": {
+                                "type": "string",
+                                "example": "Pengurus Wilayah"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "Career": {
+                "required": [
+                    "id",
+                    "job_type",
+                    "position_title",
+                    "lokasi",
+                    "pengalaman",
+                    "jam_kerja",
+                    "hari_kerja",
+                    "ringkasan"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "job_type": {
+                        "type": "string",
+                        "example": "Full Time"
+                    },
+                    "position_title": {
+                        "type": "string",
+                        "example": "Software Engineer"
+                    },
+                    "lokasi": {
+                        "type": "string",
+                        "example": "Bandung"
+                    },
+                    "pengalaman": {
+                        "type": "string",
+                        "example": "2 tahun"
+                    },
+                    "jam_kerja": {
+                        "type": "string",
+                        "example": "08:00 - 17:00"
+                    },
+                    "hari_kerja": {
+                        "type": "string",
+                        "example": "Senin - Jumat"
+                    },
+                    "ringkasan": {
+                        "type": "string",
+                        "example": "Bertanggung jawab atas pengembangan aplikasi."
+                    },
+                    "klasifikasi": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "IT"
+                        }
+                    },
+                    "deskripsi": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "Membuat dan menguji fitur."
+                        }
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Hows": {
+                "title": "Hows",
+                "required": [
+                    "step_number",
+                    "title"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "step_number": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Langkah 1"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Deskripsi langkah 1"
+                    },
+                    "image": {
+                        "type": "string",
+                        "example": "storage/kta/image.jpg"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                },
+                "type": "object"
+            },
+            "Kegiatan": {
+                "title": "Kegiatan",
+                "description": "Schema untuk entitas Kegiatan",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "category_kegiatan_id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Pelatihan Web Laravel"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Deskripsi pelatihan lengkap"
+                    },
+                    "image": {
+                        "type": "string",
+                        "example": "storage/kegiatan/image1.jpg"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-04T10:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-04T10:30:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "OurBlog": {
+                "title": "OurBlog",
+                "description": "Schema untuk entitas OurBlog",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "category_blog_id": {
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Pelatihan Web Laravel"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Deskripsi pelatihan lengkap"
+                    },
+                    "image": {
+                        "type": "string",
+                        "example": "storage/ourblog/image1.jpg"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-04T10:00:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-04T10:30:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "Product": {
+                "title": "Product",
+                "description": "Schema untuk entitas Produk",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Modul Pelatihan Digital Marketing"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Deskripsi lengkap produk..."
+                    },
+                    "price": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 199000
+                    },
+                    "discount": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "image": {
+                        "type": "string",
+                        "example": "storage/products/gambar.jpg"
+                    },
+                    "disusun": {
+                        "type": "string",
+                        "example": "Tim Ahli Pemasaran"
+                    },
+                    "jumlah_modul": {
+                        "type": "integer",
+                        "example": 8
+                    },
+                    "bahasa": {
+                        "type": "string",
+                        "example": "Indonesia"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-04T10:30:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-04T11:45:00Z"
+                    }
+                },
+                "type": "object"
+            },
+            "Slider": {
+                "title": "Slider",
+                "description": "Schema untuk entitas Slider",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Selamat Datang di Platform Kami"
+                    },
+                    "subtitle": {
+                        "type": "string",
+                        "example": "Pelatihan dan Modul Terbaik"
+                    },
+                    "image": {
+                        "type": "string",
+                        "example": "storage/sliders/slider1.jpg"
+                    },
+                    "youtube_id": {
+                        "type": "string",
+                        "example": "dQw4w9WgXcQ"
+                    },
+                    "button_text": {
+                        "type": "string",
+                        "example": "Pelajari Lebih Lanjut"
+                    },
+                    "url_link": {
+                        "type": "string",
+                        "example": "https://example.com/module"
+                    },
+                    "display_on_home": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-04T10:30:00Z"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "example": "2025-08-04T10:45:00Z"
+                    }
+                },
+                "type": "object"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "About Us",
+            "description": "About Us"
+        },
+        {
+            "name": "Agenda",
+            "description": "Agenda"
+        },
+        {
+            "name": "Anggota",
+            "description": "Anggota"
+        },
+        {
+            "name": "Career",
+            "description": "Career"
+        },
+        {
+            "name": "Hows",
+            "description": "Hows"
+        },
+        {
+            "name": "Kegiatan",
+            "description": "Kegiatan"
+        },
+        {
+            "name": "OurBlog",
+            "description": "OurBlog"
+        },
+        {
+            "name": "Product",
+            "description": "Product"
+        },
+        {
+            "name": "Slider",
+            "description": "Slider"
+        }
+    ]
+}

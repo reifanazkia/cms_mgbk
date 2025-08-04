@@ -8,9 +8,11 @@ use App\Models\Aboutus_photo;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
+use OpenApi\Annotations as OA;
 
 class AboutUsController extends Controller
 {
+
     public function index()
     {
         $abouts = AboutUs::with('photos')->latest()->get();
@@ -55,7 +57,6 @@ class AboutUsController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Debug log untuk melihat data yang diterima
         Log::info('Update request data:', $request->all());
 
         $about = AboutUs::findOrFail($id);
@@ -67,14 +68,12 @@ class AboutUsController extends Controller
             'photos.*' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        // Update data utama
         $about->update([
             'sejarah' => $request->sejarah,
             'visi' => $request->visi,
             'misi' => $request->misi,
         ]);
 
-        // Hapus foto yang dipilih untuk dihapus
         if ($request->filled('photo_ids_to_delete')) {
             $photoIdsToDelete = array_filter(explode(',', $request->photo_ids_to_delete));
             Log::info('Photo IDs to delete:', ['ids' => $photoIdsToDelete]);
@@ -89,13 +88,11 @@ class AboutUsController extends Controller
                     if ($photo) {
                         Log::info('Deleting photo:', ['id' => $photo->id, 'path' => $photo->photo_path]);
 
-                        // Hapus file fisik
                         if (File::exists(public_path($photo->photo_path))) {
                             File::delete(public_path($photo->photo_path));
                             Log::info('Physical file deleted:', ['path' => $photo->photo_path]);
                         }
 
-                        // Hapus record dari database
                         $photo->delete();
                         Log::info('Database record deleted for photo ID:', ['photo_id' => $photoId]);
                     } else {
@@ -105,7 +102,6 @@ class AboutUsController extends Controller
             }
         }
 
-        // Handle foto baru
         if ($request->hasFile('photos')) {
             foreach ($request->file('photos') as $file) {
                 if ($file && $file->isValid()) {
@@ -121,7 +117,6 @@ class AboutUsController extends Controller
 
         return redirect()->back()->with('success', 'Data berhasil diperbarui.');
     }
-
 
     public function destroy($id)
     {
@@ -139,7 +134,6 @@ class AboutUsController extends Controller
         return redirect()->back()->with('success', 'Data berhasil dihapus.');
     }
 
-    // Method untuk hapus foto individual (dari tabel utama)
     public function deletePhoto($id)
     {
         $photo = Aboutus_photo::findOrFail($id);

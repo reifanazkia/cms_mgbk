@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class AnggotaController extends Controller
 {
+
     public function index()
     {
         $anggotas = Anggota::with('category')->latest()->get();

@@ -7,8 +7,22 @@ use Illuminate\Database\Eloquent\Model;
 class Order extends Model
 {
     protected $fillable = [
-        'customer_name', 'email', 'phone', 'province', 'city',
-        'address', 'note', 'product_id', 'price', 'payment_method', 'ongkir'
+        'invoice_number',
+        'customer_name',
+        'email',
+        'phone',
+        'product_id',
+        'price',
+        'ongkir',
+        'total',
+        'payment_method',
+        'reference',
+        'payment_url',
+        'status',
+        'note',
+        'province',    // tambahkan ini
+        'city',        // tambahkan ini
+        'address',     // tambahkan ini
     ];
 
     public function product()
@@ -16,5 +30,3 @@ class Order extends Model
         return $this->belongsTo(Product::class);
     }
 }
-
-

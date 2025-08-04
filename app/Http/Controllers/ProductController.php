@@ -6,8 +6,10 @@ use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+
 class ProductController extends Controller
 {
+
     public function index()
     {
         $products = Product::latest()->get();
@@ -28,6 +30,9 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'discount' => 'nullable|integer|min:0|max:100',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp',
+            'disusun' => 'required|string|max:255',
+            'jumlah_modul' => 'required|integer|min:1',
+            'bahasa' => 'required|string|max:100',
         ]);
 
         if ($request->hasFile('image')) {
@@ -48,6 +53,9 @@ class ProductController extends Controller
             'price' => 'required|numeric',
             'discount' => 'nullable|integer|min:0|max:100',
             'image' => 'nullable|image|mimes:jpg,jpeg,png,webp',
+            'disusun' => 'required|string|max:255',
+            'jumlah_modul' => 'required|integer|min:1',
+            'bahasa' => 'required|string|max:100',
         ]);
 
         if ($request->hasFile('image')) {
@@ -72,35 +80,34 @@ class ProductController extends Controller
     }
 
     public function bulkDelete(Request $request)
-{
-    $request->validate([
-        'ids' => 'required|array',
-        'ids.*' => 'integer',
-    ]);
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer',
+        ]);
 
-    $ids = $request->input('ids');
+        $ids = $request->input('ids');
 
-    if (empty($ids)) {
-        return back()->with('error', 'Tidak ada produk yang dipilih');
-    }
-
-    try {
-        $products = Product::whereIn('id', $ids)->get();
-
-        foreach ($products as $product) {
-            // Hapus gambar dari storage jika ada
-            if ($product->image && Storage::disk('public')->exists($product->image)) {
-                Storage::disk('public')->delete($product->image);
-            }
-
-            // Hapus produk
-            $product->delete();
+        if (empty($ids)) {
+            return back()->with('error', 'Tidak ada produk yang dipilih');
         }
 
-        return back()->with('success', 'Produk terpilih berhasil dihapus.');
-    } catch (\Exception $e) {
-        return back()->with('error', 'Gagal menghapus produk: ' . $e->getMessage());
-    }
-}
+        try {
+            $products = Product::whereIn('id', $ids)->get();
 
+            foreach ($products as $product) {
+                // Hapus gambar dari storage jika ada
+                if ($product->image && Storage::disk('public')->exists($product->image)) {
+                    Storage::disk('public')->delete($product->image);
+                }
+
+                // Hapus produk
+                $product->delete();
+            }
+
+            return back()->with('success', 'Produk terpilih berhasil dihapus.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal menghapus produk: ' . $e->getMessage());
+        }
+    }
 }

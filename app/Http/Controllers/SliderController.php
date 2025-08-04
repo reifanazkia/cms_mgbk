@@ -6,11 +6,10 @@ use App\Models\Slider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
+
+
 class SliderController extends Controller
 {
-    /**
-     * Menampilkan semua slider (admin view)
-     */
     public function index()
     {
         $sliders = Slider::latest()->get();
@@ -30,7 +29,7 @@ class SliderController extends Controller
                 'youtube_id'     => 'nullable|string|max:255',
                 'button_text'    => 'nullable|string|max:100',
                 'url_link'       => 'nullable|url|max:255',
-                'display_on_home'=> 'nullable|boolean',
+                'display_on_home' => 'nullable|boolean',
             ]);
 
             // Handle image upload
@@ -49,7 +48,6 @@ class SliderController extends Controller
             } else {
                 return redirect()->back()->with('error', 'Gagal menambahkan slider.');
             }
-
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()
                 ->withErrors($e->validator)
@@ -77,7 +75,7 @@ class SliderController extends Controller
                 'youtube_id'     => 'nullable|string|max:255',
                 'button_text'    => 'nullable|string|max:100',
                 'url_link'       => 'nullable|url|max:255',
-                'display_on_home'=> 'nullable|boolean',
+                'display_on_home' => 'nullable|boolean',
             ]);
 
             // Handle image upload
@@ -95,7 +93,6 @@ class SliderController extends Controller
             $slider->update($validated);
 
             return redirect()->route('slider.index')->with('success', 'Slider berhasil diperbarui.');
-
         } catch (\Exception $e) {
             return redirect()->back()
                 ->withInput()
@@ -119,15 +116,11 @@ class SliderController extends Controller
             $slider->delete();
 
             return response()->json(['message' => 'Slider berhasil dihapus.']);
-
         } catch (\Exception $e) {
             return response()->json(['error' => 'Gagal menghapus slider: ' . $e->getMessage()], 500);
         }
     }
 
-    /**
-     * Menampilkan slider untuk homepage (frontend)
-     */
     public function showHomeSlider()
     {
         $sliders = Slider::where('display_on_home', true)->latest()->get();

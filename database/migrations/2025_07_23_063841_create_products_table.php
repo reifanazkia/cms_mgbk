@@ -14,6 +14,9 @@ class CreateProductsTable extends Migration
             $table->string('image'); // path gambar
             $table->text('description');
             $table->integer('price');
+            $table->string('disusun');
+            $table->integer('jumlah_modul');
+            $table->string('bahasa');
             $table->integer('discount')->nullable();
             $table->timestamps();
         });

@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Storage;
 
 class KegiatanController extends Controller
 {
+
     public function index()
     {
         $kegiatans = Kegiatan::with('category')->latest()->get();

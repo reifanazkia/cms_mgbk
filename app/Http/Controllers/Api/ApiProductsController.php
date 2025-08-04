@@ -9,26 +9,26 @@ use Illuminate\Http\Request;
 class ApiProductsController extends Controller
 {
     /**
-     * @group Produk
-     *
-     * GET List of Products
-     *
-     * Ambil semua data produk digital yang tersedia.
-     *
-     * @response 200 scenario="success" {
-     *   "status": true,
-     *   "message": "List of Products",
-     *   "data": [
-     *     {
-     *       "id": 1,
-     *       "title": "Produk A",
-     *       "price": 10000,
-     *       "discount": 10,
-     *       "created_at": "2025-07-29T00:00:00.000000Z",
-     *       ...
-     *     }
-     *   ]
-     * }
+     * @OA\Get(
+     *     path="/api/product",
+     *     operationId="getAllProducts",
+     *     tags={"Product"},
+     *     summary="Menampilkan daftar Product",
+     *     @OA\Response(
+     *         response=200,
+     *         description="Berhasil mengambil daftar Product",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="List of Products"),
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Product")
+     *             )
+     *         )
+     *     )
+     * )
      */
     public function index()
     {
@@ -41,31 +41,38 @@ class ApiProductsController extends Controller
     }
 
     /**
-     * @group Produk
-     *
-     * GET Product Detail
-     *
-     * Ambil detail produk berdasarkan ID.
-     *
-     * @urlParam id integer required ID produk. Contoh: 1
-     *
-     * @response 200 scenario="success" {
-     *   "status": true,
-     *   "message": "Product detail",
-     *   "data": {
-     *     "id": 1,
-     *     "title": "Produk A",
-     *     "price": 10000,
-     *     "discount": 10,
-     *     "created_at": "2025-07-29T00:00:00.000000Z",
-     *     ...
-     *   }
-     * }
-     *
-     * @response 404 scenario="not found" {
-     *   "status": false,
-     *   "message": "Product not found"
-     * }
+     * @OA\Get(
+     *     path="/api/product/{id}",
+     *     operationId="getProductById",
+     *     tags={"Product"},
+     *     summary="Menampilkan detail Product berdasarkan ID",
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="ID Product",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Berhasil mengambil data Product",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="boolean", example=true),
+     *             @OA\Property(property="message", type="string", example="Product detail"),
+     *             @OA\Property(property="data", ref="#/components/schemas/Product")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="Product tidak ditemukan",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(property="status", type="boolean", example=false),
+     *             @OA\Property(property="message", type="string", example="Product not found")
+     *         )
+     *     )
+     * )
      */
     public function show($id)
     {

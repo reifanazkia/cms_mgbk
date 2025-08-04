@@ -31,6 +31,7 @@
                         <th class="px-4 py-2 border">Judul</th>
                         <th class="px-4 py-2 border">Harga</th>
                         <th class="px-4 py-2 border">Diskon</th>
+                        <th class="px-4 py-2 border">Disusun</th>
                         <th class="px-4 py-2 border">Aksi</th>
                     </tr>
                 </thead>
@@ -58,6 +59,7 @@
                                     <span class="text-gray-400">Tidak ada</span>
                                 @endif
                             </td>
+                            <td class="px-4 py-2 border">{{ $item->disusun }}</td>
                             <td class="px-4 py-2 border space-x-1">
                                 <a href="{{ route('products.show', $item->id) }}"
                                     class="text-green-600 hover:text-green-800 px-2 py-1 text-xs border border-green-300 rounded hover:bg-green-50 inline-block">Detail</a>
@@ -77,11 +79,11 @@
 
     <!-- Modal Tambah -->
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
+        <div class="bg-white rounded-lg w-full max-w-4xl p-6 space-y-4 overflow-y-auto max-h-screen">
             <h2 class="text-lg font-semibold">Tambah Produk</h2>
             <form action="{{ route('products.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block mb-1 font-medium">Judul</label>
                         <input type="text" name="title" required class="w-full border rounded p-2 text-sm" />
@@ -94,7 +96,19 @@
                         <label class="block mb-1 font-medium">Diskon (%)</label>
                         <input type="number" name="discount" class="w-full border rounded p-2 text-sm" />
                     </div>
-                    <div class="col-span-2">
+                    <div>
+                        <label class="block mb-1 font-medium">Disusun Oleh</label>
+                        <input type="text" name="disusun" required class="w-full border rounded p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Jumlah Modul</label>
+                        <input type="number" name="jumlah_modul" required min="1" class="w-full border rounded p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Bahasa</label>
+                        <input type="text" name="bahasa" required class="w-full border rounded p-2 text-sm" />
+                    </div>
+                    <div class="col-span-3">
                         <label class="block mb-1 font-medium">Deskripsi</label>
                         <textarea name="description" id="editorAddDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
                     </div>
@@ -135,12 +149,12 @@
 
     <!-- Modal Edit -->
     <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
+        <div class="bg-white rounded-lg w-full max-w-4xl p-6 space-y-4 overflow-y-auto max-h-screen">
             <h2 class="text-lg font-semibold">Edit Produk</h2>
             <form id="editForm" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-3 gap-4">
                     <div>
                         <label class="block mb-1 font-medium">Judul</label>
                         <input type="text" name="title" id="editTitle" required
@@ -155,7 +169,19 @@
                         <label class="block mb-1 font-medium">Diskon (%)</label>
                         <input type="number" name="discount" id="editDiscount" class="w-full border rounded p-2 text-sm" />
                     </div>
-                    <div class="col-span-2">
+                    <div>
+                        <label class="block mb-1 font-medium">Disusun Oleh</label>
+                        <input type="text" name="disusun" id="editDisusun" required class="w-full border rounded p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Jumlah Modul</label>
+                        <input type="number" name="jumlah_modul" id="editJumlahModul" required min="1" class="w-full border rounded p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Bahasa</label>
+                        <input type="text" name="bahasa" id="editBahasa" required class="w-full border rounded p-2 text-sm" />
+                    </div>
+                    <div class="col-span-3">
                         <label class="block mb-1 font-medium">Deskripsi</label>
                         <textarea name="description" id="editorEditDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
                     </div>
@@ -329,6 +355,9 @@
             document.getElementById('editTitle').value = product.title || '';
             document.getElementById('editPrice').value = product.price || '';
             document.getElementById('editDiscount').value = product.discount || '';
+            document.getElementById('editDisusun').value = product.disusun || '';
+            document.getElementById('editJumlahModul').value = product.jumlah_modul || '';
+            document.getElementById('editBahasa').value = product.bahasa || '';
 
             // Set CKEditor content
             if (editDescriptionEditor) {

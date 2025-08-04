@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 
 class HowsController extends Controller
 {
+
     public function index()
     {
         $steps = Hows::orderBy('step_number')->get();
@@ -54,10 +55,10 @@ class HowsController extends Controller
     }
 
     public function show($id)
-{
-    $how = Hows::findOrFail($id);
-    return view('hows.show', compact('how'));
-}
+    {
+        $how = Hows::findOrFail($id);
+        return view('hows.show', compact('how'));
+    }
 
     public function destroy($id)
     {
