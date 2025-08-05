@@ -137,7 +137,7 @@
                                 class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Agenda</a>
                             <a href="{{ route('ourblogs.index') }}"
                                 class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Berita</a>
-                            <a href="{{ route('about.index') }}"
+                            <a href="{{ route('tentangkami.index') }}"
                                 class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Tentang Kami</a>
                             <a href="{{ route('slider.index') }}"
                                 class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Slider</a>

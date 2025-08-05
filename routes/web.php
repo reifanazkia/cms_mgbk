@@ -23,6 +23,7 @@ use App\Http\Controllers\SosmedController;
 use App\Models\CategoryKegiatan;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PaymentWebhookController;
+use App\Http\Controllers\TentangkamiController;
 use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
@@ -99,13 +100,17 @@ Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('c
 Route::get('/checkout/failed', [CheckoutController::class, 'failed'])->name('checkout.failed');
 
 
-Route::prefix('about')->name('about.')->group(function () {
-    Route::get('/', [AboutUsController::class, 'index'])->name('index');
-    Route::post('/', [AboutUsController::class, 'store'])->name('store');
-    Route::get('/{id}', [AboutUsController::class, 'show'])->name('show');
-    Route::put('/{id}', [AboutUsController::class, 'update'])->name('update');
-    Route::delete('/{id}', [AboutUsController::class, 'destroy'])->name('destroy');
-    Route::delete('/photo/{id}', [AboutUsController::class, 'deletePhoto'])->name('photo.delete');
+Route::prefix('tentangkami')->name('tentangkami.')->group(function () {
+    Route::get('/', [TentangkamiController::class, 'index'])->name('index');
+    Route::post('/', [TentangkamiController::class, 'store'])->name('store');
+    Route::put('/{id}', [TentangkamiController::class, 'update'])->name('update');
+    Route::delete('/{id}', [TentangkamiController::class, 'destroy'])->name('destroy');
+
+    // Routes spesifik untuk kategori
+    Route::get('/category/{category}', [TentangkamiController::class, 'getByCategory'])->name('category');
+    Route::get('/visi', [TentangkamiController::class, 'getVisi'])->name('visi');
+    Route::get('/misi', [TentangkamiController::class, 'getMisi'])->name('misi');
+    Route::get('/sejarah', [TentangkamiController::class, 'getSejarah'])->name('sejarah');
 });
 
 Route::prefix('ourblogs')->name('ourblogs.')->group(function () {

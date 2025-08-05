@@ -30,7 +30,7 @@
                             <td class="px-4 py-2 border">{{ $career->job_type }}</td>
                             <td class="px-4 py-2 border">{{ $career->position_title }}</td>
                             <td class="px-4 py-2 border">
-                                {{ Str::limit(implode(' ', is_array($career->deskripsi) ? $career->deskripsi : [$career->deskripsi]), 60) }}
+                                {{ Str::limit(strip_tags(implode(' ', is_array($career->deskripsi) ? $career->deskripsi : [$career->deskripsi])), 60) }}
                             </td>
                             <td class="px-4 py-2 border">
                                 <div class="flex justify-end space-x-1">
@@ -63,7 +63,7 @@
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
             <h2 class="text-lg font-semibold">Tambah Career</h2>
-            <form action="{{ route('career.store') }}" method="POST">
+            <form action="{{ route('career.store') }}" method="POST" id="addCareerForm">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -99,7 +99,7 @@
 
                 <div class="mt-4">
                     <label class="block mb-1 font-medium">Ringkasan</label>
-                    <textarea name="ringkasan" id="editorAddRingkasan" rows="4" required class="w-full border rounded p-2 text-sm"></textarea>
+                    <textarea name="ringkasan" id="editorAddRingkasan" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
                 </div>
 
                 <div class="mt-4">
@@ -117,7 +117,7 @@
                     <label class="block mb-1 font-medium">Deskripsi</label>
                     <div id="addDeskripsiContainer" class="space-y-2">
                         <div class="flex gap-2">
-                            <textarea name="deskripsi[]" id="editorAddDeskripsi0" rows="4" required class="w-full border rounded p-2 text-sm ckeditor-textarea"></textarea>
+                            <textarea name="deskripsi[]" id="editorAddDeskripsi0" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
                         </div>
                     </div>
                     <button type="button" onclick="addTextarea('addDeskripsiContainer', 'deskripsi[]')"
@@ -127,8 +127,7 @@
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeAddModal()"
                         class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
-                    <button type="submit"
-                        class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
+                    <button type="submit" class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
                 </div>
             </form>
         </div>
@@ -182,7 +181,8 @@
 
                 <div class="mt-4">
                     <label class="block mb-1 font-medium">Ringkasan</label>
-                    <textarea name="ringkasan" id="editorEditRingkasan" rows="4" required class="w-full border rounded p-2 text-sm"></textarea>
+                    <textarea name="ringkasan" id="editorEditRingkasan" rows="4"
+                        class="w-full border rounded p-2 text-sm"></textarea>
                 </div>
 
                 <div class="mt-4">
@@ -201,7 +201,8 @@
                     <label class="block mb-1 font-medium">Deskripsi</label>
                     <div id="editDeskripsiContainer" class="space-y-2">
                         <div class="flex gap-2">
-                            <textarea name="deskripsi[]" id="editorEditDeskripsi0" rows="4" required class="w-full border rounded p-2 text-sm ckeditor-textarea"></textarea>
+                            <textarea name="deskripsi[]" id="editorEditDeskripsi0" rows="4"
+                                class="w-full border rounded p-2 text-sm"></textarea>
                         </div>
                     </div>
                     <button type="button" onclick="addTextarea('editDeskripsiContainer', 'deskripsi[]')"
@@ -220,7 +221,6 @@
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <!-- CKEditor -->
     <script src="https://cdn.ckeditor.com/ckeditor5/41.3.1/classic/ckeditor.js"></script>
 
@@ -273,11 +273,116 @@
                 .catch(error => {
                     console.error('Error initializing edit deskripsi editor:', error);
                 });
+
+            // Handle Add Form Submission
+            const addForm = document.getElementById('addCareerForm');
+            if (addForm) {
+                addForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleFormSubmission('add');
+                });
+            }
+
+            // Handle Edit Form Submission
+            const editForm = document.getElementById('editForm');
+            if (editForm) {
+                editForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleFormSubmission('edit');
+                });
+            }
         });
+
+        // Handle form submission with CKEditor data
+        function handleFormSubmission(type) {
+            const isAdd = type === 'add';
+            const form = document.getElementById(isAdd ? 'addCareerForm' : 'editForm');
+            const ringkasanEditor = isAdd ? addRingkasanEditor : editRingkasanEditor;
+            const deskripsiEditors = isAdd ? addDeskripsiEditors : editDeskripsiEditors;
+
+            // Show loading
+            Swal.fire({
+                title: 'Menyimpan...',
+                text: 'Mohon tunggu sebentar',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            try {
+                // Create FormData
+                const formData = new FormData(form);
+
+                // Add CKEditor data for ringkasan
+                if (ringkasanEditor) {
+                    formData.set('ringkasan', ringkasanEditor.getData());
+                }
+
+                // Clear existing deskripsi entries and add fresh ones from CKEditor
+                formData.delete('deskripsi[]');
+                let hasValidDeskripsi = false;
+
+                deskripsiEditors.forEach((editor, index) => {
+                    if (editor) {
+                        const deskripsiData = editor.getData().trim();
+                        if (deskripsiData) {
+                            formData.append('deskripsi[]', deskripsiData);
+                            hasValidDeskripsi = true;
+                        }
+                    }
+                });
+
+                // Validate required fields
+                if (!hasValidDeskripsi) {
+                    Swal.fire('Error', 'Minimal harus ada satu deskripsi yang diisi', 'error');
+                    return;
+                }
+
+                if (ringkasanEditor && !ringkasanEditor.getData().trim()) {
+                    Swal.fire('Error', 'Ringkasan harus diisi', 'error');
+                    return;
+                }
+
+                // Submit using fetch
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        Swal.fire({
+                            title: 'Berhasil!',
+                            text: isAdd ? 'Data career berhasil ditambahkan' : 'Data career berhasil diupdate',
+                            icon: 'success',
+                            timer: 1500,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        return response.text().then(text => {
+                            throw new Error(`Server error: ${response.status} - ${text}`);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('Submit error:', error);
+                    Swal.fire('Error', 'Gagal menyimpan data. Silakan coba lagi.', 'error');
+                });
+
+            } catch (error) {
+                console.error('Form preparation error:', error);
+                Swal.fire('Error', 'Terjadi kesalahan saat memproses data', 'error');
+            }
+        }
 
         function openAddModal() {
             // Reset form
-            document.querySelector('#addModal form').reset();
+            document.getElementById('addCareerForm').reset();
 
             // Reset CKEditor content
             if (addRingkasanEditor) {
@@ -301,7 +406,7 @@
             document.getElementById('addKlasifikasiContainer').innerHTML =
                 '<div class="flex gap-2"><input type="text" name="klasifikasi[]" required class="w-full border rounded p-2 text-sm" /></div>';
             document.getElementById('addDeskripsiContainer').innerHTML =
-                '<div class="flex gap-2"><textarea name="deskripsi[]" id="editorAddDeskripsi0" rows="4" required class="w-full border rounded p-2 text-sm ckeditor-textarea"></textarea></div>';
+                '<div class="flex gap-2"><textarea name="deskripsi[]" id="editorAddDeskripsi0" rows="4" class="w-full border rounded p-2 text-sm"></textarea></div>';
 
             // Reinitialize first deskripsi editor
             setTimeout(() => {
@@ -384,24 +489,24 @@
                 if (careerData.deskripsi && Array.isArray(careerData.deskripsi) && careerData.deskripsi.length > 0) {
                     careerData.deskripsi.forEach((d, index) => {
                         deskripsiHTML += `<div class="flex gap-2">
-                    <textarea name="deskripsi[]" id="editorEditDeskripsi${index}" rows="4" required class="w-full border rounded p-2 text-sm ckeditor-textarea">${escapeHtml(d || '')}</textarea>
+                    <textarea name="deskripsi[]" id="editorEditDeskripsi${index}" rows="4" class="w-full border rounded p-2 text-sm">${escapeHtml(d || '')}</textarea>
                     ${index > 0 ? '<button type="button" onclick="removeDeskripsiField(this, ' + index + ')" class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm self-start">×</button>' : ''}
                 </div>`;
                     });
                 } else {
                     deskripsiHTML =
-                        '<div class="flex gap-2"><textarea name="deskripsi[]" id="editorEditDeskripsi0" rows="4" required class="w-full border rounded p-2 text-sm ckeditor-textarea"></textarea></div>';
+                        '<div class="flex gap-2"><textarea name="deskripsi[]" id="editorEditDeskripsi0" rows="4" class="w-full border rounded p-2 text-sm"></textarea></div>';
                 }
             } catch (error) {
                 console.error('Error handling deskripsi:', error);
                 deskripsiHTML =
-                    '<div class="flex gap-2"><textarea name="deskripsi[]" id="editorEditDeskripsi0" rows="4" required class="w-full border rounded p-2 text-sm ckeditor-textarea"></textarea></div>';
+                    '<div class="flex gap-2"><textarea name="deskripsi[]" id="editorEditDeskripsi0" rows="4" class="w-full border rounded p-2 text-sm"></textarea></div>';
             }
             document.getElementById('editDeskripsiContainer').innerHTML = deskripsiHTML;
 
             // Initialize CKEditor for each deskripsi textarea
             setTimeout(() => {
-                const textareas = document.querySelectorAll('#editDeskripsiContainer .ckeditor-textarea');
+                const textareas = document.querySelectorAll('#editDeskripsiContainer textarea');
                 textareas.forEach((textarea, index) => {
                     ClassicEditor
                         .create(textarea)
@@ -421,6 +526,10 @@
             document.getElementById('editModal').classList.remove('hidden');
         }
 
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
         function escapeHtml(text) {
             const map = {
                 '&': '&amp;',
@@ -432,10 +541,6 @@
             return text.replace(/[&<>"']/g, function(m) {
                 return map[m];
             });
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.add('hidden');
         }
 
         function addInput(containerId, name) {
@@ -470,8 +575,7 @@
             const textarea = document.createElement('textarea');
             textarea.name = name;
             textarea.rows = 4;
-            textarea.className = 'w-full border rounded p-2 text-sm ckeditor-textarea';
-            textarea.required = true;
+            textarea.className = 'w-full border rounded p-2 text-sm';
 
             // Generate unique ID for CKEditor
             editorCounter++;
@@ -509,7 +613,6 @@
 
         function removeField(button) {
             const container = button.parentElement.parentElement;
-
             if (container.children.length > 1) {
                 button.parentElement.remove();
             } else {
@@ -519,7 +622,6 @@
 
         function removeDeskripsiField(button, editorIndex) {
             const container = button.parentElement.parentElement;
-
             if (container.children.length > 1) {
                 // Destroy the CKEditor instance
                 const isAdd = container.id.includes('add');
@@ -544,8 +646,7 @@
                 let jobType = row.cells[0]?.textContent?.toLowerCase() || '';
                 let description = row.cells[2]?.textContent?.toLowerCase() || '';
 
-                const shouldShow = position.includes(input) || jobType.includes(input) || description.includes(
-                    input);
+                const shouldShow = position.includes(input) || jobType.includes(input) || description.includes(input);
                 row.style.display = shouldShow ? "" : "none";
             });
         }

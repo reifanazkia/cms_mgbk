@@ -1,9 +1,7 @@
 <?php
 
-use App\Http\Controllers\AboutUsController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AnggotaController;
-use App\Http\Controllers\Api\ApiAboutUsController;
 use App\Http\Controllers\Api\ApiAgendaController;
 use App\Http\Controllers\Api\ApiAnggotaController;
 use App\Http\Controllers\Api\ApiCareerController;
@@ -19,6 +17,8 @@ use App\Http\Controllers\OurblogController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SliderController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\Api\ApiTentangkamiController;
+use App\Http\Controllers\TentangkamiController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -31,8 +31,8 @@ Route::get('/hows', [ApiHowsController::class, 'index']);
 Route::get('/hows/{id}', [ApiHowsController::class, 'show']);
 Route::get('/agendas', [ApiAgendaController::class, 'index']);
 Route::get('/agendas/{id}', [ApiAgendaController::class, 'show']);
-Route::get('/about-us', [ApiAboutUsController::class, 'index']);
-Route::get('/about-us/{id}', [ApiAboutUsController::class, 'show']);
+Route::get('/tentangkami', [ApiTentangkamiController::class, 'index']);
+Route::get('/tentangkami/category/{category}', [ApiTentangkamiController::class, 'byCategory']);
 Route::get('/career', [ApiCareerController::class, 'index']);
 Route::get('/career/{id}', [ApiCareerController::class, 'show']);
 Route::get('/ourblog', [ApiOurblogController::class, 'index']);
@@ -61,11 +61,10 @@ Route::middleware(['auth:api'])->group(
             Route::post('/bulk-delete', [ProductController::class, 'bulkDelete'])->name('bulkDelete');
         });
 
-        Route::prefix('about')->name('about.')->group(function () {
-            Route::post('/', [AboutUsController::class, 'store'])->name('store');
-            Route::put('/{id}', [AboutUsController::class, 'update'])->name('update');
-            Route::delete('/{id}', [AboutUsController::class, 'destroy'])->name('destroy');
-            Route::delete('/photo/{id}', [AboutUsController::class, 'deletePhoto'])->name('photo.delete');
+        Route::prefix('tentangkami')->name('tentangkami.')->group(function () {
+            Route::post('/', [TentangkamiController::class, 'store'])->name('store');
+            Route::put('/{id}', [TentangkamiController::class, 'update'])->name('update');
+            Route::delete('/{id}', [TentangkamiController::class, 'destroy'])->name('destroy');
         });
 
         Route::prefix('ourblogs')->name('ourblogs.')->group(function () {

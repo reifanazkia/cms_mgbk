@@ -11,22 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('aboutus_photos', function (Blueprint $table) {
+        Schema::create('tentang_kami', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('aboutus_id');
-            $table->string('photo_path');
+            $table->string('title');
+            $table->enum('category', ['Visi', 'Misi', 'Sejarah']);
+            $table->text('description');
+            $table->string('image');
             $table->timestamps();
-            $table->foreign('aboutus_id')->references('id')->on('aboutus')->onDelete('cascade');
         });
     }
-
-
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('aboutus_photos');
+        Schema::dropIfExists('tentang_kami');
     }
 };
