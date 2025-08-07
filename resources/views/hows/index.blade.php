@@ -3,9 +3,9 @@
 @section('content')
     <div class="p-4">
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-xl font-semibold">Tingkat Kesiapan Anggota</h1>
+            <h1 class="text-xl font-semibold">Kartu Tanda Anggota</h1>
             <button onclick="openAddModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                Tambah TKA
+                Tambah KTA
             </button>
         </div>
 
@@ -60,7 +60,7 @@
     <!-- Modal Tambah -->
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
-            <h2 class="text-lg font-semibold">Tambah TKA</h2>
+            <h2 class="text-lg font-semibold">Tambah KTA</h2>
             <form action="{{ route('hows.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
@@ -114,7 +114,7 @@
     <!-- Modal Edit -->
     <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
-            <h2 class="text-lg font-semibold">Edit TKA</h2>
+            <h2 class="text-lg font-semibold">Edit KTA</h2>
             <form id="editForm" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
@@ -168,6 +168,9 @@
             </form>
         </div>
     </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -292,7 +295,7 @@
             const stepData = window.steps?.find(step => step.id == id);
 
             if (!stepData) {
-                Swal.fire('Error', 'Data TKA tidak ditemukan', 'error');
+                Swal.fire('Error', 'Data KTA tidak ditemukan', 'error');
                 return;
             }
 

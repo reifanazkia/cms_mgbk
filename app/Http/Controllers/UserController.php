@@ -6,66 +6,81 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Tymon\JWTAuth\Facades\JWTAuth;
 
 class UserController extends Controller
 {
-    public function Store(Request $request){
-        $validator = Validator::make($request->all(),[
-            'Username'      => 'required',
-            'Email'         => 'required|email',
-            'Password'      => 'required'
+    /**
+     * Register user baru
+     */
+    public function store(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string|max:255',
+            'email'    => 'required|email|unique:users,email',
+            'password' => 'required|string|min:6',
         ]);
 
-        if ($validator->fails()){
-            return response()->json([
-                'message'   => 'Masukan Semua Field',
-            ]);
-        }
-
-        $data = [
-            'name'      => $request->Username,
-            'email'     => $request->Email,
-            'password'  => Hash::make($request->Password)
-        ];
-
-        User::insert($data);
-
-        return response()->json(['message' => 'sukses'] , 200);
-
-    }
-
-    public function Login(Request $request){
-        // dd($request->all());
-        $data = [
-            'email' => $request->Email,
-            'password' => $request->Password,
-        ];
-
-        if(!$token = auth()->guard('api')->attempt($data)) {
+        if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Email atau Password Anda salah'
-            ], 401);
+                'message' => 'Validasi gagal',
+                'errors'  => $validator->errors()
+            ], 422);
         }
+
+        $user = User::create([
+            'name'     => $request->username,
+            'email'    => $request->email,
+            'password' => Hash::make($request->password),
+        ]);
 
         return response()->json([
             'success' => true,
-            'user'    => auth()->guard('api')->user(),
-            'token'   => $token
-        ], 200);
+            'message' => 'Registrasi berhasil',
+            'user'    => $user
+        ], 201);
     }
 
-    public function logout(Request $request){
+    /**
+     * Login user dan generate token Sanctum
+     */
+    public function login(Request $request)
+    {
+        $request->validate([
+            'email'    => 'required|email',
+            'password' => 'required|string',
+        ]);
 
-        $removetoken = JWTAuth::invalidate(JWTAuth::getToken());
+        $user = User::where('email', $request->email)->first();
 
-        if($removetoken){
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
-                'succes' => true,
-                'message' => 'logout succes'
-            ]);
+                'success' => false,
+                'message' => 'Email atau password salah',
+            ], 401);
         }
 
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Login berhasil',
+            'token'   => $token,
+            'user'    => $user,
+        ]);
+    }
+
+    /**
+     * Logout user (hapus token Sanctum)
+     */
+    public function logout(Request $request)
+    {
+        // Menghapus token saat ini
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Logout berhasil',
+        ]);
     }
 }

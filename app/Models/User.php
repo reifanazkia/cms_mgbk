@@ -30,10 +30,8 @@ class User extends Authenticatable
 
     /**
      * Attribute casting.
-     * 'password' => 'hashed' makes Laravel automatically bcrypt when setting.
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'password' => 'hashed',
     ];
 }
