@@ -232,6 +232,8 @@
 
         // Initialize CKEditor when the page loads
         document.addEventListener('DOMContentLoaded', function() {
+            setupDragAndDrop();
+
             // Initialize CKEditor for Add Modal
             ClassicEditor
                 .create(document.querySelector('#editorAddDescription'))
@@ -251,10 +253,48 @@
                 .catch(error => {
                     console.error('Error initializing edit description editor:', error);
                 });
-
-            // Initialize drag and drop
-            setupDragAndDrop();
         });
+
+        // Setup drag and drop functionality
+        function setupDragAndDrop() {
+            setupDragAndDropForElement('addUploadArea', 'addImageInput');
+            setupDragAndDropForElement('editUploadArea', 'editImageInput');
+        }
+
+        function setupDragAndDropForElement(uploadAreaId, inputId) {
+            const uploadArea = document.getElementById(uploadAreaId);
+            const fileInput = document.getElementById(inputId);
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.add('border-blue-400', 'bg-blue-50');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+                }, false);
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    const previewId = uploadAreaId === 'addUploadArea' ? 'addPreview' : 'editPreview';
+                    previewImage(fileInput, previewId);
+                }
+            }, false);
+        }
 
         // Search function
         function searchTable() {
@@ -280,7 +320,11 @@
             const ids = Array.from(checkedBoxes).map(cb => cb.value);
 
             if (ids.length === 0) {
-                Swal.fire('Tidak ada yang dipilih', '', 'warning');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak ada yang dipilih',
+                    text: 'Pilih minimal satu produk untuk dihapus'
+                });
                 return;
             }
 
@@ -327,8 +371,6 @@
             // Reset form
             document.querySelector('#addModal form').reset();
             document.getElementById('addPreview').innerHTML = '';
-
-            // Show upload area and hide preview
             document.getElementById('addUploadArea').style.display = 'block';
 
             // Reset CKEditor content
@@ -447,54 +489,26 @@
             }
         }
 
-        // Setup drag and drop functionality
-        function setupDragAndDrop() {
-            ['addUploadArea', 'editUploadArea'].forEach(id => {
-                const element = document.getElementById(id);
-                const inputId = id === 'addUploadArea' ? 'addImageInput' : 'editImageInput';
-                const previewId = id === 'addUploadArea' ? 'addPreview' : 'editPreview';
+        // REMOVED: Modal close on outside click and escape key functionality
+        // Modal can now only be closed using Cancel button
 
-                element.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    element.classList.add('border-blue-400', 'bg-blue-50');
-                });
-
-                element.addEventListener('dragleave', () => {
-                    element.classList.remove('border-blue-400', 'bg-blue-50');
-                });
-
-                element.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    element.classList.remove('border-blue-400', 'bg-blue-50');
-
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        document.getElementById(inputId).files = files;
-                        previewImage(document.getElementById(inputId), previewId);
-                    }
-                });
+        // Show success/error messages
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '{{ session('success') }}',
+                showConfirmButton: false,
+                timer: 2000
             });
-        }
+        @endif
 
-        // Close modal when clicking outside
-        document.getElementById('addModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAddModal();
-            }
-        });
-
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEditModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeAddModal();
-                closeEditModal();
-            }
-        });
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: '{{ session('error') }}'
+            });
+        @endif
     </script>
 @endsection

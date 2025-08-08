@@ -648,26 +648,5 @@
 
             return `${year}-${month}-${day}T${hours}:${minutes}`;
         }
-
-        // Close modal when clicking outside
-        document.getElementById('addModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAddModal();
-            }
-        });
-
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEditModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeAddModal();
-                closeEditModal();
-            }
-        });
     </script>
 @endsection

@@ -189,7 +189,7 @@
             showErrorAlert("{{ session('error') }}");
         @endif
 
-        @if($errors->any())
+        @if($errors->any()))
             let errorMessages = '';
             @foreach($errors->all() as $error)
                 errorMessages += '{{ $error }}<br>';
@@ -198,6 +198,27 @@
         @endif
 
         setupDragAndDrop();
+
+        // Close modal when clicking outside
+        document.getElementById('addModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddModal();
+            }
+        });
+
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEditModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeAddModal();
+                closeEditModal();
+            }
+        });
     });
 
     // SweetAlert helper functions
@@ -379,12 +400,11 @@
         updateBulkDeleteButton();
     });
 
+    // Modal Functions
     function openAddModal() {
         // Reset form
         document.getElementById('addForm').reset();
         document.getElementById('addPreview').innerHTML = '';
-
-        // Show upload area and hide preview
         document.getElementById('addUploadArea').style.display = 'block';
 
         // Show modal
@@ -499,27 +519,6 @@
             uploadArea.style.display = 'block';
         }
     }
-
-    // Close modal when clicking outside
-    document.getElementById('addModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeAddModal();
-        }
-    });
-
-    document.getElementById('editModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeEditModal();
-        }
-    });
-
-    // Close modal with Escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeAddModal();
-            closeEditModal();
-        }
-    });
 
     // Enhanced Form Submissions with SweetAlert
     document.addEventListener('DOMContentLoaded', function() {

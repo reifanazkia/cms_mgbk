@@ -61,20 +61,20 @@
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
             <h2 class="text-lg font-semibold">Tambah KTA</h2>
-            <form action="{{ route('hows.store') }}" method="POST" enctype="multipart/form-data">
+            <form id="addForm" action="{{ route('hows.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block mb-1 font-medium">Nomor Step</label>
+                        <label class="block mb-1 font-medium">Nomor Step <span class="text-red-500">*</span></label>
                         <input type="number" name="step_number" required class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div>
-                        <label class="block mb-1 font-medium">Judul</label>
+                        <label class="block mb-1 font-medium">Judul <span class="text-red-500">*</span></label>
                         <input type="text" name="title" required class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div class="col-span-2">
-                        <label class="block mb-1 font-medium">Deskripsi</label>
-                        <textarea name="description" id="editorAddDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
+                        <label class="block mb-1 font-medium">Deskripsi <span class="text-red-500">*</span></label>
+                        <textarea name="description" id="editorAddDescription" rows="4" class="w-full border rounded p-2 text-sm" required></textarea>
                     </div>
                 </div>
 
@@ -104,7 +104,7 @@
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeAddModal()"
                         class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
-                    <button type="submit"
+                    <button type="submit" id="addSubmitBtn"
                         class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
                 </div>
             </form>
@@ -121,18 +121,18 @@
                 <input type="hidden" name="id" id="editId">
                 <div class="grid grid-cols-2 gap-4">
                     <div>
-                        <label class="block mb-1 font-medium">Nomor Step</label>
+                        <label class="block mb-1 font-medium">Nomor Step <span class="text-red-500">*</span></label>
                         <input type="number" name="step_number" id="editStepNumber" required
                             class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div>
-                        <label class="block mb-1 font-medium">Judul</label>
+                        <label class="block mb-1 font-medium">Judul <span class="text-red-500">*</span></label>
                         <input type="text" name="title" id="editTitle" required
                             class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div class="col-span-2">
-                        <label class="block mb-1 font-medium">Deskripsi</label>
-                        <textarea name="description" id="editorEditDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
+                        <label class="block mb-1 font-medium">Deskripsi <span class="text-red-500">*</span></label>
+                        <textarea name="description" id="editorEditDescription" rows="4" class="w-full border rounded p-2 text-sm" required></textarea>
                     </div>
                 </div>
 
@@ -162,7 +162,7 @@
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeEditModal()"
                         class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
-                    <button type="submit"
+                    <button type="submit" id="editSubmitBtn"
                         class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
                 </div>
             </form>
@@ -206,6 +206,40 @@
                 .catch(error => {
                     console.error('Error initializing edit description editor:', error);
                 });
+
+            // Close modal when clicking outside
+            document.getElementById('addModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeAddModal();
+                }
+            });
+
+            document.getElementById('editModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeEditModal();
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeAddModal();
+                    closeEditModal();
+                }
+            });
+
+            // Handle form submissions
+            document.getElementById('addForm').addEventListener('submit', function(e) {
+                const submitBtn = document.getElementById('addSubmitBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Menyimpan...';
+            });
+
+            document.getElementById('editForm').addEventListener('submit', function(e) {
+                const submitBtn = document.getElementById('editSubmitBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Menyimpan...';
+            });
         });
 
         // Setup drag and drop functionality
@@ -255,8 +289,8 @@
             let rows = document.querySelectorAll("#howsTable tr");
 
             rows.forEach(row => {
-                let title = row.cells[1]?.textContent?.toLowerCase() || ''; // Kolom judul (indeks 1)
-                let stepNumber = row.cells[0]?.textContent?.toLowerCase() || ''; // Kolom step (indeks 0)
+                let title = row.cells[1]?.textContent?.toLowerCase() || '';
+                let stepNumber = row.cells[0]?.textContent?.toLowerCase() || '';
 
                 const shouldShow = title.includes(input) || stepNumber.includes(input);
                 row.style.display = shouldShow ? "" : "none";
@@ -272,7 +306,7 @@
 
         function openAddModal() {
             // Reset form
-            document.querySelector('#addModal form').reset();
+            document.getElementById('addForm').reset();
             document.getElementById('addPreview').innerHTML = '';
 
             // Show upload area and hide preview
@@ -295,7 +329,12 @@
             const stepData = window.steps?.find(step => step.id == id);
 
             if (!stepData) {
-                Swal.fire('Error', 'Data KTA tidak ditemukan', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Data KTA tidak ditemukan',
+                    confirmButtonColor: '#3b82f6'
+                });
                 return;
             }
 
@@ -361,7 +400,8 @@
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
+                cancelButtonText: 'Batal',
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
                     const form = document.createElement('form');
@@ -398,14 +438,24 @@
 
                 // Validate file type
                 if (!file.type.match('image.*')) {
-                    Swal.fire('Error', 'File harus berupa gambar (PNG/JPG)', 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'File harus berupa gambar (PNG/JPG)',
+                        confirmButtonColor: '#3b82f6'
+                    });
                     input.value = '';
                     return;
                 }
 
                 // Validate file size (2MB)
                 if (file.size > 2 * 1024 * 1024) {
-                    Swal.fire('Error', 'Ukuran file maksimal 2MB', 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ukuran file maksimal 2MB',
+                        confirmButtonColor: '#3b82f6'
+                    });
                     input.value = '';
                     return;
                 }
@@ -430,27 +480,6 @@
             }
         }
 
-        // Close modal when clicking outside
-        document.getElementById('addModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAddModal();
-            }
-        });
-
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEditModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeAddModal();
-                closeEditModal();
-            }
-        });
-
         // Session alerts
         @if (session('success'))
             Swal.fire({
@@ -459,7 +488,9 @@
                 text: '{{ session('success') }}',
                 confirmButtonColor: '#3b82f6',
                 timer: 3000,
-                timerProgressBar: true
+                timerProgressBar: true,
+                toast: true,
+                position: 'top-end'
             });
         @endif
 
@@ -468,7 +499,7 @@
                 icon: 'error',
                 title: 'Gagal',
                 text: '{{ session('error') }}',
-                confirmButtonColor: '#ef4444'
+                confirmButtonColor: '#3b82f6'
             });
         @endif
     </script>

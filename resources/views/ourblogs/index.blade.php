@@ -32,6 +32,7 @@
                         <th class="px-4 py-2 border">Deskripsi</th>
                         <th class="px-4 py-2 border">Tanggal</th>
                         <th class="px-4 py-2 border">Kategori</th>
+                        <th class="px-4 py-2 border">Waktu Baca</th>
                         <th class="px-4 py-2 border">Aksi</th>
                     </tr>
                 </thead>
@@ -52,6 +53,7 @@
                             <td class="px-4 py-2 border">{!! Str::limit($item->description, 50) !!}</td>
                             <td class="px-4 py-2 border">{{ \Carbon\Carbon::parse($item->pub_date)->format('d M Y') }}</td>
                             <td class="px-4 py-2 border">{{ $item->category->name ?? '-' }}</td>
+                            <td class="px-4 py-2 border">{{ $item->waktu_baca ?? '-' }}</td>
                             <td class="px-4 py-2 border space-x-1">
                                 <a href="{{ route('ourblogs.show', $item->id) }}"
                                     class="text-green-600 hover:text-green-800 px-2 py-1 text-xs border border-green-300 rounded hover:bg-green-50 inline-block">Detail</a>
@@ -92,6 +94,10 @@
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Waktu Baca</label>
+                        <input type="text" name="waktu_baca" placeholder="contoh: 5 menit" required class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Deskripsi</label>
@@ -161,6 +167,10 @@
                             @endforeach
                         </select>
                     </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Waktu Baca</label>
+                        <input type="text" name="waktu_baca" id="editWaktuBaca" placeholder="contoh: 5 menit" required class="w-full border rounded p-2 text-sm" />
+                    </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Deskripsi</label>
                         <textarea name="description" id="editorEditDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
@@ -215,6 +225,8 @@
 
         // Initialize CKEditor when the page loads
         document.addEventListener('DOMContentLoaded', function() {
+            setupDragAndDrop();
+
             // Initialize CKEditor for Add Modal
             ClassicEditor
                 .create(document.querySelector('#editorAddDescription'))
@@ -234,10 +246,48 @@
                 .catch(error => {
                     console.error('Error initializing edit description editor:', error);
                 });
-
-            // Initialize drag and drop
-            setupDragAndDrop();
         });
+
+        // Setup drag and drop functionality
+        function setupDragAndDrop() {
+            setupDragAndDropForElement('addUploadArea', 'addImageInput');
+            setupDragAndDropForElement('editUploadArea', 'editImageInput');
+        }
+
+        function setupDragAndDropForElement(uploadAreaId, inputId) {
+            const uploadArea = document.getElementById(uploadAreaId);
+            const fileInput = document.getElementById(inputId);
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.add('border-blue-400', 'bg-blue-50');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+                }, false);
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    const previewId = uploadAreaId === 'addUploadArea' ? 'addPreview' : 'editPreview';
+                    previewImage(fileInput, previewId);
+                }
+            }, false);
+        }
 
         // Fungsi search untuk blog
         function searchTable() {
@@ -325,6 +375,7 @@
             document.getElementById('editTitle').value = data.title;
             document.getElementById('editPubDate').value = data.pub_date.split(' ')[0];
             document.getElementById('editCategory').value = data.category_id;
+            document.getElementById('editWaktuBaca').value = data.waktu_baca || '';
 
             // Set CKEditor content
             if (editDescriptionEditor) {
@@ -339,7 +390,7 @@
                 editPreview.innerHTML = `
                     <div class="relative inline-block">
                         <img src="/storage/${data.image}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Current image">
-                        <button type="button" onclick="removeCurrentImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                        <button type="button" onclick="removeCurrentImage('edit')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -359,10 +410,14 @@
             document.getElementById('editModal').classList.add('hidden');
         }
 
-        function removeCurrentImage() {
-            document.getElementById('editPreview').innerHTML = '';
-            document.getElementById('editUploadArea').style.display = 'block';
-            document.getElementById('editImageInput').value = '';
+        function removeCurrentImage(modalType) {
+            const previewId = modalType === 'edit' ? 'editPreview' : 'addPreview';
+            const uploadAreaId = modalType === 'edit' ? 'editUploadArea' : 'addUploadArea';
+            const inputId = modalType === 'edit' ? 'editImageInput' : 'addImageInput';
+
+            document.getElementById(previewId).innerHTML = '';
+            document.getElementById(uploadAreaId).style.display = 'block';
+            document.getElementById(inputId).value = '';
         }
 
         function updateBulkDeleteButton() {
@@ -407,7 +462,7 @@
                     preview.innerHTML = `
                         <div class="relative inline-block">
                             <img src="${e.target.result}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Preview">
-                            <button type="button" onclick="removeCurrentImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                            <button type="button" onclick="removeCurrentImage('${previewId === 'addPreview' ? 'add' : 'edit'}')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
@@ -422,54 +477,23 @@
             }
         }
 
-        // Close modal when clicking outside
-        document.getElementById('addModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAddModal();
-            }
-        });
-
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEditModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeAddModal();
-                closeEditModal();
-            }
-        });
-
-        // Setup drag and drop functionality
-        function setupDragAndDrop() {
-            ['addUploadArea', 'editUploadArea'].forEach(id => {
-                const element = document.getElementById(id);
-                const inputId = id === 'addUploadArea' ? 'addImageInput' : 'editImageInput';
-                const previewId = id === 'addUploadArea' ? 'addPreview' : 'editPreview';
-
-                element.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    element.classList.add('border-blue-400', 'bg-blue-50');
-                });
-
-                element.addEventListener('dragleave', () => {
-                    element.classList.remove('border-blue-400', 'bg-blue-50');
-                });
-
-                element.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    element.classList.remove('border-blue-400', 'bg-blue-50');
-
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        document.getElementById(inputId).files = files;
-                        previewImage(document.getElementById(inputId), previewId);
-                    }
-                });
+        // Show success/error messages
+        @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '{{ session('success') }}',
+                showConfirmButton: false,
+                timer: 2000
             });
-        }
+        @endif
+
+        @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: '{{ session('error') }}'
+            });
+        @endif
     </script>
 @endsection

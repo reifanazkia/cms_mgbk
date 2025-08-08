@@ -72,16 +72,25 @@
             <form action="{{ route('slider.store') }}" method="POST" enctype="multipart/form-data" id="addSliderForm">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="display_on_home" class="mr-2" value="1"
+                                {{ old('display_on_home') ? 'checked' : '' }} />
+                            <span class="font-medium">Tampilkan di Homepage</span>
+                        </label>
+                    </div>
                     <div>
                         <label class="block mb-1 font-medium">Judul</label>
-                        <input type="text" name="title" class="w-full border rounded p-2 text-sm" value="{{ old('title') }}" />
+                        <input type="text" name="title" class="w-full border rounded p-2 text-sm"
+                            value="{{ old('title') }}" />
                         @error('title')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
                         @enderror
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">YouTube ID</label>
-                        <input type="text" name="youtube_id" class="w-full border rounded p-2 text-sm" placeholder="Contoh: dQw4w9WgXcQ" value="{{ old('youtube_id') }}" />
+                        <input type="text" name="youtube_id" class="w-full border rounded p-2 text-sm"
+                            placeholder="Contoh: dQw4w9WgXcQ" value="{{ old('youtube_id') }}" />
                         @error('youtube_id')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
                         @enderror
@@ -95,23 +104,19 @@
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Button Text</label>
-                        <input type="text" name="button_text" class="w-full border rounded p-2 text-sm" placeholder="Contoh: Selengkapnya" value="{{ old('button_text') }}" />
+                        <input type="text" name="button_text" class="w-full border rounded p-2 text-sm"
+                            placeholder="Contoh: Selengkapnya" value="{{ old('button_text') }}" />
                         @error('button_text')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
                         @enderror
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">URL Link</label>
-                        <input type="url" name="url_link" class="w-full border rounded p-2 text-sm" placeholder="https://example.com" value="{{ old('url_link') }}" />
+                        <input type="url" name="url_link" class="w-full border rounded p-2 text-sm"
+                            placeholder="https://example.com" value="{{ old('url_link') }}" />
                         @error('url_link')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
                         @enderror
-                    </div>
-                    <div class="col-span-2">
-                        <label class="flex items-center">
-                            <input type="checkbox" name="display_on_home" class="mr-2" value="1" {{ old('display_on_home') ? 'checked' : '' }} />
-                            <span class="font-medium">Tampilkan di Homepage</span>
-                        </label>
                     </div>
                 </div>
 
@@ -123,11 +128,13 @@
                             accept="image/png,image/jpg,image/jpeg,image/webp" class="hidden" />
 
                         <div id="addUploadArea" onclick="document.getElementById('addImageInput').click()"
-                             class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                            class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
                             <div class="flex flex-col items-center">
-                                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                    </path>
                                 </svg>
                                 <p class="text-gray-600 mb-2">Klik untuk upload atau drag and drop</p>
                                 <p class="text-sm text-gray-500">PNG, JPG, JPEG, atau WEBP (MAX. 2MB)</p>
@@ -159,13 +166,21 @@
                 @csrf
                 @method('PUT')
                 <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="display_on_home" id="editDisplayOnHome" class="mr-2"
+                                value="1" />
+                            <span class="font-medium">Tampilkan di Homepage</span>
+                        </label>
+                    </div>
                     <div>
                         <label class="block mb-1 font-medium">Judul</label>
                         <input type="text" name="title" id="editTitle" class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">YouTube ID</label>
-                        <input type="text" name="youtube_id" id="editYoutubeId" class="w-full border rounded p-2 text-sm" placeholder="Contoh: dQw4w9WgXcQ" />
+                        <input type="text" name="youtube_id" id="editYoutubeId"
+                            class="w-full border rounded p-2 text-sm" placeholder="Contoh: dQw4w9WgXcQ" />
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Subtitle</label>
@@ -173,17 +188,13 @@
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Button Text</label>
-                        <input type="text" name="button_text" id="editButtonText" class="w-full border rounded p-2 text-sm" placeholder="Contoh: Selengkapnya" />
+                        <input type="text" name="button_text" id="editButtonText"
+                            class="w-full border rounded p-2 text-sm" placeholder="Contoh: Selengkapnya" />
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">URL Link</label>
-                        <input type="url" name="url_link" id="editUrlLink" class="w-full border rounded p-2 text-sm" placeholder="https://example.com" />
-                    </div>
-                    <div class="col-span-2">
-                        <label class="flex items-center">
-                            <input type="checkbox" name="display_on_home" id="editDisplayOnHome" class="mr-2" value="1" />
-                            <span class="font-medium">Tampilkan di Homepage</span>
-                        </label>
+                        <input type="url" name="url_link" id="editUrlLink" class="w-full border rounded p-2 text-sm"
+                            placeholder="https://example.com" />
                     </div>
                 </div>
 
@@ -191,15 +202,18 @@
                 <div class="mt-4">
                     <label class="block mb-2 font-medium">Ganti Gambar</label>
                     <div class="relative">
-                        <input type="file" name="image" id="editImageInput" onchange="previewImage(this, 'editPreview')"
+                        <input type="file" name="image" id="editImageInput"
+                            onchange="previewImage(this, 'editPreview')"
                             accept="image/png,image/jpg,image/jpeg,image/webp" class="hidden" />
 
                         <div id="editUploadArea" onclick="document.getElementById('editImageInput').click()"
-                             class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                            class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
                             <div class="flex flex-col items-center">
-                                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                    </path>
                                 </svg>
                                 <p class="text-gray-600 mb-2">Klik untuk upload atau drag and drop</p>
                                 <p class="text-sm text-gray-500">PNG, JPG, JPEG, atau WEBP (MAX. 2MB)</p>
@@ -232,6 +246,8 @@
 
         // Initialize CKEditor when the page loads
         document.addEventListener('DOMContentLoaded', function() {
+            setupDragAndDrop();
+
             // Initialize CKEditor for Add Modal
             ClassicEditor
                 .create(document.querySelector('#editorAddSubtitle'))
@@ -253,6 +269,47 @@
                 });
         });
 
+        // Setup drag and drop functionality
+        function setupDragAndDrop() {
+            setupDragAndDropForElement('addUploadArea', 'addImageInput');
+            setupDragAndDropForElement('editUploadArea', 'editImageInput');
+        }
+
+        function setupDragAndDropForElement(uploadAreaId, inputId) {
+            const uploadArea = document.getElementById(uploadAreaId);
+            const fileInput = document.getElementById(inputId);
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.add('border-blue-400', 'bg-blue-50');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+                }, false);
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    const previewId = uploadAreaId === 'addUploadArea' ? 'addPreview' : 'editPreview';
+                    previewImage(fileInput, previewId);
+                }
+            }, false);
+        }
+
         // Search function
         function searchTable() {
             let input = document.getElementById("searchInput").value.toLowerCase();
@@ -272,40 +329,6 @@
             searchTimer = setTimeout(searchTable, 300);
         });
 
-        // Session success
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: '{{ session('success') }}',
-                confirmButtonColor: '#3085d6'
-            });
-        @endif
-
-        @if (session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#d33'
-            });
-        @endif
-
-        // Show validation errors
-        @if ($errors->any())
-            let errorMessages = '';
-            @foreach ($errors->all() as $error)
-                errorMessages += '{{ $error }}\n';
-            @endforeach
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                text: errorMessages,
-                confirmButtonColor: '#d33'
-            });
-        @endif
-
         function deleteSlider(id) {
             Swal.fire({
                 title: 'Hapus slider ini?',
@@ -319,23 +342,23 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     fetch(`/slider/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.message) {
-                            Swal.fire('Terhapus!', data.message, 'success').then(() => {
-                                location.reload();
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        Swal.fire('Error!', 'Terjadi kesalahan saat menghapus slider.', 'error');
-                    });
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Content-Type': 'application/json',
+                            },
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.message) {
+                                Swal.fire('Terhapus!', data.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire('Error!', 'Terjadi kesalahan saat menghapus slider.', 'error');
+                        });
                 }
             });
         }
@@ -344,8 +367,6 @@
             // Reset form
             document.getElementById('addSliderForm').reset();
             document.getElementById('addPreview').innerHTML = '';
-
-            // Show upload area and hide preview
             document.getElementById('addUploadArea').style.display = 'block';
 
             // Reset CKEditor content
@@ -463,25 +484,41 @@
             }
         }
 
-        // Close modal when clicking outside
-        document.getElementById('addModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAddModal();
-            }
-        });
+        // REMOVED: Modal close on outside click and escape key functionality
+        // Modal can now only be closed using Cancel button
 
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEditModal();
-            }
-        });
+        // Show success/error messages
+        @if (session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                text: '{{ session('success') }}',
+                showConfirmButton: false,
+                timer: 2000
+            });
+        @endif
 
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeAddModal();
-                closeEditModal();
-            }
-        });
+        @if (session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: '{{ session('error') }}'
+            });
+        @endif
+
+        // Show validation errors
+        @if ($errors->any())
+            let errorMessages = '';
+            @foreach ($errors->all() as $error)
+                errorMessages += '{{ $error }}\n';
+            @endforeach
+
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                text: errorMessages,
+                confirmButtonColor: '#d33'
+            });
+        @endif
     </script>
 @endsection

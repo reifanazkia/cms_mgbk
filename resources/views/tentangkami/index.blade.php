@@ -4,26 +4,44 @@
     <div class="p-4">
         <div class="flex justify-between items-center mb-4">
             <h1 class="text-xl font-semibold">Tentang Kami</h1>
-            <button onclick="openAddModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                Tambah Data
-            </button>
+            <div class="flex gap-2">
+                <button onclick="openAddModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Tambah Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Search Input -->
+        <div class="mb-4">
+            <input type="text" id="searchInput" placeholder="Cari berdasarkan judul..."
+                class="border px-3 py-2 w-full rounded text-sm" onkeyup="searchTable()">
         </div>
 
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white border border-gray-200 text-sm">
                 <thead class="bg-gray-100 text-left">
                     <tr>
+                        <th class="px-4 py-2 border">Gambar</th>
                         <th class="px-4 py-2 border">Judul</th>
                         <th class="px-4 py-2 border">Kategori</th>
                         <th class="px-4 py-2 border">Deskripsi</th>
-                        <th class="px-4 py-2 border">Gambar</th>
                         <th class="px-4 py-2 border">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tentangkamiTable">
                     @forelse ($tentangkami as $item)
                         <tr>
-                            <td class="px-4 py-2 border">{{ $item->title }}</td>
+                            <td class="px-4 py-2 border">
+                                @if ($item->image)
+                                    <img src="{{ asset($item->image) }}"
+                                        class="w-24 h-24 object-cover object-center rounded shadow-md aspect-square">
+                                @else
+                                    <div class="w-24 h-24 bg-gray-200 rounded flex items-center justify-center">
+                                        <span class="text-gray-400 text-xs">No Image</span>
+                                    </div>
+                                @endif
+                            </td>
+                            <td class="px-4 py-2 border">{{ $item->title ?? '-' }}</td>
                             <td class="px-4 py-2 border">
                                 <span class="px-2 py-1 text-xs rounded-full
                                     @if($item->category == 'Visi') bg-blue-100 text-blue-800
@@ -32,26 +50,22 @@
                                     {{ $item->category }}
                                 </span>
                             </td>
-                            <td class="px-4 py-2 border">{!! Str::limit(strip_tags($item->description), 100) !!}</td>
                             <td class="px-4 py-2 border">
-                                @if($item->image)
-                                    <img src="{{ asset($item->image) }}"
-                                         class="w-24 h-24 object-cover object-center rounded shadow-md aspect-square">
-                                @else
-                                    <span class="text-gray-400 text-sm">No Image</span>
-                                @endif
+                                <div class="max-w-xs truncate" title="{{ strip_tags($item->description) }}">
+                                    {!! Str::limit($item->description, 100) !!}
+                                </div>
                             </td>
                             <td class="px-4 py-2 border space-x-1">
-                                <button onclick="openEditModal({{ $item->id }})"
+                                <button onclick="openEditModal(this)" data-tentangkami='@json($item)'
                                     class="text-blue-600 hover:text-blue-800 px-2 py-1 text-xs border border-blue-300 rounded hover:bg-blue-50">Edit</button>
-                                <button onclick="confirmDelete({{ $item->id }})"
+                                <button onclick="deleteTentangkami({{ $item->id }})"
                                     class="text-red-600 hover:text-red-800 px-2 py-1 text-xs border border-red-300 rounded hover:bg-red-50">Hapus</button>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-8 text-center text-gray-500">
-                                Belum ada data. <button onclick="openAddModal()" class="text-blue-500 hover:underline">Tambah data pertama</button>
+                            <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                                Belum ada data tentang kami. <button onclick="openAddModal()" class="text-blue-500 hover:underline">Tambah data pertama</button>
                             </td>
                         </tr>
                     @endforelse
@@ -60,44 +74,55 @@
         </div>
     </div>
 
-    <form id="deleteForm" method="POST" style="display: none;">
-        @csrf
-        @method('DELETE')
-    </form>
-
     <!-- Modal Tambah -->
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
             <h2 class="text-lg font-semibold">Tambah Data Tentang Kami</h2>
-            <form action="{{ route('tentangkami.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('tentangkami.store') }}" method="POST" enctype="multipart/form-data" id="addTentangkamiForm">
                 @csrf
-                <div class="grid grid-cols-1 gap-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="display_on_home" class="mr-2" value="1"
+                                {{ old('display_on_home') ? 'checked' : '' }} />
+                            <span class="font-medium">Tampilkan di Homepage</span>
+                        </label>
+                    </div>
                     <div>
                         <label class="block mb-1 font-medium">Judul <span class="text-red-500">*</span></label>
                         <input type="text" name="title" required class="w-full border rounded p-2 text-sm"
-                               placeholder="Masukkan judul..." />
+                            placeholder="Masukkan judul..." value="{{ old('title') }}" />
+                        @error('title')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Kategori <span class="text-red-500">*</span></label>
                         <select name="category" required class="w-full border rounded p-2 text-sm">
                             <option value="">Pilih Kategori</option>
-                            <option value="Visi">Visi</option>
-                            <option value="Misi">Misi</option>
-                            <option value="Sejarah">Sejarah</option>
+                            <option value="Visi" {{ old('category') == 'Visi' ? 'selected' : '' }}>Visi</option>
+                            <option value="Misi" {{ old('category') == 'Misi' ? 'selected' : '' }}>Misi</option>
+                            <option value="Sejarah" {{ old('category') == 'Sejarah' ? 'selected' : '' }}>Sejarah</option>
                         </select>
+                        @error('category')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
                     </div>
-                    <div>
+                    <div class="col-span-2">
                         <label class="block mb-1 font-medium">Deskripsi <span class="text-red-500">*</span></label>
                         <textarea name="description" id="editorAddDescription" rows="4"
                                   class="w-full border rounded p-2 text-sm"
-                                  placeholder="Masukkan deskripsi..."></textarea>
+                                  placeholder="Masukkan deskripsi...">{{ old('description') }}</textarea>
+                        @error('description')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
                     </div>
                 </div>
 
                 <!-- Enhanced Image Upload Section -->
                 <div class="mt-4">
                     <label class="block mb-2 font-medium">Upload Gambar <span class="text-red-500">*</span></label>
-                    <div class="relative mb-4">
+                    <div class="relative">
                         <input type="file" name="image" id="addImageInput"
                             onchange="previewImage(this, 'addPreview')" accept="image/png,image/jpg,image/jpeg"
                             class="hidden" required />
@@ -112,11 +137,14 @@
                                     </path>
                                 </svg>
                                 <p class="text-gray-600 mb-2">Klik untuk upload atau drag and drop</p>
-                                <p class="text-sm text-gray-500">PNG, JPG, atau GIF (MAX. 2MB)</p>
+                                <p class="text-sm text-gray-500">PNG, JPG, atau JPEG (MAX. 2MB)</p>
                             </div>
                         </div>
 
                         <div id="addPreview" class="mt-4"></div>
+                        @error('image')
+                            <span class="text-red-500 text-xs">{{ $message }}</span>
+                        @enderror
                     </div>
                 </div>
 
@@ -137,9 +165,14 @@
             <form id="editForm" method="POST" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
-                <input type="hidden" name="id" id="editId">
-
-                <div class="grid grid-cols-1 gap-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="display_on_home" id="editDisplayOnHome" class="mr-2"
+                                value="1" />
+                            <span class="font-medium">Tampilkan di Homepage</span>
+                        </label>
+                    </div>
                     <div>
                         <label class="block mb-1 font-medium">Judul <span class="text-red-500">*</span></label>
                         <input type="text" name="title" id="editTitle" required
@@ -154,23 +187,17 @@
                             <option value="Sejarah">Sejarah</option>
                         </select>
                     </div>
-                    <div>
+                    <div class="col-span-2">
                         <label class="block mb-1 font-medium">Deskripsi <span class="text-red-500">*</span></label>
                         <textarea name="description" id="editorEditDescription" rows="4"
                                   class="w-full border rounded p-2 text-sm"></textarea>
                     </div>
                 </div>
 
-                <!-- Current Image Section -->
-                <div class="mt-4" id="currentImageSection" style="display: none;">
-                    <label class="block mb-2 font-medium">Gambar Saat Ini</label>
-                    <div id="currentImageContainer" class="mb-4"></div>
-                </div>
-
                 <!-- Enhanced Image Upload Section -->
                 <div class="mt-4">
-                    <label class="block mb-2 font-medium">Ganti Gambar (Opsional)</label>
-                    <div class="relative mb-4">
+                    <label class="block mb-2 font-medium">Ganti Gambar</label>
+                    <div class="relative">
                         <input type="file" name="image" id="editImageInput"
                             onchange="previewImage(this, 'editPreview')" accept="image/png,image/jpg,image/jpeg"
                             class="hidden" />
@@ -185,7 +212,7 @@
                                     </path>
                                 </svg>
                                 <p class="text-gray-600 mb-2">Klik untuk upload atau drag and drop</p>
-                                <p class="text-sm text-gray-500">PNG, JPG, atau GIF (MAX. 2MB) - Opsional</p>
+                                <p class="text-sm text-gray-500">PNG, JPG, atau JPEG (MAX. 2MB)</p>
                             </div>
                         </div>
 
@@ -203,10 +230,6 @@
         </div>
     </div>
 
-    <script>
-        window.tentangkami = @json($tentangkami);
-    </script>
-
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- CKEditor -->
@@ -216,381 +239,31 @@
         // Global variables for CKEditor instances
         let addDescriptionEditor = null;
         let editDescriptionEditor = null;
-        let editorsInitialized = false;
 
         // Initialize CKEditor when the page loads
         document.addEventListener('DOMContentLoaded', function() {
-            initializeEditors();
             setupDragAndDrop();
-            setupFormHandlers();
-            setupModalEvents();
-        });
 
-        // Function to initialize CKEditor instances
-        function initializeEditors() {
             // Initialize CKEditor for Add Modal
             ClassicEditor
-                .create(document.querySelector('#editorAddDescription'), {
-                    toolbar: {
-                        items: [
-                            'heading', '|',
-                            'bold', 'italic', 'link', '|',
-                            'bulletedList', 'numberedList', '|',
-                            'outdent', 'indent', '|',
-                            'blockQuote', '|',
-                            'undo', 'redo'
-                        ]
-                    }
-                })
+                .create(document.querySelector('#editorAddDescription'))
                 .then(editor => {
                     addDescriptionEditor = editor;
-                    checkEditorsInitialized();
                 })
                 .catch(error => {
-                    console.error('Error initializing add editor:', error);
+                    console.error('Error initializing add description editor:', error);
                 });
 
             // Initialize CKEditor for Edit Modal
             ClassicEditor
-                .create(document.querySelector('#editorEditDescription'), {
-                    toolbar: {
-                        items: [
-                            'heading', '|',
-                            'bold', 'italic', 'link', '|',
-                            'bulletedList', 'numberedList', '|',
-                            'outdent', 'indent', '|',
-                            'blockQuote', '|',
-                            'undo', 'redo'
-                        ]
-                    }
-                })
+                .create(document.querySelector('#editorEditDescription'))
                 .then(editor => {
                     editDescriptionEditor = editor;
-                    checkEditorsInitialized();
                 })
                 .catch(error => {
-                    console.error('Error initializing edit editor:', error);
+                    console.error('Error initializing edit description editor:', error);
                 });
-        }
-
-        // Check if both editors are initialized
-        function checkEditorsInitialized() {
-            if (addDescriptionEditor && editDescriptionEditor) {
-                editorsInitialized = true;
-                console.log('All CKEditor instances initialized successfully');
-            }
-        }
-
-        // Setup form handlers
-        function setupFormHandlers() {
-            // Add form submit handler
-            const addForm = document.querySelector('#addModal form');
-            if (addForm) {
-                addForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-
-                    // Sync CKEditor content with textarea before validation
-                    if (addDescriptionEditor) {
-                        const description = addDescriptionEditor.getData();
-                        document.querySelector('#editorAddDescription').value = description;
-                    }
-
-                    // Validate required fields
-                    const title = this.querySelector('input[name="title"]').value.trim();
-                    const category = this.querySelector('select[name="category"]').value;
-                    const description = addDescriptionEditor ? addDescriptionEditor.getData().trim() : '';
-                    const imageFile = document.getElementById('addImageInput').files[0];
-
-                    // Validation checks
-                    if (!title) {
-                        Swal.fire('Error', 'Judul harus diisi', 'error');
-                        this.querySelector('input[name="title"]').focus();
-                        return false;
-                    }
-
-                    if (!category) {
-                        Swal.fire('Error', 'Kategori harus dipilih', 'error');
-                        this.querySelector('select[name="category"]').focus();
-                        return false;
-                    }
-
-                    if (!description) {
-                        Swal.fire('Error', 'Deskripsi harus diisi', 'error');
-                        addDescriptionEditor.editing.view.focus();
-                        return false;
-                    }
-
-                    if (!imageFile) {
-                        Swal.fire('Error', 'Gambar harus diupload', 'error');
-                        return false;
-                    }
-
-                    // If all validation passes, submit the form
-                    console.log('Form validation passed, submitting...');
-
-                    // Show loading
-                    Swal.fire({
-                        title: 'Menyimpan...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                    // Submit form using native submit
-                    this.submit();
-                });
-            }
-
-            // Edit form submit handler
-            const editForm = document.getElementById('editForm');
-            if (editForm) {
-                editForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-
-                    // Sync CKEditor content with textarea before validation
-                    if (editDescriptionEditor) {
-                        const description = editDescriptionEditor.getData();
-                        document.querySelector('#editorEditDescription').value = description;
-                    }
-
-                    // Validate required fields
-                    const title = document.getElementById('editTitle').value.trim();
-                    const category = document.getElementById('editCategory').value;
-                    const description = editDescriptionEditor ? editDescriptionEditor.getData().trim() : '';
-
-                    if (!title) {
-                        Swal.fire('Error', 'Judul harus diisi', 'error');
-                        document.getElementById('editTitle').focus();
-                        return false;
-                    }
-
-                    if (!category) {
-                        Swal.fire('Error', 'Kategori harus dipilih', 'error');
-                        document.getElementById('editCategory').focus();
-                        return false;
-                    }
-
-                    if (!description) {
-                        Swal.fire('Error', 'Deskripsi harus diisi', 'error');
-                        editDescriptionEditor.editing.view.focus();
-                        return false;
-                    }
-
-                    // Show loading
-                    Swal.fire({
-                        title: 'Menyimpan...',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                    // Submit form
-                    this.submit();
-                });
-            }
-        }
-
-        function previewImage(input, previewId) {
-            const preview = document.getElementById(previewId);
-            const uploadAreaId = previewId.replace('Preview', 'UploadArea');
-            const uploadArea = document.getElementById(uploadAreaId);
-
-            preview.innerHTML = '';
-
-            if (input.files && input.files[0]) {
-                const file = input.files[0];
-
-                // Validate file type
-                if (!file.type.match('image.*')) {
-                    Swal.fire('Error', 'File harus berupa gambar (PNG/JPG/JPEG)', 'error');
-                    input.value = '';
-                    return;
-                }
-
-                // Validate file size (2MB)
-                if (file.size > 2 * 1024 * 1024) {
-                    Swal.fire('Error', 'Ukuran file maksimal 2MB', 'error');
-                    input.value = '';
-                    return;
-                }
-
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.innerHTML = `
-                        <div class="relative inline-block">
-                            <img src="${e.target.result}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Preview">
-                            <button type="button" onclick="removePreview('${previewId}', '${uploadAreaId}', '${input.id}')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    `;
-                    uploadArea.style.display = 'none';
-                };
-                reader.readAsDataURL(file);
-            } else {
-                uploadArea.style.display = 'block';
-            }
-        }
-
-        function removePreview(previewId, uploadAreaId, inputId) {
-            document.getElementById(previewId).innerHTML = '';
-            document.getElementById(uploadAreaId).style.display = 'block';
-            document.getElementById(inputId).value = '';
-        }
-
-        function openAddModal() {
-            // Wait for editors to be initialized
-            if (!editorsInitialized) {
-                setTimeout(() => openAddModal(), 100);
-                return;
-            }
-
-            // Reset form
-            const form = document.querySelector('#addModal form');
-            form.reset();
-
-            // Reset CKEditor content
-            if (addDescriptionEditor) {
-                addDescriptionEditor.setData('');
-            }
-
-            // Reset file input
-            document.getElementById('addImageInput').value = '';
-            document.getElementById('addPreview').innerHTML = '';
-            document.getElementById('addUploadArea').style.display = 'block';
-
-            // Show modal
-            document.getElementById('addModal').classList.remove('hidden');
-
-            // Focus on first input after modal is shown
-            setTimeout(() => {
-                const titleInput = document.querySelector('#addModal input[name="title"]');
-                if (titleInput) {
-                    titleInput.focus();
-                }
-            }, 300);
-        }
-
-        function closeAddModal() {
-            document.getElementById('addModal').classList.add('hidden');
-        }
-
-        function openEditModal(id) {
-            // Wait for editors to be initialized
-            if (!editorsInitialized) {
-                setTimeout(() => openEditModal(id), 100);
-                return;
-            }
-
-            const tentangkamiData = window.tentangkami?.find(item => item.id == id);
-
-            if (!tentangkamiData) {
-                Swal.fire('Error', 'Data tidak ditemukan', 'error');
-                return;
-            }
-
-            // Set form action
-            const form = document.getElementById('editForm');
-            form.action = `/tentangkami/${tentangkamiData.id}`;
-
-            // Populate form fields
-            document.getElementById('editId').value = tentangkamiData.id || '';
-            document.getElementById('editTitle').value = tentangkamiData.title || '';
-            document.getElementById('editCategory').value = tentangkamiData.category || '';
-
-            // Set CKEditor content
-            if (editDescriptionEditor) {
-                editDescriptionEditor.setData(tentangkamiData.description || '');
-            }
-
-            // Handle current image
-            const currentImageContainer = document.getElementById('currentImageContainer');
-            const currentImageSection = document.getElementById('currentImageSection');
-
-            currentImageContainer.innerHTML = '';
-            if (tentangkamiData.image) {
-                const imagePath = tentangkamiData.image.startsWith('/') ? tentangkamiData.image : '/' + tentangkamiData.image;
-                currentImageContainer.innerHTML = `
-                    <div class="relative inline-block">
-                        <img src="${imagePath}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Current Image">
-                        <div class="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 text-center rounded-b-lg">
-                            Gambar Saat Ini
-                        </div>
-                    </div>
-                `;
-                currentImageSection.style.display = 'block';
-            } else {
-                currentImageSection.style.display = 'none';
-            }
-
-            // Reset new file input
-            document.getElementById('editImageInput').value = '';
-            document.getElementById('editPreview').innerHTML = '';
-            document.getElementById('editUploadArea').style.display = 'block';
-
-            // Show modal
-            document.getElementById('editModal').classList.remove('hidden');
-
-            // Focus on first input after modal is shown
-            setTimeout(() => {
-                const titleInput = document.getElementById('editTitle');
-                if (titleInput) {
-                    titleInput.focus();
-                }
-            }, 300);
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.add('hidden');
-        }
-
-        // Confirm Delete Data
-        function confirmDelete(id) {
-            Swal.fire({
-                title: 'Hapus Data?',
-                text: "Data yang dihapus tidak dapat dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Ya, Hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.getElementById('deleteForm');
-                    form.action = `/tentangkami/${id}`;
-                    form.submit();
-                }
-            });
-        }
-
-        // Setup modal events
-        function setupModalEvents() {
-            // Close modal when clicking outside
-            document.getElementById('addModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeAddModal();
-                }
-            });
-
-            document.getElementById('editModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeEditModal();
-                }
-            });
-
-            // Close modal with Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeAddModal();
-                    closeEditModal();
-                }
-            });
-        }
+        });
 
         // Setup drag and drop functionality
         function setupDragAndDrop() {
@@ -601,8 +274,6 @@
         function setupDragAndDropForElement(uploadAreaId, inputId) {
             const uploadArea = document.getElementById(uploadAreaId);
             const fileInput = document.getElementById(inputId);
-
-            if (!uploadArea || !fileInput) return;
 
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 uploadArea.addEventListener(eventName, preventDefaults, false);
@@ -629,32 +300,205 @@
                 const files = e.dataTransfer.files;
                 if (files.length > 0) {
                     fileInput.files = files;
-                    const previewId = uploadAreaId.replace('UploadArea', 'Preview');
+                    const previewId = uploadAreaId === 'addUploadArea' ? 'addPreview' : 'editPreview';
                     previewImage(fileInput, previewId);
                 }
             }, false);
         }
 
-        // Check for session messages and show SweetAlert
+        // Search function
+        function searchTable() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let rows = document.querySelectorAll("#tentangkamiTable tr");
+
+            rows.forEach(row => {
+                let title = row.cells[1]?.textContent?.toLowerCase() || '';
+                const shouldShow = title.includes(input);
+                row.style.display = shouldShow ? "" : "none";
+            });
+        }
+
+        // Debounce for better performance
+        let searchTimer;
+        document.getElementById('searchInput').addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(searchTable, 300);
+        });
+
+        function deleteTentangkami(id) {
+            Swal.fire({
+                title: 'Hapus data ini?',
+                text: "Data yang dihapus tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch(`/tentangkami/${id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                'Content-Type': 'application/json',
+                            },
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.message) {
+                                Swal.fire('Terhapus!', data.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            Swal.fire('Error!', 'Terjadi kesalahan saat menghapus data.', 'error');
+                        });
+                }
+            });
+        }
+
+        function openAddModal() {
+            // Reset form
+            document.getElementById('addTentangkamiForm').reset();
+            document.getElementById('addPreview').innerHTML = '';
+            document.getElementById('addUploadArea').style.display = 'block';
+
+            // Reset CKEditor content
+            if (addDescriptionEditor) {
+                addDescriptionEditor.setData('');
+            }
+
+            // Show modal
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
+        }
+
+        function openEditModal(button) {
+            const tentangkami = JSON.parse(button.getAttribute('data-tentangkami'));
+            const form = document.getElementById('editForm');
+
+            // Set form action
+            form.action = `/tentangkami/${tentangkami.id}`;
+
+            // Populate form fields
+            document.getElementById('editTitle').value = tentangkami.title || '';
+            document.getElementById('editCategory').value = tentangkami.category || '';
+            document.getElementById('editDisplayOnHome').checked = tentangkami.display_on_home || false;
+
+            // Set CKEditor content
+            if (editDescriptionEditor) {
+                editDescriptionEditor.setData(tentangkami.description || '');
+            }
+
+            // Handle image preview
+            const editPreview = document.getElementById('editPreview');
+            const editUploadArea = document.getElementById('editUploadArea');
+
+            if (tentangkami.image) {
+                const imagePath = tentangkami.image.startsWith('/') ? tentangkami.image : '/' + tentangkami.image;
+                editPreview.innerHTML = `
+                    <div class="relative inline-block">
+                        <img src="${imagePath}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Current image">
+                        <button type="button" onclick="removeCurrentImage('edit')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                editUploadArea.style.display = 'none';
+            } else {
+                editPreview.innerHTML = '';
+                editUploadArea.style.display = 'block';
+            }
+
+            // Show modal
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function removeCurrentImage(modalType) {
+            const previewId = modalType === 'edit' ? 'editPreview' : 'addPreview';
+            const uploadAreaId = modalType === 'edit' ? 'editUploadArea' : 'addUploadArea';
+            const inputId = modalType === 'edit' ? 'editImageInput' : 'addImageInput';
+
+            document.getElementById(previewId).innerHTML = '';
+            document.getElementById(uploadAreaId).style.display = 'block';
+            document.getElementById(inputId).value = '';
+        }
+
+        function previewImage(input, previewId) {
+            const preview = document.getElementById(previewId);
+            const uploadAreaId = previewId === 'addPreview' ? 'addUploadArea' : 'editUploadArea';
+            const uploadArea = document.getElementById(uploadAreaId);
+
+            preview.innerHTML = '';
+
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+
+                // Validate file type
+                if (!file.type.match('image.*')) {
+                    Swal.fire('Error', 'File harus berupa gambar (PNG/JPG/JPEG)', 'error');
+                    input.value = '';
+                    return;
+                }
+
+                // Validate file size (2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    Swal.fire('Error', 'Ukuran file maksimal 2MB', 'error');
+                    input.value = '';
+                    return;
+                }
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `
+                        <div class="relative inline-block">
+                            <img src="${e.target.result}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Preview">
+                            <button type="button" onclick="removeCurrentImage('${previewId === 'addPreview' ? 'add' : 'edit'}')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    `;
+                    uploadArea.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                uploadArea.style.display = 'block';
+            }
+        }
+
+        // Show success/error messages
         @if (session('success'))
             Swal.fire({
                 icon: 'success',
                 title: 'Berhasil!',
                 text: '{{ session('success') }}',
-                timer: 3000,
-                showConfirmButton: false
+                showConfirmButton: false,
+                timer: 2000
             });
         @endif
 
         @if (session('error'))
             Swal.fire({
                 icon: 'error',
-                title: 'Error!',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#d33'
+                title: 'Gagal!',
+                text: '{{ session('error') }}'
             });
         @endif
 
+        // Show validation errors
         @if ($errors->any())
             let errorMessages = '';
             @foreach ($errors->all() as $error)
@@ -663,7 +507,7 @@
 
             Swal.fire({
                 icon: 'error',
-                title: 'Validation Error!',
+                title: 'Validation Error',
                 text: errorMessages,
                 confirmButtonColor: '#d33'
             });

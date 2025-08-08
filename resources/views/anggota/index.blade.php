@@ -16,6 +16,12 @@
             </div>
         </div>
 
+        <!-- Search Input -->
+        <div class="mb-4">
+            <input type="text" id="searchInput" placeholder="Cari berdasarkan nama atau jabatan..."
+                class="border px-3 py-2 w-full rounded text-sm" onkeyup="searchTable()">
+        </div>
+
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white border border-gray-200 text-sm">
                 <thead class="bg-gray-100 text-left">
@@ -27,7 +33,7 @@
                         <th class="px-4 py-2 border">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="anggotaTable">
                     @foreach ($anggotas as $item)
                         <tr>
                             <td class="px-4 py-2 border">
@@ -70,7 +76,7 @@
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
             <h2 class="text-lg font-semibold">Tambah Anggota</h2>
-            <form action="{{ route('anggota.store') }}" method="POST" enctype="multipart/form-data">
+            <form id="addForm" action="{{ route('anggota.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -143,7 +149,7 @@
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeAddModal()"
                         class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
-                    <button type="submit"
+                    <button type="submit" id="addSubmitBtn"
                         class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
                 </div>
             </form>
@@ -232,7 +238,7 @@
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeEditModal()"
                         class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
-                    <button type="submit"
+                    <button type="submit" id="editSubmitBtn"
                         class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
                 </div>
             </form>
@@ -243,6 +249,106 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // Show flash messages using SweetAlert
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(session('success'))
+                showSuccessAlert("{{ session('success') }}");
+            @endif
+
+            @if(session('error'))
+                showErrorAlert("{{ session('error') }}");
+            @endif
+
+            @if($errors->any())
+                let errorMessages = '';
+                @foreach($errors->all() as $error)
+                    errorMessages += '{{ $error }}\n';
+                @endforeach
+                showErrorAlert(errorMessages);
+            @endif
+
+            setupDragAndDrop();
+
+            // Close modal when clicking outside
+            document.getElementById('addModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeAddModal();
+                }
+            });
+
+            document.getElementById('editModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeEditModal();
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeAddModal();
+                    closeEditModal();
+                }
+            });
+        });
+
+        // SweetAlert helper functions
+        function showSuccessAlert(message) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                html: message,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        function showErrorAlert(message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                html: message.replace(/\n/g, '<br>'),
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#d33'
+            });
+        }
+
+        function showLoadingAlert(message = 'Memproses...') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+
+        // Search functionality
+        function searchTable() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let rows = document.querySelectorAll("#anggotaTable tr");
+
+            rows.forEach(row => {
+                let name = row.cells[2]?.textContent?.toLowerCase() || '';
+                let title = row.cells[3]?.textContent?.toLowerCase() || '';
+
+                const shouldShow = name.includes(input) || title.includes(input);
+                row.style.display = shouldShow ? "" : "none";
+            });
+        }
+
+        // Debounce search input
+        let searchTimer;
+        document.getElementById('searchInput').addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(searchTable, 300);
+        });
+
+        // Bulk Delete Function with Enhanced SweetAlert
         function bulkDelete() {
             const checkedBoxes = document.querySelectorAll('.rowCheckbox:checked');
             const ids = Array.from(checkedBoxes).map(cb => cb.value);
@@ -250,23 +356,27 @@
             if (ids.length === 0) {
                 Swal.fire({
                     icon: 'warning',
-                    title: 'Tidak ada yang dipilih',
-                    text: 'Pilih minimal satu anggota untuk dihapus'
+                    title: 'Peringatan',
+                    text: 'Pilih minimal satu anggota untuk dihapus!',
+                    confirmButtonColor: '#3085d6'
                 });
                 return;
             }
 
             Swal.fire({
                 title: `Hapus ${ids.length} anggota terpilih?`,
-                text: "Data yang dihapus tidak bisa dikembalikan!",
+                text: "Data yang dihapus tidak dapat dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
+                cancelButtonText: 'Batal',
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
+                    showLoadingAlert('Menghapus anggota...');
+
                     const form = document.getElementById('bulkDeleteForm');
                     form.innerHTML = '@csrf';
                     ids.forEach(id => {
@@ -281,9 +391,25 @@
             });
         }
 
+        // Update Bulk Delete Button
+        function updateBulkDeleteButton() {
+            const checked = document.querySelectorAll('.rowCheckbox:checked');
+            const btn = document.getElementById('bulkDeleteBtn');
+            btn.disabled = checked.length === 0;
+            btn.textContent = checked.length > 0 ? `Hapus Terpilih (${checked.length})` : 'Hapus Terpilih';
+        }
+
+        // Select all functionality
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.rowCheckbox');
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            updateBulkDeleteButton();
+        });
+
+        // Modal Functions
         function openAddModal() {
             // Reset form
-            document.querySelector('#addModal form').reset();
+            document.getElementById('addForm').reset();
             document.getElementById('addPreview').innerHTML = '';
             document.getElementById('addUploadArea').style.display = 'block';
 
@@ -317,7 +443,7 @@
                 editPreview.innerHTML = `
                     <div class="relative inline-block">
                         <img src="/storage/${data.image}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Current image">
-                        <button type="button" onclick="removeCurrentImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                        <button type="button" onclick="removeCurrentImage('edit')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
                             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -337,24 +463,15 @@
             document.getElementById('editModal').classList.add('hidden');
         }
 
-        function removeCurrentImage() {
-            document.getElementById('editPreview').innerHTML = '';
-            document.getElementById('editUploadArea').style.display = 'block';
-            document.getElementById('editImageInput').value = '';
-        }
+        function removeCurrentImage(modalType) {
+            const previewId = modalType === 'edit' ? 'editPreview' : 'addPreview';
+            const uploadAreaId = modalType === 'edit' ? 'editUploadArea' : 'addUploadArea';
+            const inputId = modalType === 'edit' ? 'editImageInput' : 'addImageInput';
 
-        function updateBulkDeleteButton() {
-            const checked = document.querySelectorAll('.rowCheckbox:checked');
-            const btn = document.getElementById('bulkDeleteBtn');
-            btn.disabled = checked.length === 0;
-            btn.textContent = checked.length > 0 ? `Hapus Terpilih (${checked.length})` : 'Hapus Terpilih';
+            document.getElementById(previewId).innerHTML = '';
+            document.getElementById(uploadAreaId).style.display = 'block';
+            document.getElementById(inputId).value = '';
         }
-
-        document.getElementById('selectAll').addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('.rowCheckbox');
-            checkboxes.forEach(cb => cb.checked = this.checked);
-            updateBulkDeleteButton();
-        });
 
         function previewImage(input, previewId) {
             const preview = document.getElementById(previewId);
@@ -368,14 +485,14 @@
 
                 // Validate file type
                 if (!file.type.match('image.*')) {
-                    Swal.fire('Error', 'File harus berupa gambar (PNG/JPG)', 'error');
+                    showErrorAlert('File harus berupa gambar (PNG/JPG/JPEG)!');
                     input.value = '';
                     return;
                 }
 
-                // Validate file size (2MB as per controller validation)
-                if (file.size > 2048 * 1024) {
-                    Swal.fire('Error', 'Ukuran file maksimal 2MB', 'error');
+                // Validate file size (2MB)
+                if (file.size > 2 * 1024 * 1024) {
+                    showErrorAlert('Ukuran file maksimal 2MB!');
                     input.value = '';
                     return;
                 }
@@ -385,7 +502,7 @@
                     preview.innerHTML = `
                         <div class="relative inline-block">
                             <img src="${e.target.result}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Preview">
-                            <button type="button" onclick="removeCurrentImage()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                            <button type="button" onclick="removeCurrentImage('${previewId === 'addPreview' ? 'add' : 'edit'}')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
                                 <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
@@ -399,27 +516,6 @@
                 uploadArea.style.display = 'block';
             }
         }
-
-        // Close modal when clicking outside
-        document.getElementById('addModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeAddModal();
-            }
-        });
-
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeEditModal();
-            }
-        });
-
-        // Close modal with Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeAddModal();
-                closeEditModal();
-            }
-        });
 
         // Setup drag and drop functionality
         function setupDragAndDrop() {
@@ -450,9 +546,109 @@
             });
         }
 
-        // Initialize drag and drop when page loads
+        // Enhanced Form Submissions with SweetAlert
         document.addEventListener('DOMContentLoaded', function() {
-            setupDragAndDrop();
+            // Handle Add Form
+            document.getElementById('addForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const submitBtn = document.getElementById('addSubmitBtn');
+                const originalText = submitBtn.textContent;
+
+                // Validate required fields
+                if (!formData.get('name') || !formData.get('title') || !formData.get('category_anggota_id')) {
+                    showErrorAlert('Harap isi semua field yang wajib diisi!');
+                    return;
+                }
+
+                submitBtn.textContent = 'Menyimpan...';
+                submitBtn.disabled = true;
+
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        closeAddModal();
+                        showSuccessAlert(data.message || 'Anggota berhasil ditambahkan!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showErrorAlert(data.message || 'Gagal menambahkan anggota!');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
+                })
+                .finally(() => {
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                });
+            });
+
+            // Handle Edit Form
+            document.getElementById('editForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const submitBtn = document.getElementById('editSubmitBtn');
+                const originalText = submitBtn.textContent;
+
+                // Validate required fields
+                if (!formData.get('name') || !formData.get('title') || !formData.get('category_anggota_id')) {
+                    showErrorAlert('Harap isi semua field yang wajib diisi!');
+                    return;
+                }
+
+                submitBtn.textContent = 'Menyimpan...';
+                submitBtn.disabled = true;
+
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        closeEditModal();
+                        showSuccessAlert(data.message || 'Anggota berhasil diperbarui!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showErrorAlert(data.message || 'Gagal memperbarui anggota!');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat memperbarui data. Silakan coba lagi.');
+                })
+                .finally(() => {
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                });
+            });
         });
     </script>
 @endsection

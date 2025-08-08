@@ -11,6 +11,12 @@
             </div>
         </div>
 
+        <!-- Search Input -->
+        <div class="mb-4">
+            <input type="text" id="searchInput" placeholder="Cari berdasarkan nama kategori..."
+                class="border px-3 py-2 w-full rounded text-sm" onkeyup="searchTable()">
+        </div>
+
         <div class="overflow-x-auto">
             <table class="min-w-full bg-white border border-gray-200 text-sm">
                 <thead class="bg-gray-100 text-left">
@@ -26,17 +32,10 @@
                             <td class="px-4 py-2 border">{{ $index + 1 }}</td>
                             <td class="px-4 py-2 border">{{ $category->name }}</td>
                             <td class="px-4 py-2 border space-x-1">
-                                <button onclick="openEditModal({{ $category->id }})"
+                                <button onclick="openEditModal(this)" data-item='@json($category)'
                                     class="text-blue-600 hover:text-blue-800 px-2 py-1 text-xs border border-blue-300 rounded hover:bg-blue-50">Edit</button>
-
-                                <form id="deleteForm{{ $category->id }}"
-                                    action="{{ route('category-kegiatan.destroy', $category->id) }}"
-                                    method="POST" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="button" onclick="confirmDelete({{ $category->id }})"
-                                        class="text-red-600 hover:text-red-800 px-2 py-1 text-xs border border-red-300 rounded hover:bg-red-50">Hapus</button>
-                                </form>
+                                <button onclick="confirmDelete({{ $category->id }}, '{{ $category->name }}')"
+                                    class="text-red-600 hover:text-red-800 px-2 py-1 text-xs border border-red-300 rounded hover:bg-red-50">Hapus</button>
                             </td>
                         </tr>
                     @endforeach
@@ -56,18 +55,20 @@
 
     <!-- Modal Tambah -->
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg w-full max-w-md p-6 space-y-4">
+        <div class="bg-white rounded-lg w-full max-w-md p-6 space-y-4 overflow-y-auto max-h-screen">
             <h2 class="text-lg font-semibold">Tambah Kategori</h2>
-            <form action="{{ route('category-kegiatan.store') }}" method="POST">
+            <form id="addForm" action="{{ route('category-kegiatan.store') }}" method="POST">
                 @csrf
                 <div class="mb-4">
-                    <label class="block mb-1 font-medium">Nama Kategori</label>
-                    <input type="text" name="name" required class="w-full border rounded p-2 text-sm" />
+                    <label class="block mb-1 font-medium">Nama Kategori <span class="text-red-500">*</span></label>
+                    <input type="text" name="name" required
+                           class="w-full border rounded p-2 text-sm"
+                           placeholder="Masukkan nama kategori" />
                 </div>
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeAddModal()"
                         class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
-                    <button type="submit"
+                    <button type="submit" id="addSubmitBtn"
                         class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
                 </div>
             </form>
@@ -76,21 +77,22 @@
 
     <!-- Modal Edit -->
     <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg w-full max-w-md p-6 space-y-4">
+        <div class="bg-white rounded-lg w-full max-w-md p-6 space-y-4 overflow-y-auto max-h-screen">
             <h2 class="text-lg font-semibold">Edit Kategori</h2>
             <form id="editForm" method="POST">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="id" id="editId">
                 <div class="mb-4">
-                    <label class="block mb-1 font-medium">Nama Kategori</label>
+                    <label class="block mb-1 font-medium">Nama Kategori <span class="text-red-500">*</span></label>
                     <input type="text" name="name" id="editName" required
-                        class="w-full border rounded p-2 text-sm" />
+                           class="w-full border rounded p-2 text-sm"
+                           placeholder="Masukkan nama kategori" />
                 </div>
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeEditModal()"
                         class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
-                    <button type="submit"
+                    <button type="submit" id="editSubmitBtn"
                         class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
                 </div>
             </form>
@@ -101,8 +103,65 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            // Close modal when clicking outside
+            document.getElementById('addModal').addEventListener('click', function(e) {
+                if (e.target === this) closeAddModal();
+            });
+
+            document.getElementById('editModal').addEventListener('click', function(e) {
+                if (e.target === this) closeEditModal();
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeAddModal();
+                    closeEditModal();
+                }
+            });
+
+            // Handle form submissions
+            document.getElementById('addForm').addEventListener('submit', function(e) {
+                const submitBtn = document.getElementById('addSubmitBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Menyimpan...';
+            });
+
+            document.getElementById('editForm').addEventListener('submit', function(e) {
+                const submitBtn = document.getElementById('editSubmitBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Menyimpan...';
+            });
+        });
+
+        // Search functionality
+        function searchTable() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let rows = document.querySelectorAll("#categoryTable tr");
+
+            rows.forEach(row => {
+                // Skip if it's the "no data" row
+                if (row.cells.length < 3) return;
+
+                let name = row.cells[1]?.textContent?.toLowerCase() || '';
+                const shouldShow = name.includes(input);
+                row.style.display = shouldShow ? "" : "none";
+            });
+        }
+
+        // Debounce search input
+        let searchTimer;
+        document.getElementById('searchInput').addEventListener('input', function() {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(searchTable, 300);
+        });
+
         function openAddModal() {
-            document.querySelector('#addModal form').reset();
+            // Reset form
+            document.getElementById('addForm').reset();
+            // Show modal
             document.getElementById('addModal').classList.remove('hidden');
         }
 
@@ -110,20 +169,15 @@
             document.getElementById('addModal').classList.add('hidden');
         }
 
-        function openEditModal(id) {
-            const categoryData = window.kegiatan?.find(category => category.id == id);
-
-            if (!categoryData) {
-                Swal.fire('Error', 'Data kategori tidak ditemukan', 'error');
-                return;
-            }
+        function openEditModal(button) {
+            const data = JSON.parse(button.getAttribute('data-item'));
 
             const form = document.getElementById('editForm');
-            form.action = `/category-kegiatan/update/${categoryData.id}`;
+            form.action = `/category-kegiatan/update/${data.id}`;
+            document.getElementById('editId').value = data.id || '';
+            document.getElementById('editName').value = data.name || '';
 
-            document.getElementById('editId').value = categoryData.id || '';
-            document.getElementById('editName').value = categoryData.name || '';
-
+            // Show modal
             document.getElementById('editModal').classList.remove('hidden');
         }
 
@@ -131,55 +185,61 @@
             document.getElementById('editModal').classList.add('hidden');
         }
 
-        function confirmDelete(id) {
+        function confirmDelete(id, name) {
             Swal.fire({
-                title: 'Yakin ingin menghapus?',
+                title: `Hapus kategori "${name}"?`,
                 text: "Data yang dihapus tidak dapat dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#e3342f',
+                confirmButtonColor: '#d33',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
+                cancelButtonText: 'Batal',
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    document.getElementById(`deleteForm${id}`).submit();
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/category-kegiatan/${id}`;
+
+                    const csrf = document.createElement('input');
+                    csrf.type = 'hidden';
+                    csrf.name = '_token';
+                    csrf.value = document.querySelector('meta[name="csrf-token"]').content;
+                    form.appendChild(csrf);
+
+                    const method = document.createElement('input');
+                    method.type = 'hidden';
+                    method.name = '_method';
+                    method.value = 'DELETE';
+                    form.appendChild(method);
+
+                    document.body.appendChild(form);
+                    form.submit();
                 }
             });
         }
 
-        // Close modal on outside click
-        document.getElementById('addModal').addEventListener('click', function(e) {
-            if (e.target === this) closeAddModal();
-        });
-
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) closeEditModal();
-        });
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeAddModal();
-                closeEditModal();
-            }
-        });
-
-        // Flash messages
+        // Session alerts
         @if (session('success'))
             Swal.fire({
-                title: 'Berhasil!',
-                text: '{{ session('success') }}',
                 icon: 'success',
+                title: 'Berhasil',
+                text: '{{ session('success') }}',
+                confirmButtonColor: '#3b82f6',
                 timer: 3000,
-                showConfirmButton: false
+                timerProgressBar: true,
+                toast: true,
+                position: 'top-end'
             });
         @endif
 
         @if (session('error'))
             Swal.fire({
-                title: 'Error!',
+                icon: 'error',
+                title: 'Gagal',
                 text: '{{ session('error') }}',
-                icon: 'error'
+                confirmButtonColor: '#3b82f6'
             });
         @endif
     </script>

@@ -13,7 +13,8 @@ class Ourblog extends Model
         'description',
         'image',
         'pub_date',
-        'category_id'
+        'category_id',
+        'waktu_baca'
 
     ];
 

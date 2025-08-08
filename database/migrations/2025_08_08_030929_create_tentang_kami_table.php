@@ -11,13 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('ourblogs', function (Blueprint $table) {
+        Schema::create('tentang_kami', function (Blueprint $table) {
             $table->id();
+            $table->boolean('display_on_home')->default(false);
             $table->string('title');
+            $table->enum('category', ['Visi', 'Misi', 'Sejarah']);
             $table->text('description');
             $table->string('image');
-            $table->date('pub_date');
-             $table->foreignId('category_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -27,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('ourblogs');
+        Schema::dropIfExists('tentang_kami');
     }
 };

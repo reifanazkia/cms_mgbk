@@ -31,6 +31,7 @@ class OurblogController extends Controller
             'image' => 'required|image|mimes:jpg,jpeg,png|max:2048',
             'pub_date' => 'required|date',
             'category_id' => 'required|exists:categories,id',
+            'waktu_baca' => 'required|string|max:75'
         ]);
 
         $imagePath = $request->file('image')->store('ourblogs', 'public');
@@ -41,6 +42,7 @@ class OurblogController extends Controller
             'image' => $imagePath,
             'pub_date' => $request->pub_date,
             'category_id' => $request->category_id,
+            'waktu_baca' => $request->waktu_baca,
         ]);
 
         return redirect()->back()->with('success', 'data berhasil ter di tambahkan');
@@ -56,6 +58,7 @@ class OurblogController extends Controller
             'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'pub_date' => 'required|date',
             'category_id' => 'required|exists:categories,id',
+            'waktu_baca' => 'required|string|max:75'
         ]);
 
         if ($request->hasFile('image')) {
@@ -71,6 +74,7 @@ class OurblogController extends Controller
             'description' => $request->description,
             'pub_date' => $request->pub_date,
             'category_id' => $request->category_id,
+            'waktu_baca' => $request->waktu_baca
         ]);
 
         $blog->save();

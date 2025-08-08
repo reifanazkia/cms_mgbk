@@ -2,10 +2,8 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AnggotaController;
-use App\Http\Controllers\Api;
 use App\Http\Controllers\Api\ApiAgendaController;
 use App\Http\Controllers\Api\ApiAnggotaController;
 use App\Http\Controllers\Api\ApiCareerController;
