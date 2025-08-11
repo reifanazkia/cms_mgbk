@@ -61,9 +61,8 @@
                 @csrf
                 <div class="mb-4">
                     <label class="block mb-1 font-medium">Nama Kategori <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" required
-                           class="w-full border rounded p-2 text-sm"
-                           placeholder="Masukkan nama kategori" />
+                    <input type="text" name="name" required class="w-full border rounded p-2 text-sm"
+                        placeholder="Masukkan nama kategori" />
                 </div>
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeAddModal()"
@@ -85,9 +84,8 @@
                 <input type="hidden" name="id" id="editId">
                 <div class="mb-4">
                     <label class="block mb-1 font-medium">Nama Kategori <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" id="editName" required
-                           class="w-full border rounded p-2 text-sm"
-                           placeholder="Masukkan nama kategori" />
+                    <input type="text" name="name" id="editName" required class="w-full border rounded p-2 text-sm"
+                        placeholder="Masukkan nama kategori" />
                 </div>
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeEditModal()"
@@ -200,12 +198,26 @@
                 if (result.isConfirmed) {
                     const form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = `/category-kegiatan/${id}`;
+                    // FIX: Gunakan route yang sesuai dengan definisi route Laravel
+                    form.action = `/category-kegiatan/destroy/${id}`;
+
+                    // FIX: Pastikan CSRF token diambil dengan benar
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ||
+                        document.querySelector('input[name="_token"]')?.value;
+
+                    if (!csrfToken) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'CSRF token tidak ditemukan!'
+                        });
+                        return;
+                    }
 
                     const csrf = document.createElement('input');
                     csrf.type = 'hidden';
                     csrf.name = '_token';
-                    csrf.value = document.querySelector('meta[name="csrf-token"]').content;
+                    csrf.value = csrfToken;
                     form.appendChild(csrf);
 
                     const method = document.createElement('input');

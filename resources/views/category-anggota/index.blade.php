@@ -34,8 +34,17 @@
                             <td class="px-4 py-2 border space-x-1">
                                 <button onclick="openEditModal(this)" data-item='@json($category)'
                                     class="text-blue-600 hover:text-blue-800 px-2 py-1 text-xs border border-blue-300 rounded hover:bg-blue-50">Edit</button>
-                                <button onclick="confirmDelete({{ $category->id }}, '{{ $category->name }}')"
-                                    class="text-red-600 hover:text-red-800 px-2 py-1 text-xs border border-red-300 rounded hover:bg-red-50">Hapus</button>
+
+                                <!-- ALTERNATIF 1: Form HTML langsung (Paling reliable) -->
+                                <form action="{{ route('category-anggota.destroy', $category->id) }}" method="POST"
+                                      style="display: inline;" onsubmit="return confirmDeleteSimple(event, '{{ $category->name }}')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit"
+                                            class="text-red-600 hover:text-red-800 px-2 py-1 text-xs border border-red-300 rounded hover:bg-red-50">
+                                        Hapus
+                                    </button>
+                                </form>
                             </td>
                         </tr>
                     @endforeach
@@ -185,7 +194,10 @@
             document.getElementById('editModal').classList.add('hidden');
         }
 
+        // ALTERNATIF: Jika masih ingin menggunakan JavaScript delete (backup)
         function confirmDelete(id, name) {
+            console.log('Delete attempt - ID:', id, 'Name:', name); // Debug
+
             Swal.fire({
                 title: `Hapus kategori "${name}"?`,
                 text: "Data yang dihapus tidak dapat dikembalikan!",
@@ -198,26 +210,107 @@
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
+                    // Tampilkan loading
+                    Swal.fire({
+                        title: 'Menghapus...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
                     const form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = `/category-anggota/${id}`;
 
+                    // Gunakan route helper yang tepat
+                    form.action = `{{ route('category-anggota.destroy', ':id') }}`.replace(':id', id);
+                    console.log('Delete URL:', form.action); // Debug
+
+                    form.style.display = 'none';
+
+                    // CSRF Token handling yang lebih robust
+                    let csrfToken = null;
+
+                    // Coba ambil dari meta tag
+                    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                    if (csrfMeta && csrfMeta.content) {
+                        csrfToken = csrfMeta.content;
+                    }
+
+                    // Fallback: ambil dari form yang sudah ada
+                    if (!csrfToken) {
+                        const existingForm = document.querySelector('form[method="POST"] input[name="_token"]');
+                        if (existingForm) {
+                            csrfToken = existingForm.value;
+                        }
+                    }
+
+                    if (!csrfToken) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'CSRF token tidak ditemukan! Silakan refresh halaman.',
+                            confirmButtonColor: '#3b82f6'
+                        });
+                        return;
+                    }
+
+                    // Add CSRF token
                     const csrf = document.createElement('input');
                     csrf.type = 'hidden';
                     csrf.name = '_token';
-                    csrf.value = document.querySelector('meta[name="csrf-token"]').content;
+                    csrf.value = csrfToken;
                     form.appendChild(csrf);
 
+                    // Add DELETE method
                     const method = document.createElement('input');
                     method.type = 'hidden';
                     method.name = '_method';
                     method.value = 'DELETE';
                     form.appendChild(method);
 
+                    // Submit form
                     document.body.appendChild(form);
                     form.submit();
                 }
             });
+        }
+
+        // Function untuk form HTML langsung (RECOMMENDED)
+        function confirmDeleteSimple(event, name) {
+            event.preventDefault(); // Prevent default form submission
+
+            Swal.fire({
+                title: `Hapus kategori "${name}"?`,
+                text: "Data yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show loading
+                    Swal.fire({
+                        title: 'Menghapus...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Submit the form
+                    event.target.submit();
+                }
+            });
+
+            return false;
         }
 
         // Session alerts

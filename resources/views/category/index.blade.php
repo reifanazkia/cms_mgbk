@@ -50,10 +50,6 @@
         </div>
     </div>
 
-    <script>
-        window.categories = @json($categories);
-    </script>
-
     <!-- Modal Tambah -->
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-md p-6 space-y-4 overflow-y-auto max-h-screen">
@@ -62,9 +58,8 @@
                 @csrf
                 <div class="mb-4">
                     <label class="block mb-1 font-medium">Nama Kategori <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" required
-                           class="w-full border rounded p-2 text-sm"
-                           placeholder="Masukkan nama kategori" />
+                    <input type="text" name="name" required class="w-full border rounded p-2 text-sm"
+                        placeholder="Masukkan nama kategori" />
                 </div>
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeAddModal()"
@@ -86,9 +81,8 @@
                 <input type="hidden" name="id" id="editId">
                 <div class="mb-4">
                     <label class="block mb-1 font-medium">Nama Kategori <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" id="editName" required
-                           class="w-full border rounded p-2 text-sm"
-                           placeholder="Masukkan nama kategori" />
+                    <input type="text" name="name" id="editName" required class="w-full border rounded p-2 text-sm"
+                        placeholder="Masukkan nama kategori" />
                 </div>
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeEditModal()"
@@ -186,7 +180,10 @@
             document.getElementById('editModal').classList.add('hidden');
         }
 
+        // FIXED DELETE FUNCTION
         function confirmDelete(id, name) {
+            console.log('Delete ID:', id); // Debug log
+
             Swal.fire({
                 title: `Hapus kategori "${name}"?`,
                 text: "Data yang dihapus tidak dapat dikembalikan!",
@@ -199,22 +196,58 @@
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
+                    // Tampilkan loading
+                    Swal.fire({
+                        title: 'Menghapus...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
                     const form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = `/category/${id}`;
 
+                    // PERBAIKAN: Gunakan route helper Laravel yang tepat
+                    form.action = `{{ route('category.destroy', ':id') }}`.replace(':id', id);
+                    console.log('Delete URL:', form.action); // Debug log
+
+                    form.style.display = 'none';
+
+                    // Ambil CSRF token
+                    let csrfToken = document.querySelector('meta[name="csrf-token"]');
+                    if (!csrfToken) {
+                        // Fallback dari form yang ada
+                        csrfToken = document.querySelector('input[name="_token"]');
+                    }
+
+                    if (!csrfToken || !csrfToken.content && !csrfToken.value) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'CSRF token tidak ditemukan! Silakan refresh halaman.',
+                            confirmButtonColor: '#3b82f6'
+                        });
+                        return;
+                    }
+
+                    // Add CSRF token
                     const csrf = document.createElement('input');
                     csrf.type = 'hidden';
                     csrf.name = '_token';
-                    csrf.value = document.querySelector('meta[name="csrf-token"]').content;
+                    csrf.value = csrfToken.content || csrfToken.value;
                     form.appendChild(csrf);
 
+                    // Add DELETE method
                     const method = document.createElement('input');
                     method.type = 'hidden';
                     method.name = '_method';
                     method.value = 'DELETE';
                     form.appendChild(method);
 
+                    // Submit form
                     document.body.appendChild(form);
                     form.submit();
                 }

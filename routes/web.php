@@ -144,7 +144,7 @@ Route::prefix('category')->name('category.')->group(function () {
     Route::get('/', [CategoryController::class, 'index'])->name('index');
     Route::post('/store', [CategoryController::class, 'store'])->name('store');
     Route::put('/update/{id}', [CategoryController::class, 'update'])->name('update');
-    Route::delete('/destroy/{id}', [CategoryController::class, 'destroy'])->name('destroy');
+    Route::delete('/{id}', [CategoryController::class, 'destroy'])->name('destroy');
 });
 
 Route::prefix('agenda')->name('agenda.')->group(function () {
@@ -192,7 +192,7 @@ Route::prefix('category-anggota')->name('category-anggota.')->group(function () 
     Route::get('/', [CategoryAnggotaController::class, 'index'])->name('index');
     Route::post('/store', [CategoryAnggotaController::class, 'store'])->name('store');
     Route::put('/update/{id}', [CategoryAnggotaController::class, 'update'])->name('update');
-    Route::delete('/destroy/{id}', [CategoryAnggotaController::class, 'destroy'])->name('destroy');
+    Route::delete('/{id}', [CategoryAnggotaController::class, 'destroy'])->name('destroy');
 });
 
 Route::prefix('kegiatan')->name('kegiatan.')->group(function () {
@@ -209,5 +209,5 @@ Route::prefix('category-kegiatan')->name('category-kegiatan.')->group(function (
     Route::get('/', [CategoryKegiatanController::class, 'index'])->name('index');
     Route::post('/store', [CategoryKegiatanController::class, 'store'])->name('store');
     Route::put('/update/{id}', [CategoryKegiatanController::class, 'update'])->name('update');
-    Route::delete('/destroy/{id}', [CategoryKegiatanController::class, 'destroy'])->name('destroy');
+    Route::delete('/{id}', [CategoryKegiatanController::class, 'destroy'])->name('destroy');
 });
