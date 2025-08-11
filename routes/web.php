@@ -13,6 +13,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OurblogController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategoryKegiatanController;
+use App\Http\Controllers\CategoryTentangkami;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
@@ -24,6 +25,7 @@ use App\Models\CategoryKegiatan;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\TentangkamiController;
+use App\Models\TentangkamiCategory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -81,11 +83,11 @@ Route::post('/social-account/store', [SosmedController::class, 'store'])->name('
 Route::delete('/social-account/{id}', [SosmedController::class, 'destroy'])->name('social.destroy');
 
 Route::prefix('hows')->name('hows.')->group(function () {
-    Route::get('/', [HowsController::class, 'index'])->name('index');
-    Route::post('/', [HowsController::class, 'store'])->name('store');
-    Route::get('/{id}', [HowsController::class, 'show'])->name('show');
-    Route::put('/{id}', [HowsController::class, 'update'])->name('update');
-    Route::delete('/{id}', [HowsController::class, 'destroy'])->name('destroy');
+    Route::get('/', [TentangkamiController::class, 'index'])->name('index');
+    Route::post('/', [TentangkamiController::class, 'store'])->name('store');
+    Route::get('/{id}', [TentangkamiController::class, 'show'])->name('show');
+    Route::put('/{id}', [TentangkamiController::class, 'update'])->name('update');
+    Route::delete('/{id}', [TentangkamiController::class, 'destroy'])->name('destroy');
 });
 
 
@@ -210,4 +212,11 @@ Route::prefix('category-kegiatan')->name('category-kegiatan.')->group(function (
     Route::post('/store', [CategoryKegiatanController::class, 'store'])->name('store');
     Route::put('/update/{id}', [CategoryKegiatanController::class, 'update'])->name('update');
     Route::delete('/{id}', [CategoryKegiatanController::class, 'destroy'])->name('destroy');
+});
+
+Route::prefix('category-tentangkami')->name('category-tentangkami.')->group(function () {
+    Route::get('/', [CategoryTentangkami::class, 'index'])->name('index');
+    Route::post('/store', [CategoryTentangkami::class, 'store'])->name('store');
+    Route::put('/update/{id}', [CategoryTentangkami::class, 'update'])->name('update');
+    Route::delete('/{id}', [CategoryTentangkami::class, 'destroy'])->name('destroy');
 });

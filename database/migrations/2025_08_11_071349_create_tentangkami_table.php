@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->boolean('display_on_home')->default(false);
             $table->string('title');
-            $table->enum('category', ['Visi', 'Misi', 'Sejarah']);
+            $table->foreignId('category_tentangkami_id')->constrained('tentangkami_categories')->onDelete('cascade');
             $table->text('description');
             $table->string('image');
             $table->timestamps();

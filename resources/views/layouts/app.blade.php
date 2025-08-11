@@ -164,6 +164,8 @@
                                 class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori Anggota</a>
                             <a href="{{ route('category-kegiatan.index') }}"
                                 class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori Kegiatan</a>
+                            <a href="{{ route('category-tentangkami.index') }}"
+                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori Tentangkami</a>
                         </div>
                     </div>
                 </div>

@@ -3,7 +3,7 @@
 @section('content')
     <div class="p-4">
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-xl font-semibold">Kategori Kegiatan</h1>
+            <h1 class="text-xl font-semibold">Kategori Tentang Kami</h1>
             <div class="flex gap-2">
                 <button onclick="openAddModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                     Tambah Kategori
@@ -30,11 +30,11 @@
                     @foreach ($kegiatan as $index => $category)
                         <tr>
                             <td class="px-4 py-2 border">{{ $index + 1 }}</td>
-                            <td class="px-4 py-2 border">{{ $category->name }}</td>
+                            <td class="px-4 py-2 border">{{ $category->nama }}</td>
                             <td class="px-4 py-2 border space-x-1">
                                 <button onclick="openEditModal(this)" data-item='@json($category)'
                                     class="text-blue-600 hover:text-blue-800 px-2 py-1 text-xs border border-blue-300 rounded hover:bg-blue-50">Edit</button>
-                                <button onclick="confirmDelete({{ $category->id }}, '{{ $category->name }}')"
+                                <button onclick="confirmDelete({{ $category->id }}, '{{ $category->nama }}')"
                                     class="text-red-600 hover:text-red-800 px-2 py-1 text-xs border border-red-300 rounded hover:bg-red-50">Hapus</button>
                             </td>
                         </tr>
@@ -56,12 +56,12 @@
     <!-- Modal Tambah -->
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-md p-6 space-y-4 overflow-y-auto max-h-screen">
-            <h2 class="text-lg font-semibold">Tambah Kategori</h2>
-            <form id="addForm" action="{{ route('category-kegiatan.store') }}" method="POST">
+            <h2 class="text-lg font-semibold">Tambah Kategori Tentang Kami</h2>
+            <form id="addForm" action="{{ route('category-tentangkami.store') }}" method="POST">
                 @csrf
                 <div class="mb-4">
                     <label class="block mb-1 font-medium">Nama Kategori <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" required
+                    <input type="text" name="nama" required
                            class="w-full border rounded p-2 text-sm"
                            placeholder="Masukkan nama kategori" />
                 </div>
@@ -78,14 +78,14 @@
     <!-- Modal Edit -->
     <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-md p-6 space-y-4 overflow-y-auto max-h-screen">
-            <h2 class="text-lg font-semibold">Edit Kategori</h2>
+            <h2 class="text-lg font-semibold">Edit Kategori Tentang Kami</h2>
             <form id="editForm" method="POST">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="id" id="editId">
                 <div class="mb-4">
                     <label class="block mb-1 font-medium">Nama Kategori <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" id="editName" required
+                    <input type="text" name="nama" id="editNama" required
                            class="w-full border rounded p-2 text-sm"
                            placeholder="Masukkan nama kategori" />
                 </div>
@@ -103,9 +103,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Close modal when clicking outside
             document.getElementById('addModal').addEventListener('click', function(e) {
                 if (e.target === this) closeAddModal();
             });
@@ -114,7 +112,6 @@
                 if (e.target === this) closeEditModal();
             });
 
-            // Close modal with Escape key
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     closeAddModal();
@@ -122,7 +119,6 @@
                 }
             });
 
-            // Handle form submissions
             document.getElementById('addForm').addEventListener('submit', function(e) {
                 const submitBtn = document.getElementById('addSubmitBtn');
                 submitBtn.disabled = true;
@@ -136,13 +132,11 @@
             });
         });
 
-        // Search functionality
         function searchTable() {
             let input = document.getElementById("searchInput").value.toLowerCase();
             let rows = document.querySelectorAll("#categoryTable tr");
 
             rows.forEach(row => {
-                // Skip if it's the "no data" row
                 if (row.cells.length < 3) return;
 
                 let name = row.cells[1]?.textContent?.toLowerCase() || '';
@@ -151,7 +145,6 @@
             });
         }
 
-        // Debounce search input
         let searchTimer;
         document.getElementById('searchInput').addEventListener('input', function() {
             clearTimeout(searchTimer);
@@ -159,9 +152,7 @@
         });
 
         function openAddModal() {
-            // Reset form
             document.getElementById('addForm').reset();
-            // Show modal
             document.getElementById('addModal').classList.remove('hidden');
         }
 
@@ -171,13 +162,10 @@
 
         function openEditModal(button) {
             const data = JSON.parse(button.getAttribute('data-item'));
-
             const form = document.getElementById('editForm');
-            form.action = `/category-kegiatan/update/${data.id}`;
+            form.action = "{{ url('category-tentangkami/update') }}/" + data.id;
             document.getElementById('editId').value = data.id || '';
             document.getElementById('editName').value = data.name || '';
-
-            // Show modal
             document.getElementById('editModal').classList.remove('hidden');
         }
 
@@ -185,56 +173,53 @@
             document.getElementById('editModal').classList.add('hidden');
         }
 
-       function confirmDelete(id, name) {
-    Swal.fire({
-        title: `Hapus kategori "${name}"?`,
-        text: "Data yang dihapus tidak dapat dikembalikan!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Ya, hapus!',
-        cancelButtonText: 'Batal',
-        reverseButtons: true
-    }).then((result) => {
-        if (result.isConfirmed) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            // FIX: Gunakan route yang sesuai dengan definisi route Laravel
-            form.action = `/category-kegiatan/destroy/${id}`;
+        function confirmDelete(id, name) {
+            Swal.fire({
+                title: `Hapus kategori "${name}"?`,
+                text: "Data yang dihapus tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = "{{ url('category-tentangkami') }}/" + id;
 
-            // FIX: Pastikan CSRF token diambil dengan benar
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ||
-                            document.querySelector('input[name="_token"]')?.value;
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ||
+                                    document.querySelector('input[name="_token"]')?.value;
 
-            if (!csrfToken) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'CSRF token tidak ditemukan!'
-                });
-                return;
-            }
+                    if (!csrfToken) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'CSRF token tidak ditemukan!'
+                        });
+                        return;
+                    }
 
-            const csrf = document.createElement('input');
-            csrf.type = 'hidden';
-            csrf.name = '_token';
-            csrf.value = csrfToken;
-            form.appendChild(csrf);
+                    const csrf = document.createElement('input');
+                    csrf.type = 'hidden';
+                    csrf.name = '_token';
+                    csrf.value = csrfToken;
+                    form.appendChild(csrf);
 
-            const method = document.createElement('input');
-            method.type = 'hidden';
-            method.name = '_method';
-            method.value = 'DELETE';
-            form.appendChild(method);
+                    const method = document.createElement('input');
+                    method.type = 'hidden';
+                    method.name = '_method';
+                    method.value = 'DELETE';
+                    form.appendChild(method);
 
-            document.body.appendChild(form);
-            form.submit();
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
         }
-    });
-}
 
-        // Session alerts
         @if (session('success'))
             Swal.fire({
                 icon: 'success',
