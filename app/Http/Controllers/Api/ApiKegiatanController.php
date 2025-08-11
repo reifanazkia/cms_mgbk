@@ -39,4 +39,18 @@ class ApiKegiatanController extends Controller
             'data' => $kegiatan
         ]);
     }
+
+    public function byCategory($categoryId)
+    {
+        $kegiatan = Kegiatan::with('category')
+            ->where('category_kegiatan_id', $categoryId)
+            ->latest()
+            ->get();
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Data Kegiatan berdasarkan kategori berhasil diambil',
+            'data' => $kegiatan
+        ]);
+    }
 }

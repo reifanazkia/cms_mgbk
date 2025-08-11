@@ -25,6 +25,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\TentangkamiController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -38,6 +39,23 @@ Route::post('/logout', function () {
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
+
+
+
+// Route untuk akses file storage
+Route::get('/storage/{path}', function ($path) {
+    $file = Storage::disk('public')->path($path);
+
+    if (!file_exists($file)) {
+        abort(404);
+    }
+
+    return response()->file($file, [
+        'Access-Control-Allow-Origin' => request()->header('origin') ?: '*',
+        'Access-Control-Allow-Methods' => 'GET, OPTIONS',
+        'Access-Control-Allow-Headers' => '*',
+    ]);
+})->where('path', '.*');
 
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -184,6 +202,7 @@ Route::prefix('kegiatan')->name('kegiatan.')->group(function () {
     Route::put('/{id}', [KegiatanController::class, 'update'])->name('update');
     Route::delete('/{id}', [KegiatanController::class, 'destroy'])->name('destroy');
     Route::post('/bulk-delete', [KegiatanController::class, 'bulkDelete'])->name('bulkDelete');
+    Route::get('/kegiatan/category/{id}', [KegiatanController::class, 'byCategory'])->name('kegiatan.byCategory');
 });
 
 Route::prefix('category-kegiatan')->name('category-kegiatan.')->group(function () {

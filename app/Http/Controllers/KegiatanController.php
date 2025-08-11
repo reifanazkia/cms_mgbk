@@ -108,4 +108,16 @@ class KegiatanController extends Controller
             return back()->with('error', 'Gagal menghapus kegiatan: ' . $e->getMessage());
         }
     }
+
+    public function byCategory($id)
+    {
+        $kegiatans = Kegiatan::with('category')
+            ->where('category_kegiatan_id', $id)
+            ->latest()
+            ->get();
+
+        $categories = CategoryKegiatan::all();
+
+        return view('kegiatan.index', compact('kegiatans', 'categories'));
+    }
 }

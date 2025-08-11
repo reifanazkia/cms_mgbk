@@ -54,6 +54,8 @@ Route::get('/slider/home', [ApiSliderController::class, 'showHomeSlider']);
 
 Route::get('/kegiatan', [ApiKegiatanController::class, 'index']);
 Route::get('/kegiatan/{id}', [ApiKegiatanController::class, 'show']);
+Route::get('/kegiatan/category/{id}', [ApiKegiatanController::class, 'byCategory']);
+
 
 Route::get('/anggota', [ApiAnggotaController::class, 'index']);
 
