@@ -23,43 +23,43 @@
                         <th class="px-4 py-2 border">Judul</th>
                         <th class="px-4 py-2 border">Kategori</th>
                         <th class="px-4 py-2 border">Gambar</th>
-                        <th class="px-4 py-2 border">Tampil di Beranda</th>
                         <th class="px-4 py-2 border">Aksi</th>
                     </tr>
                 </thead>
                 <tbody id="tentangkamiTable">
-                    @foreach ($tentangkami as $index => $item)
+                    @if($tentangkami && $tentangkami->count() > 0)
+                        @foreach ($tentangkami as $index => $item)
+                            <tr>
+                                <td class="px-4 py-2 border">{{ $index + 1 }}</td>
+                                <td class="px-4 py-2 border">{{ $item->title ?? 'N/A' }}</td>
+                                <td class="px-4 py-2 border">
+                                    <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
+                                        {{ $item->category->nama ?? 'Tidak ada kategori' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-2 border">
+                                    @if ($item->image)
+                                        <img src="{{ asset($item->image) }}"
+                                            class="w-24 h-24 object-cover object-center rounded shadow-md aspect-square">
+                                    @else
+                                        <span class="text-gray-400 text-xs">Tidak ada gambar</span>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-2 border space-x-1">
+                                    <button onclick="openEditModal(this)" data-tentangkami='@json($item)'
+                                        class="text-blue-600 hover:text-blue-800 px-2 py-1 text-xs border border-blue-300 rounded hover:bg-blue-50">Edit</button>
+                                    <button onclick="confirmDelete({{ $item->id }})"
+                                        class="text-red-600 hover:text-red-800 px-2 py-1 text-xs border border-red-300 rounded hover:bg-red-50">Hapus</button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    @else
                         <tr>
-                            <td class="px-4 py-2 border">{{ $index + 1 }}</td>
-                            <td class="px-4 py-2 border">{{ $item->title }}</td>
-                            <td class="px-4 py-2 border">
-                                <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
-                                    {{ $item->category->nama ?? $item->category->name ?? 'Tidak ada kategori' }}
-                                </span>
-                            </td>
-                            <td class="px-4 py-2 border">
-                                @if ($item->image)
-                                    <img src="{{ asset($item->image) }}"
-                                        class="w-24 h-24 object-cover object-center rounded shadow-md aspect-square">
-                                @else
-                                    <span class="text-gray-400 text-xs">Tidak ada gambar</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-2 border text-center">
-                                @if ($item->display_on_home)
-                                    <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Ya</span>
-                                @else
-                                    <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">Tidak</span>
-                                @endif
-                            </td>
-                            <td class="px-4 py-2 border space-x-1">
-                                <button onclick="openEditModal(this)" data-tentangkami='@json($item)'
-                                    class="text-blue-600 hover:text-blue-800 px-2 py-1 text-xs border border-blue-300 rounded hover:bg-blue-50">Edit</button>
-                                <button onclick="confirmDelete({{ $item->id }})"
-                                    class="text-red-600 hover:text-red-800 px-2 py-1 text-xs border border-red-300 rounded hover:bg-red-50">Hapus</button>
+                            <td colspan="6" class="px-4 py-8 border text-center text-gray-500">
+                                Tidak ada data tersedia
                             </td>
                         </tr>
-                    @endforeach
+                    @endif
                 </tbody>
             </table>
         </div>
@@ -89,9 +89,11 @@
                         <select name="category_tentangkami_id" id="addCategorySelect" required
                             class="w-full border rounded p-2 text-sm">
                             <option value="">Pilih Kategori</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->nama ?? $category->name }}</option>
-                            @endforeach
+                            @if($categories && $categories->count() > 0)
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->nama }}</option>
+                                @endforeach
+                            @endif
                         </select>
                         <p class="error-text text-red-500 text-xs mt-1 hidden">Kategori wajib dipilih</p>
                     </div>
@@ -132,7 +134,7 @@
                     <button type="button" onclick="closeAddModal()"
                         class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
                     <button type="submit" id="addSubmitBtn"
-                        class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 cursor-pointer">Simpan</button>
+                        class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
                 </div>
             </form>
         </div>
@@ -164,9 +166,11 @@
                         <select name="category_tentangkami_id" id="editCategorySelect" required
                             class="w-full border rounded p-2 text-sm">
                             <option value="">Pilih Kategori</option>
-                            @foreach($categories as $category)
-                                <option value="{{ $category->id }}">{{ $category->nama ?? $category->name }}</option>
-                            @endforeach
+                            @if($categories && $categories->count() > 0)
+                                @foreach ($categories as $category)
+                                    <option value="{{ $category->id }}">{{ $category->nama }}</option>
+                                @endforeach
+                            @endif
                         </select>
                         <p class="error-text text-red-500 text-xs mt-1 hidden">Kategori wajib dipilih</p>
                     </div>
@@ -207,7 +211,7 @@
                     <button type="button" onclick="closeEditModal()"
                         class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
                     <button type="submit" id="editSubmitBtn"
-                        class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 cursor-pointer">Simpan</button>
+                        class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
                 </div>
             </form>
         </div>
@@ -227,12 +231,12 @@
 
         // Document ready
         $(document).ready(function() {
-            console.log('Document ready'); // Debug log
+            console.log('Document ready');
 
             // Setup drag and drop
             setupDragAndDrop();
 
-            // Close modal events
+            // Close modal when clicking outside
             $('#addModal').on('click', function(e) {
                 if (e.target === this) closeAddModal();
             });
@@ -241,7 +245,7 @@
                 if (e.target === this) closeEditModal();
             });
 
-            // Escape key
+            // Escape key to close modals
             $(document).on('keydown', function(e) {
                 if (e.key === 'Escape') {
                     closeAddModal();
@@ -249,24 +253,133 @@
                 }
             });
 
-            // Test tombol simpan - pastikan event listener terpasang
-            $('#addSubmitBtn').on('click', function(e) {
-                console.log('Add submit button clicked'); // Debug log
+            // Form validation on submit
+            $('#addForm').on('submit', function(e) {
+                console.log('Add form submitted');
+
+                // Get CKEditor data and update textarea
+                if (addDescriptionEditor) {
+                    const editorData = addDescriptionEditor.getData();
+                    $('#addDescription').val(editorData);
+                    console.log('Description data:', editorData);
+                }
+
+                // Basic validation
+                let isValid = true;
+                const title = $('input[name="title"]').val().trim();
+                const category = $('#addCategorySelect').val();
+                const description = addDescriptionEditor ? addDescriptionEditor.getData().trim() : $(
+                    '#addDescription').val().trim();
+                const image = $('#addImageInput')[0].files.length > 0;
+
+                // Reset error states
+                $('#addForm .error-text').addClass('hidden');
+                $('#addForm [required]').removeClass('border-red-500');
+
+                // Validate fields
+                if (!title) {
+                    showFieldError('input[name="title"]', 'Judul wajib diisi');
+                    isValid = false;
+                }
+
+                if (!category) {
+                    showFieldError('#addCategorySelect', 'Kategori wajib dipilih');
+                    isValid = false;
+                }
+
+                if (!description) {
+                    showFieldError('#addDescription', 'Deskripsi wajib diisi');
+                    isValid = false;
+                }
+
+                if (!image) {
+                    $('#addImageInput').siblings('.error-text').removeClass('hidden');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validasi Error',
+                        text: 'Mohon lengkapi semua field yang wajib diisi.',
+                        confirmButtonColor: '#3b82f6'
+                    });
+                    return false;
+                }
+
+                // Show loading state
+                $('#addSubmitBtn').text('Menyimpan...').prop('disabled', true);
             });
 
-            $('#editSubmitBtn').on('click', function(e) {
-                console.log('Edit submit button clicked'); // Debug log
+            $('#editForm').on('submit', function(e) {
+                console.log('Edit form submitted');
+
+                // Get CKEditor data and update textarea
+                if (editDescriptionEditor) {
+                    const editorData = editDescriptionEditor.getData();
+                    $('#editDescription').val(editorData);
+                    console.log('Description data:', editorData);
+                }
+
+                // Basic validation
+                let isValid = true;
+                const title = $('#editTitle').val().trim();
+                const category = $('#editCategorySelect').val();
+                const description = editDescriptionEditor ? editDescriptionEditor.getData().trim() : $(
+                    '#editDescription').val().trim();
+
+                // Reset error states
+                $('#editForm .error-text').addClass('hidden');
+                $('#editForm [required]').removeClass('border-red-500');
+
+                // Validate fields
+                if (!title) {
+                    showFieldError('#editTitle', 'Judul wajib diisi');
+                    isValid = false;
+                }
+
+                if (!category) {
+                    showFieldError('#editCategorySelect', 'Kategori wajib dipilih');
+                    isValid = false;
+                }
+
+                if (!description) {
+                    showFieldError('#editDescription', 'Deskripsi wajib diisi');
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validasi Error',
+                        text: 'Mohon lengkapi semua field yang wajib diisi.',
+                        confirmButtonColor: '#3b82f6'
+                    });
+                    return false;
+                }
+
+                // Show loading state
+                $('#editSubmitBtn').text('Menyimpan...').prop('disabled', false);
             });
         });
 
-        // Functions
+        function showFieldError(selector, message) {
+            $(selector).addClass('border-red-500');
+            $(selector).siblings('.error-text').text(message).removeClass('hidden');
+        }
+
         function openAddModal() {
-            console.log('Opening add modal'); // Debug log
+            console.log('Opening add modal');
 
             // Reset form
             document.getElementById('addForm').reset();
             document.getElementById('addPreview').innerHTML = '';
             document.getElementById('addUploadArea').style.display = 'block';
+
+            // Reset button state
+            $('#addSubmitBtn').text('Simpan').prop('disabled', false);
 
             // Reset error states
             $('#addForm .error-text').addClass('hidden');
@@ -278,14 +391,23 @@
             // Initialize CKEditor after modal is visible
             setTimeout(function() {
                 if (!addDescriptionEditor) {
+                    // Remove required attribute temporarily to prevent browser validation conflict
+                    $('#addDescription').removeAttr('required');
+
                     ClassicEditor
-                        .create(document.querySelector('#addDescription'))
+                        .create(document.querySelector('#addDescription'), {
+                            toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList',
+                                '|', 'outdent', 'indent', '|', 'blockQuote', 'undo', 'redo'
+                            ]
+                        })
                         .then(editor => {
                             addDescriptionEditor = editor;
-                            console.log('Add editor initialized'); // Debug log
+                            console.log('Add editor initialized');
                         })
                         .catch(error => {
                             console.error('Error initializing add editor:', error);
+                            // Restore required attribute if editor fails
+                            $('#addDescription').attr('required', 'required');
                         });
                 }
             }, 100);
@@ -294,15 +416,25 @@
         function closeAddModal() {
             document.getElementById('addModal').classList.add('hidden');
 
-            // Destroy editor
+            // Destroy editor safely
             if (addDescriptionEditor) {
-                addDescriptionEditor.destroy();
+                try {
+                    addDescriptionEditor.destroy();
+                } catch (error) {
+                    console.warn('Error destroying add editor:', error);
+                }
                 addDescriptionEditor = null;
             }
+
+            // Restore required attribute
+            $('#addDescription').attr('required', 'required');
+
+            // Reset button state
+            $('#addSubmitBtn').text('Simpan').prop('disabled', false);
         }
 
         function openEditModal(button) {
-            console.log('Opening edit modal'); // Debug log
+            console.log('Opening edit modal');
 
             const tentangkami = JSON.parse(button.getAttribute('data-tentangkami'));
             const form = document.getElementById('editForm');
@@ -313,21 +445,25 @@
             document.getElementById('editCategorySelect').value = tentangkami.category_tentangkami_id || '';
             document.getElementById('editDisplayOnHome').checked = tentangkami.display_on_home == 1;
 
+            // Reset button state
+            $('#editSubmitBtn').text('Simpan').prop('disabled', false);
+
             // Handle image preview
             const editPreview = document.getElementById('editPreview');
             const editUploadArea = document.getElementById('editUploadArea');
 
             if (tentangkami.image) {
-                const imageUrl = tentangkami.image.startsWith('http') ? tentangkami.image : `{{ asset('') }}${tentangkami.image}`;
+                const imageUrl = tentangkami.image.startsWith('http') ? tentangkami.image :
+                    `{{ asset('') }}${tentangkami.image}`;
                 editPreview.innerHTML = `
-                    <div class="relative inline-block">
-                        <img src="${imageUrl}" class="h-32 w-32 rounded-lg shadow-md object-cover border">
-                        <button type="button" onclick="removeCurrentImage('edit')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>`;
+            <div class="relative inline-block">
+                <img src="${imageUrl}" class="h-32 w-32 rounded-lg shadow-md object-cover border">
+                <button type="button" onclick="removeCurrentImage('edit')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>`;
                 editUploadArea.style.display = 'none';
             } else {
                 editPreview.innerHTML = '';
@@ -344,17 +480,29 @@
             // Initialize CKEditor after modal is visible
             setTimeout(function() {
                 if (!editDescriptionEditor) {
+                    // Remove required attribute temporarily to prevent browser validation conflict
+                    $('#editDescription').removeAttr('required');
+
                     ClassicEditor
-                        .create(document.querySelector('#editDescription'))
+                        .create(document.querySelector('#editDescription'), {
+                            toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList',
+                                '|', 'outdent', 'indent', '|', 'blockQuote', 'undo', 'redo'
+                            ]
+                        })
                         .then(editor => {
                             editDescriptionEditor = editor;
                             // Set content after editor is ready
                             editor.setData(tentangkami.description || '');
-                            console.log('Edit editor initialized'); // Debug log
+                            console.log('Edit editor initialized');
                         })
                         .catch(error => {
                             console.error('Error initializing edit editor:', error);
+                            // Restore required attribute if editor fails
+                            $('#editDescription').attr('required', 'required');
                         });
+                } else {
+                    // If editor already exists, just set the data
+                    editDescriptionEditor.setData(tentangkami.description || '');
                 }
             }, 100);
         }
@@ -362,11 +510,21 @@
         function closeEditModal() {
             document.getElementById('editModal').classList.add('hidden');
 
-            // Destroy editor
+            // Destroy editor safely
             if (editDescriptionEditor) {
-                editDescriptionEditor.destroy();
+                try {
+                    editDescriptionEditor.destroy();
+                } catch (error) {
+                    console.warn('Error destroying edit editor:', error);
+                }
                 editDescriptionEditor = null;
             }
+
+            // Restore required attribute
+            $('#editDescription').attr('required', 'required');
+
+            // Reset button state
+            $('#editSubmitBtn').text('Simpan').prop('disabled', false);
         }
 
         function setupDragAndDrop() {
@@ -426,7 +584,7 @@
                     return;
                 }
 
-                // Validate file size
+                // Validate file size (2MB = 2 * 1024 * 1024 bytes)
                 if (file.size > 2 * 1024 * 1024) {
                     Swal.fire({
                         icon: 'error',
@@ -441,14 +599,14 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     preview.innerHTML = `
-                        <div class="relative inline-block">
-                            <img src="${e.target.result}" class="h-32 w-32 rounded-lg shadow-md object-cover border">
-                            <button type="button" onclick="removeCurrentImage('${previewId === 'addPreview' ? 'add' : 'edit'}')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
-                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                            </button>
-                        </div>`;
+                <div class="relative inline-block">
+                    <img src="${e.target.result}" class="h-32 w-32 rounded-lg shadow-md object-cover border">
+                    <button type="button" onclick="removeCurrentImage('${previewId === 'addPreview' ? 'add' : 'edit'}')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>`;
                     uploadArea.style.display = 'none';
                 };
                 reader.readAsDataURL(file);
@@ -495,9 +653,9 @@
                     form.method = 'POST';
                     form.action = `/tentangkami/${id}`;
                     form.innerHTML = `
-                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                        <input type="hidden" name="_method" value="DELETE">
-                    `;
+                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="_method" value="DELETE">
+            `;
                     document.body.appendChild(form);
                     form.submit();
                 }
@@ -536,5 +694,4 @@
             });
         @endif
     </script>
-
 @endsection

@@ -74,7 +74,8 @@
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Deskripsi <span class="text-red-500">*</span></label>
-                        <textarea name="description" id="editorAddDescription" rows="4" class="w-full border rounded p-2 text-sm" required></textarea>
+                        <div id="addEditorContainer"></div>
+                        <textarea name="description" id="addDescriptionHidden" class="hidden"></textarea>
                     </div>
                 </div>
 
@@ -132,7 +133,8 @@
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Deskripsi <span class="text-red-500">*</span></label>
-                        <textarea name="description" id="editorEditDescription" rows="4" class="w-full border rounded p-2 text-sm" required></textarea>
+                        <div id="editEditorContainer"></div>
+                        <textarea name="description" id="editDescriptionHidden" class="hidden"></textarea>
                     </div>
                 </div>
 
@@ -148,7 +150,7 @@
                             <div class="flex flex-col items-center">
                                 <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                          d="M7 16a4 4 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                 </svg>
                                 <p class="text-gray-600 mb-2">Klik untuk upload atau drag and drop</p>
                                 <p class="text-sm text-gray-500">PNG, JPG, atau GIF (MAX. 2MB) - Opsional</p>
@@ -175,52 +177,60 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- CKEditor -->
+    <!-- CKEditor - Load only once -->
     <script src="https://cdn.ckeditor.com/ckeditor5/41.3.1/classic/ckeditor.js"></script>
 
     <script>
-        // Global variables for CKEditor instances
-        let addDescriptionEditor = null;
-        let editDescriptionEditor = null;
+        // Global variables
+        let addEditor = null;
+        let editEditor = null;
 
-        // Initialize CKEditor when the page loads
-        $(document).ready(function() {
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', function() {
             setupDragAndDrop();
+            setupEventListeners();
 
-            // Initialize CKEditor for Add Modal
+            // Pre-initialize edit editor to avoid timing issues (more reliable approach)
+            setTimeout(() => {
+                initializeEditEditor();
+            }, 500);
+        });
+
+        // Initialize edit editor once on page load
+        function initializeEditEditor() {
+            const container = document.getElementById('editEditorContainer');
+
+            // Create editor element
+            const editorDiv = document.createElement('div');
+            editorDiv.id = 'editEditor-initial';
+            container.appendChild(editorDiv);
+
             ClassicEditor
-                .create(document.querySelector('#editorAddDescription'))
+                .create(editorDiv, {
+                    toolbar: ['heading', '|', 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'undo', 'redo'],
+                    placeholder: 'Masukkan deskripsi...',
+                    height: '200px'
+                })
                 .then(editor => {
-                    addDescriptionEditor = editor;
+                    editEditor = editor;
+                    console.log('Edit editor pre-initialized successfully');
                 })
                 .catch(error => {
-                    console.error('Error initializing add description editor:', error);
+                    console.error('Edit editor pre-initialization failed:', error);
                 });
+        }
 
-            // Initialize CKEditor for Edit Modal
-            ClassicEditor
-                .create(document.querySelector('#editorEditDescription'))
-                .then(editor => {
-                    editDescriptionEditor = editor;
-                })
-                .catch(error => {
-                    console.error('Error initializing edit description editor:', error);
-                });
-
-            // Close modal when clicking outside
+        function setupEventListeners() {
+            // Modal events
             document.getElementById('addModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeAddModal();
-                }
+                if (e.target === this) closeAddModal();
             });
 
             document.getElementById('editModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeEditModal();
-                }
+                if (e.target === this) closeEditModal();
             });
 
-            // Close modal with Escape key
+            // ESC key
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     closeAddModal();
@@ -228,19 +238,163 @@
                 }
             });
 
-            // Handle form submissions
+            // Form submissions with validation
             document.getElementById('addForm').addEventListener('submit', function(e) {
-                const submitBtn = document.getElementById('addSubmitBtn');
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = 'Menyimpan...';
+                if (!validateAddForm()) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // Update hidden textarea with editor content
+                if (addEditor) {
+                    const content = addEditor.getData();
+                    document.getElementById('addDescriptionHidden').value = content;
+
+                    if (!content.trim()) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Deskripsi harus diisi',
+                            confirmButtonColor: '#3b82f6'
+                        });
+                        return false;
+                    }
+                }
+
+                const btn = document.getElementById('addSubmitBtn');
+                btn.disabled = true;
+                btn.innerHTML = 'Menyimpan...';
             });
 
             document.getElementById('editForm').addEventListener('submit', function(e) {
-                const submitBtn = document.getElementById('editSubmitBtn');
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = 'Menyimpan...';
+                if (!validateEditForm()) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // Update hidden textarea with editor content
+                if (editEditor) {
+                    const content = editEditor.getData();
+                    document.getElementById('editDescriptionHidden').value = content;
+
+                    if (!content.trim()) {
+                        e.preventDefault();
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Deskripsi harus diisi',
+                            confirmButtonColor: '#3b82f6'
+                        });
+                        return false;
+                    }
+                }
+
+                const btn = document.getElementById('editSubmitBtn');
+                btn.disabled = true;
+                btn.innerHTML = 'Menyimpan...';
             });
-        });
+
+            // Search functionality
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                let searchTimer;
+                searchInput.addEventListener('input', function() {
+                    clearTimeout(searchTimer);
+                    searchTimer = setTimeout(searchTable, 300);
+                });
+            }
+        }
+
+        // Form validation functions
+        function validateAddForm() {
+            const stepNumber = document.querySelector('#addModal input[name="step_number"]').value;
+            const title = document.querySelector('#addModal input[name="title"]').value;
+
+            if (!stepNumber || stepNumber < 1) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Nomor step harus diisi dan minimal 1',
+                    confirmButtonColor: '#3b82f6'
+                });
+                return false;
+            }
+
+            if (!title.trim()) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Judul harus diisi',
+                    confirmButtonColor: '#3b82f6'
+                });
+                return false;
+            }
+
+            return true;
+        }
+
+        function validateEditForm() {
+            const stepNumber = document.getElementById('editStepNumber').value;
+            const title = document.getElementById('editTitle').value;
+
+            if (!stepNumber || stepNumber < 1) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Nomor step harus diisi dan minimal 1',
+                    confirmButtonColor: '#3b82f6'
+                });
+                return false;
+            }
+
+            if (!title.trim()) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Judul harus diisi',
+                    confirmButtonColor: '#3b82f6'
+                });
+                return false;
+            }
+
+            return true;
+        }
+
+        // Create add editor with error handling
+        function createAddEditor() {
+            const container = document.getElementById('addEditorContainer');
+
+            // Clear previous content
+            container.innerHTML = '';
+
+            // Create editor element
+            const editorDiv = document.createElement('div');
+            editorDiv.id = 'addEditor-' + Date.now();
+            container.appendChild(editorDiv);
+
+            // Destroy existing editor if any
+            if (addEditor) {
+                addEditor.destroy().catch(err => console.log('Error destroying add editor:', err));
+                addEditor = null;
+            }
+
+            ClassicEditor
+                .create(editorDiv, {
+                    toolbar: ['heading', '|', 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'undo', 'redo'],
+                    placeholder: 'Masukkan deskripsi...',
+                    height: '200px'
+                })
+                .then(editor => {
+                    addEditor = editor;
+                    console.log('Add editor created successfully');
+                })
+                .catch(error => {
+                    console.error('Add editor creation failed:', error);
+                    // Fallback to textarea
+                    container.innerHTML = '<textarea name="description_fallback" class="w-full border rounded p-2 text-sm" rows="4" placeholder="Masukkan deskripsi..." required></textarea>';
+                });
+        }
 
         // Setup drag and drop functionality
         function setupDragAndDrop() {
@@ -251,6 +405,8 @@
         function setupDragAndDropForElement(uploadAreaId, inputId) {
             const uploadArea = document.getElementById(uploadAreaId);
             const fileInput = document.getElementById(inputId);
+
+            if (!uploadArea || !fileInput) return;
 
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 uploadArea.addEventListener(eventName, preventDefaults, false);
@@ -283,7 +439,6 @@
             }, false);
         }
 
-        // Fungsi search untuk hows
         function searchTable() {
             let input = document.getElementById("searchInput").value.toLowerCase();
             let rows = document.querySelectorAll("#howsTable tr");
@@ -297,34 +452,41 @@
             });
         }
 
-        // Debounce untuk meningkatkan performa saat mengetik
-        let searchTimer;
-        document.getElementById('searchInput').addEventListener('input', function() {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(searchTable, 300);
-        });
-
         function openAddModal() {
             // Reset form
             document.getElementById('addForm').reset();
             document.getElementById('addPreview').innerHTML = '';
-
-            // Show upload area and hide preview
             document.getElementById('addUploadArea').style.display = 'block';
 
-            // Reset editor content
-            if (addDescriptionEditor) {
-                addDescriptionEditor.setData('');
-            }
+            // Create fresh editor
+            createAddEditor();
 
             // Show modal
             document.getElementById('addModal').classList.remove('hidden');
+
+            // Focus first input after modal animation
+            setTimeout(() => {
+                const firstInput = document.querySelector('#addModal input[name="step_number"]');
+                if (firstInput) firstInput.focus();
+            }, 300);
         }
 
         function closeAddModal() {
             document.getElementById('addModal').classList.add('hidden');
+
+            // Destroy editor safely
+            if (addEditor) {
+                addEditor.destroy().catch(err => console.log('Error destroying add editor:', err));
+                addEditor = null;
+            }
+
+            // Reset button
+            const btn = document.getElementById('addSubmitBtn');
+            btn.disabled = false;
+            btn.innerHTML = 'Simpan';
         }
 
+        // Improved openEditModal function - similar to agenda approach
         function openEditModal(id) {
             const stepData = window.steps?.find(step => step.id == id);
 
@@ -339,18 +501,12 @@
             }
 
             // Set form action
-            const form = document.getElementById('editForm');
-            form.action = `/hows/${stepData.id}`;
+            document.getElementById('editForm').action = `/hows/${stepData.id}`;
 
-            // Populate form fields with handling null values
+            // Populate fields
             document.getElementById('editId').value = stepData.id || '';
             document.getElementById('editStepNumber').value = stepData.step_number || '';
             document.getElementById('editTitle').value = stepData.title || '';
-
-            // Set editor content
-            if (editDescriptionEditor) {
-                editDescriptionEditor.setData(stepData.description || '');
-            }
 
             // Handle image preview
             const editPreview = document.getElementById('editPreview');
@@ -373,12 +529,25 @@
                 editUploadArea.style.display = 'block';
             }
 
+            // Set editor content immediately if editor exists
+            if (editEditor) {
+                editEditor.setData(stepData.description || '');
+                console.log('Editor content set:', stepData.description);
+            } else {
+                console.log('Edit editor not initialized yet');
+            }
+
             // Show modal
             document.getElementById('editModal').classList.remove('hidden');
         }
 
         function closeEditModal() {
             document.getElementById('editModal').classList.add('hidden');
+
+            // Reset button
+            const btn = document.getElementById('editSubmitBtn');
+            btn.disabled = false;
+            btn.innerHTML = 'Simpan';
         }
 
         function removeCurrentImage(modalType) {

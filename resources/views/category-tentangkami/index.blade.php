@@ -165,7 +165,7 @@
             const form = document.getElementById('editForm');
             form.action = "{{ url('category-tentangkami/update') }}/" + data.id;
             document.getElementById('editId').value = data.id || '';
-            document.getElementById('editName').value = data.name || '';
+            document.getElementById('editNama').value = data.nama || '';
             document.getElementById('editModal').classList.remove('hidden');
         }
 

@@ -3,45 +3,81 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Tentangkami;
+use App\Models\TentangkamiCategory;
+use Illuminate\Support\Facades\Log;
 
 class ApiTentangkamiController extends Controller
 {
-    /**
-     * Get all tentangkami data
-     */
+    // GET semua data Tentangkami
     public function index()
     {
-        $data = Tentangkami::latest()->get();
-        return response()->json([
-            'success' => true,
-            'message' => 'List semua data tentang kami',
-            'data' => $data
-        ]);
+        try {
+            $tentangkami = Tentangkami::with('category')
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => $tentangkami
+            ]);
+        } catch (\Exception $e) {
+            Log::error('API Tentangkami@index: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal mengambil data'], 500);
+        }
     }
 
-    /**
-     * Get data by category
-     * Category: Visi, Misi, Sejarah
-     */
-    public function byCategory($category)
+    // GET Tentangkami berdasarkan category_id
+    public function getByCategory($categoryId)
     {
-        $allowed = ['Visi', 'Misi', 'Sejarah'];
+        try {
+            $tentangkami = Tentangkami::with('category')
+                ->where('category_tentangkami_id', $categoryId)
+                ->latest()
+                ->get();
 
-        if (!in_array($category, $allowed)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Kategori tidak valid. Gunakan: Visi, Misi, atau Sejarah.'
-            ], 422);
+            return response()->json(['success' => true, 'data' => $tentangkami]);
+        } catch (\Exception $e) {
+            Log::error('API Tentangkami@getByCategory: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal mengambil data'], 500);
         }
+    }
 
-        $data = Tentangkami::where('category', $category)->latest()->get();
+    // GET Tentangkami berdasarkan nama kategori
+    public function getByCategoryName($categoryName)
+    {
+        try {
+            $category = TentangkamiCategory::where('name', $categoryName)->first();
 
-        return response()->json([
-            'success' => true,
-            'message' => "Data kategori: $category",
-            'data' => $data
-        ]);
+            if (!$category) {
+                return response()->json(['success' => false, 'message' => 'Kategori tidak ditemukan'], 404);
+            }
+
+            $tentangkami = Tentangkami::with('category')
+                ->where('category_tentangkami_id', $category->id)
+                ->latest()
+                ->get();
+
+            return response()->json(['success' => true, 'data' => $tentangkami]);
+        } catch (\Exception $e) {
+            Log::error('API Tentangkami@getByCategoryName: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal mengambil data'], 500);
+        }
+    }
+
+    // GET Tentangkami yang tampil di homepage
+    public function getDisplayOnHome()
+    {
+        try {
+            $tentangkami = Tentangkami::with('category')
+                ->where('display_on_home', true)
+                ->latest()
+                ->get();
+
+            return response()->json(['success' => true, 'data' => $tentangkami]);
+        } catch (\Exception $e) {
+            Log::error('API Tentangkami@getDisplayOnHome: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Gagal mengambil data'], 500);
+        }
     }
 }

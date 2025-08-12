@@ -64,8 +64,6 @@
                 </div>
             </td>
             <td class="px-4 py-2 border space-x-1">
-                <a href="{{ route('kegiatan.show', $item->id) }}"
-                    class="text-green-600 hover:text-green-800 px-2 py-1 text-xs border border-green-300 rounded hover:bg-green-50 inline-block">Detail</a>
                 <button onclick="openEditModal(this)" data-item='@json($item)'
                     class="text-blue-600 hover:text-blue-800 px-2 py-1 text-xs border border-blue-300 rounded hover:bg-blue-50">Edit</button>
             </td>

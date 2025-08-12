@@ -546,7 +546,7 @@
             });
         }
 
-        // Enhanced Form Submissions with SweetAlert
+        // Enhanced Form Submissions with SweetAlert - FIXED VERSION
         document.addEventListener('DOMContentLoaded', function() {
             // Handle Add Form
             document.getElementById('addForm').addEventListener('submit', function(e) {
@@ -562,6 +562,12 @@
                     return;
                 }
 
+                // Validate image for add form
+                if (!formData.get('image') || !formData.get('image').size) {
+                    showErrorAlert('Foto wajib diupload!');
+                    return;
+                }
+
                 submitBtn.textContent = 'Menyimpan...';
                 submitBtn.disabled = true;
 
@@ -569,24 +575,53 @@
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
                     }
                 })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                    // Handle both JSON and redirect responses
+                    const contentType = response.headers.get('content-type');
+
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json().then(data => ({
+                            success: response.ok,
+                            data: data,
+                            status: response.status
+                        }));
+                    } else {
+                        // If it's a redirect (typical Laravel behavior after successful form submission)
+                        if (response.ok || response.redirected) {
+                            return {
+                                success: true,
+                                data: { message: 'Anggota berhasil ditambahkan!' },
+                                status: response.status
+                            };
+                        } else {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
                     }
-                    return response.json();
                 })
-                .then(data => {
-                    if (data.success) {
+                .then(result => {
+                    if (result.success) {
                         closeAddModal();
-                        showSuccessAlert(data.message || 'Anggota berhasil ditambahkan!');
+                        showSuccessAlert(result.data.message || 'Anggota berhasil ditambahkan!');
                         setTimeout(() => {
                             location.reload();
                         }, 1500);
                     } else {
-                        showErrorAlert(data.message || 'Gagal menambahkan anggota!');
+                        // Handle validation errors
+                        if (result.data.errors) {
+                            let errorMessage = '';
+                            Object.values(result.data.errors).forEach(errorArray => {
+                                errorArray.forEach(error => {
+                                    errorMessage += error + '<br>';
+                                });
+                            });
+                            showErrorAlert(errorMessage);
+                        } else {
+                            showErrorAlert(result.data.message || 'Gagal menambahkan anggota!');
+                        }
                     }
                 })
                 .catch(error => {
@@ -620,24 +655,53 @@
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
                     }
                 })
                 .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                    // Handle both JSON and redirect responses
+                    const contentType = response.headers.get('content-type');
+
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json().then(data => ({
+                            success: response.ok,
+                            data: data,
+                            status: response.status
+                        }));
+                    } else {
+                        // If it's a redirect (typical Laravel behavior after successful form submission)
+                        if (response.ok || response.redirected) {
+                            return {
+                                success: true,
+                                data: { message: 'Anggota berhasil diperbarui!' },
+                                status: response.status
+                            };
+                        } else {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
                     }
-                    return response.json();
                 })
-                .then(data => {
-                    if (data.success) {
+                .then(result => {
+                    if (result.success) {
                         closeEditModal();
-                        showSuccessAlert(data.message || 'Anggota berhasil diperbarui!');
+                        showSuccessAlert(result.data.message || 'Anggota berhasil diperbarui!');
                         setTimeout(() => {
                             location.reload();
                         }, 1500);
                     } else {
-                        showErrorAlert(data.message || 'Gagal memperbarui anggota!');
+                        // Handle validation errors
+                        if (result.data.errors) {
+                            let errorMessage = '';
+                            Object.values(result.data.errors).forEach(errorArray => {
+                                errorArray.forEach(error => {
+                                    errorMessage += error + '<br>';
+                                });
+                            });
+                            showErrorAlert(errorMessage);
+                        } else {
+                            showErrorAlert(result.data.message || 'Gagal memperbarui anggota!');
+                        }
                     }
                 })
                 .catch(error => {

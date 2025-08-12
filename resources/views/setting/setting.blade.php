@@ -27,8 +27,7 @@
                     </div>
 
                     {{-- Phone --}}
-                    <div
-                        class="mb-4 relative group bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-all duration-200">
+                    <div class="mb-4 relative group bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-all duration-200">
                         <div class="flex justify-between items-center">
                             <div class="flex-1">
                                 <div class="flex items-center mb-1">
@@ -69,14 +68,6 @@
                                     <i class="fas fa-times mr-1"></i>Cancel
                                 </button>
                             </div>
-                        </form>
-
-                        <!-- Hidden form for deleting phone -->
-                        <form id="delete-notlp-form" method="POST" action="{{ route('contact.update') }}"
-                            style="display: none;">
-                            @csrf
-                            <input type="hidden" name="type" value="notlp">
-                            <input type="hidden" name="notlp" value="">
                         </form>
                     </div>
 
@@ -123,15 +114,20 @@
                                 </button>
                             </div>
                         </form>
-
-                        <!-- Hidden form for deleting email -->
-                        <form id="delete-email-form" method="POST" action="{{ route('contact.update') }}"
-                            style="display: none;">
-                            @csrf
-                            <input type="hidden" name="type" value="email">
-                            <input type="hidden" name="email" value="">
-                        </form>
                     </div>
+
+                    {{-- Hidden Delete Forms for Contact --}}
+                    <form id="delete-notlp-form" method="POST" action="{{ route('contact.update') }}" style="display: none;">
+                        @csrf
+                        <input type="hidden" name="type" value="notlp">
+                        <input type="hidden" name="notlp" value="">
+                    </form>
+
+                    <form id="delete-email-form" method="POST" action="{{ route('contact.update') }}" style="display: none;">
+                        @csrf
+                        <input type="hidden" name="type" value="email">
+                        <input type="hidden" name="email" value="">
+                    </form>
                 </div>
 
                 {{-- Social Account --}}
@@ -158,8 +154,7 @@
                             };
                         @endphp
 
-                        <div
-                            class="mb-3 relative group bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-all duration-200">
+                        <div class="mb-3 relative group bg-gray-50 hover:bg-gray-100 p-3 rounded-lg transition-all duration-200">
                             <div class="flex justify-between items-start">
                                 <div class="flex-1">
                                     <div class="flex items-center mb-1">
@@ -206,9 +201,9 @@
                                 </div>
                             </div>
 
-                            <!-- Hidden form for deleting social media -->
+                            {{-- Hidden Delete Form for Social Media --}}
                             <form id="delete-sosmed-form-{{ $sosmed->id }}" method="POST"
-                                action="{{ route('social.destroy', $sosmed->id) }}" style="display: none;">
+                                  action="{{ route('social.destroy', $sosmed->id) }}" style="display: none;">
                                 @csrf
                                 @method('DELETE')
                             </form>
@@ -262,8 +257,7 @@
 
                 {{-- List Address --}}
                 @foreach ($companyProfiles as $profile)
-                    <div
-                        class="bg-white shadow-lg rounded-lg p-6 relative group hover:shadow-xl transition-all duration-300">
+                    <div class="bg-white shadow-lg rounded-lg p-6 relative group hover:shadow-xl transition-all duration-300">
                         <div id="address-display-{{ $profile->id }}">
                             <div class="font-semibold text-blue-700 text-lg">{{ $profile->nama_tempat }}</div>
                             <div class="text-gray-600 mt-2 flex items-center">
@@ -302,9 +296,7 @@
                             </div>
                         </form>
 
-                        {{-- Hover Action Buttons --}}
-                        <div
-                            class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                        <div class="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300">
                             <button onclick="editAddress({{ $profile->id }})"
                                 class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg shadow-lg transition-all duration-200 transform hover:scale-105">
                                 <i class="fas fa-edit mr-1"></i>Edit
@@ -315,9 +307,9 @@
                             </button>
                         </div>
 
-                        <!-- Hidden form for deleting address -->
+                        {{-- Hidden Delete Form for Address --}}
                         <form id="delete-form-{{ $profile->id }}" method="POST"
-                            action="{{ route('company-profile.destroy', $profile->id) }}" style="display: none;">
+                              action="{{ route('company-profile.destroy', $profile->id) }}" style="display: none;">
                             @csrf
                             @method('DELETE')
                         </form>
@@ -414,6 +406,7 @@
             </form>
         </div>
     </div>
+
     {{-- Script --}}
     <script>
         // Check if SweetAlert2 is loaded
@@ -421,116 +414,177 @@
             console.error('SweetAlert2 is not loaded. Please include the SweetAlert2 library.');
         }
 
-        // Existing functions
+        // Enhanced edit functions with error handling
         function editField(field) {
-            document.getElementById(`${field}-display`).classList.add('hidden');
-            document.getElementById(`${field}-form`).classList.remove('hidden');
+            const display = document.getElementById(`${field}-display`);
+            const form = document.getElementById(`${field}-form`);
+
+            if (!display || !form) {
+                console.error(`Element with ID ${field}-display or ${field}-form not found`);
+                return;
+            }
+
+            display.classList.add('hidden');
+            form.classList.remove('hidden');
+
+            const inputField = form.querySelector('input');
+            if (inputField) {
+                inputField.focus();
+            }
         }
 
         function cancelEdit(field) {
-            document.getElementById(`${field}-display`).classList.remove('hidden');
-            document.getElementById(`${field}-form`).classList.add('hidden');
+            const display = document.getElementById(`${field}-display`);
+            const form = document.getElementById(`${field}-form`);
+
+            if (!display || !form) {
+                console.error(`Element with ID ${field}-display or ${field}-form not found`);
+                return;
+            }
+
+            display.classList.remove('hidden');
+            form.classList.add('hidden');
         }
 
         function toggleSosmedEdit(id) {
-            document.getElementById(`sosmed-display-${id}`).classList.add('hidden');
-            document.getElementById(`sosmed-form-${id}`).classList.remove('hidden');
+            const display = document.getElementById(`sosmed-display-${id}`);
+            const form = document.getElementById(`sosmed-form-${id}`);
+
+            if (!display || !form) {
+                console.error(`Elements for social media ${id} not found`);
+                return;
+            }
+
+            if (display.classList.contains('hidden')) {
+                display.classList.remove('hidden');
+                form.classList.add('hidden');
+            } else {
+                display.classList.add('hidden');
+                form.classList.remove('hidden');
+
+                const inputField = form.querySelector('input');
+                if (inputField) {
+                    inputField.focus();
+                }
+            }
         }
 
         function cancelSosmedEdit(id) {
-            document.getElementById(`sosmed-display-${id}`).classList.remove('hidden');
-            document.getElementById(`sosmed-form-${id}`).classList.add('hidden');
+            const display = document.getElementById(`sosmed-display-${id}`);
+            const form = document.getElementById(`sosmed-form-${id}`);
+
+            if (!display || !form) {
+                console.error(`Elements for social media ${id} not found`);
+                return;
+            }
+
+            display.classList.remove('hidden');
+            form.classList.add('hidden');
         }
 
         function editAddress(id) {
-            document.getElementById(`address-display-${id}`).classList.add('hidden');
-            document.getElementById(`address-form-${id}`).classList.remove('hidden');
+            const display = document.getElementById(`address-display-${id}`);
+            const form = document.getElementById(`address-form-${id}`);
+
+            if (!display || !form) {
+                console.error(`Elements for address ${id} not found`);
+                return;
+            }
+
+            display.classList.add('hidden');
+            form.classList.remove('hidden');
+
+            const inputField = form.querySelector('input');
+            if (inputField) {
+                inputField.focus();
+            }
         }
 
         function cancelAddressEdit(id) {
-            document.getElementById(`address-display-${id}`).classList.remove('hidden');
-            document.getElementById(`address-form-${id}`).classList.add('hidden');
+            const display = document.getElementById(`address-display-${id}`);
+            const form = document.getElementById(`address-form-${id}`);
+
+            if (!display || !form) {
+                console.error(`Elements for address ${id} not found`);
+                return;
+            }
+
+            display.classList.remove('hidden');
+            form.classList.add('hidden');
         }
 
+        // Delete confirmation functions
         function confirmDelete(id) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Yakin ingin menghapus?',
-                    text: "Data alamat ini tidak dapat dikembalikan!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Ya, hapus!',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        document.getElementById(`delete-form-${id}`).submit();
+            Swal.fire({
+                title: 'Yakin ingin menghapus?',
+                text: "Data alamat ini tidak dapat dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const deleteForm = document.getElementById(`delete-form-${id}`);
+                    if (deleteForm) {
+                        deleteForm.submit();
+                    } else {
+                        console.error(`Delete form for address ${id} not found`);
+                        Swal.fire('Error!', 'Form tidak ditemukan.', 'error');
                     }
-                });
-            } else {
-                // Fallback to native confirm if SweetAlert2 is not available
-                if (confirm('Yakin ingin menghapus data alamat ini?')) {
-                    document.getElementById(`delete-form-${id}`).submit();
                 }
-            }
+            });
         }
 
         function confirmSosmedDelete(id) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Yakin ingin menghapus?',
-                    text: "Social media ini akan dihapus!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Ya, hapus!',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        document.getElementById(`delete-sosmed-form-${id}`).submit();
+            Swal.fire({
+                title: 'Yakin ingin menghapus?',
+                text: "Social media ini akan dihapus!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const deleteForm = document.getElementById(`delete-sosmed-form-${id}`);
+                    if (deleteForm) {
+                        deleteForm.submit();
+                    } else {
+                        console.error(`Delete form for social media ${id} not found`);
+                        Swal.fire('Error!', 'Form tidak ditemukan.', 'error');
                     }
-                });
-            } else {
-                // Fallback to native confirm if SweetAlert2 is not available
-                if (confirm('Yakin ingin menghapus social media ini?')) {
-                    document.getElementById(`delete-sosmed-form-${id}`).submit();
                 }
-            }
+            });
         }
 
-        // Updated function for contact delete confirmation
-        // Updated function for contact delete confirmation
         function confirmContactDelete(type, label) {
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Yakin ingin menghapus?',
-                    text: `Data ${label} ini akan dihapus!`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Ya, hapus!',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Clear the field value and submit the form
-                        const deleteForm = document.getElementById(`delete-${type}-form`);
-                        const hiddenInput = deleteForm.querySelector(`input[name="${type}"]`);
-                        hiddenInput.value = ''; // Set empty value to trigger deletion
-                        deleteForm.submit();
-                    }
-                });
-            } else {
-                // Fallback to native confirm if SweetAlert2 is not available
-                if (confirm(`Yakin ingin menghapus data ${label} ini?`)) {
+            Swal.fire({
+                title: 'Yakin ingin menghapus?',
+                text: `Data ${label} ini akan dihapus!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
                     const deleteForm = document.getElementById(`delete-${type}-form`);
-                    const hiddenInput = deleteForm.querySelector(`input[name="${type}"]`);
-                    hiddenInput.value = ''; // Set empty value to trigger deletion
-                    deleteForm.submit();
+                    if (deleteForm) {
+                        const hiddenInput = deleteForm.querySelector(`input[name="${type}"]`);
+                        if (hiddenInput) {
+                            hiddenInput.value = '';
+                        }
+                        deleteForm.submit();
+                    } else {
+                        console.error(`Delete form for ${type} not found`);
+                        Swal.fire('Error!', 'Form tidak ditemukan.', 'error');
+                    }
                 }
-            }
+            });
         }
 
         // Modal functions
@@ -592,17 +646,13 @@
     @if (session('success'))
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Berhasil!',
-                        text: '{{ session('success') }}',
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                } else {
-                    alert('Berhasil: {{ session('success') }}');
-                }
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: '{{ session('success') }}',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
             });
         </script>
     @endif
@@ -610,17 +660,13 @@
     @if (session('error'))
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                if (typeof Swal !== 'undefined') {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Gagal!',
-                        text: '{{ session('error') }}',
-                        showConfirmButton: false,
-                        timer: 2000
-                    });
-                } else {
-                    alert('Error: {{ session('error') }}');
-                }
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: '{{ session('error') }}',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
             });
         </script>
     @endif

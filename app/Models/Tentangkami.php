@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Http\Controllers\CategoryTentangkami;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -32,7 +31,7 @@ class TentangKami extends Model
     public function getImageUrlAttribute()
     {
         if ($this->image) {
-            return asset('storage/' . $this->image);
+            return asset($this->image);
         }
         return null;
     }
@@ -47,9 +46,10 @@ class TentangKami extends Model
 
     /**
      * Relasi ke kategori tentang kami.
+     * PERBAIKAN: Gunakan model TentangkamiCategory yang benar
      */
     public function category()
     {
-        return $this->belongsTo(CategoryTentangkami::class, 'category_tentangkami_id');
+        return $this->belongsTo(TentangkamiCategory::class, 'category_tentangkami_id');
     }
 }

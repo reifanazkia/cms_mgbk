@@ -38,17 +38,9 @@ Route::get('/agendas', [ApiAgendaController::class, 'index']);
 Route::get('/agendas/{id}', [ApiAgendaController::class, 'show']);
 
 Route::get('/tentangkami', [ApiTentangkamiController::class, 'index']);
-// Get by category ID
-Route::get('/tentangkami/category/{categoryId}', [TentangkamiController::class, 'getByCategory']);
-
-// Get by category name
-Route::get('/tentangkami/category-name/{categoryName}', [TentangkamiController::class, 'getByCategoryName']);
-
-// Get items displayed on home page
-Route::get('/tentangkami/display-on-home', [TentangkamiController::class, 'getDisplayOnHome']);
-
-// Get all categories
-Route::get('/tentangkami/categories', [TentangkamiController::class, 'getCategories']);
+Route::get('/category/{id}', [ApiTentangkamiController::class, 'getByCategory']);
+Route::get('/category-name/{name}', [ApiTentangkamiController::class, 'getByCategoryName']);
+Route::get('/display/home', [ApiTentangkamiController::class, 'getDisplayOnHome']);
 
 Route::get('/career', [ApiCareerController::class, 'index']);
 Route::get('/career/{id}', [ApiCareerController::class, 'show']);

@@ -83,11 +83,11 @@ Route::post('/social-account/store', [SosmedController::class, 'store'])->name('
 Route::delete('/social-account/{id}', [SosmedController::class, 'destroy'])->name('social.destroy');
 
 Route::prefix('hows')->name('hows.')->group(function () {
-    Route::get('/', [TentangkamiController::class, 'index'])->name('index');
-    Route::post('/', [TentangkamiController::class, 'store'])->name('store');
-    Route::get('/{id}', [TentangkamiController::class, 'show'])->name('show');
-    Route::put('/{id}', [TentangkamiController::class, 'update'])->name('update');
-    Route::delete('/{id}', [TentangkamiController::class, 'destroy'])->name('destroy');
+    Route::get('/', [HowsController::class, 'index'])->name('index');
+    Route::post('/', [HowsController::class, 'store'])->name('store');
+    Route::get('/{id}', [HowsController::class, 'show'])->name('show');
+    Route::put('/{id}', [HowsController::class, 'update'])->name('update');
+    Route::delete('/{id}', [HowsController::class, 'destroy'])->name('destroy');
 });
 
 
@@ -121,16 +121,16 @@ Route::get('/checkout/failed', [CheckoutController::class, 'failed'])->name('che
 
 
 Route::prefix('tentangkami')->name('tentangkami.')->group(function () {
+    
     Route::get('/', [TentangkamiController::class, 'index'])->name('index');
     Route::post('/', [TentangkamiController::class, 'store'])->name('store');
     Route::put('/{id}', [TentangkamiController::class, 'update'])->name('update');
     Route::delete('/{id}', [TentangkamiController::class, 'destroy'])->name('destroy');
 
-    // Routes spesifik untuk kategori
-    Route::get('/category/{category}', [TentangkamiController::class, 'getByCategory'])->name('category');
-    Route::get('/visi', [TentangkamiController::class, 'getVisi'])->name('visi');
-    Route::get('/misi', [TentangkamiController::class, 'getMisi'])->name('misi');
-    Route::get('/sejarah', [TentangkamiController::class, 'getSejarah'])->name('sejarah');
+    // API routes yang ADA di controller
+    Route::get('/category/{categoryId}', [TentangkamiController::class, 'getByCategory'])->name('category');
+    Route::get('/category-name/{categoryName}', [TentangkamiController::class, 'getByCategoryName'])->name('category.name');
+    Route::get('/display-on-home', [TentangkamiController::class, 'getDisplayOnHome'])->name('display.home');
 });
 
 Route::prefix('ourblogs')->name('ourblogs.')->group(function () {

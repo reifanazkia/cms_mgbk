@@ -12,4 +12,10 @@ class TentangkamiCategory extends Model
     protected $table = 'tentangkami_categories';
 
     protected $fillable = ['nama'];
+
+
+    public function tentangkami()
+    {
+        return $this->hasMany(Tentangkami::class, 'category_tentangkami_id');
+    }
 }
