@@ -8,6 +8,15 @@
     <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://cdn.ckeditor.com/ckeditor5/37.0.1/classic/ckeditor.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- CKEditor -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.3.1/classic/ckeditor.js"></script>
     <style>
         /* Custom scrollbar */
         ::-webkit-scrollbar {
@@ -103,7 +112,8 @@
 
                 <!-- PROFIL & AKUN -->
                 <div>
-                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Profil & Akun</h3>
+                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Profil & Akun
+                    </h3>
                     <a href="/profile-setting"
                         class="group flex items-center px-4 py-3 rounded-lg text-xs text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">
                         <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -116,7 +126,8 @@
 
                 <!-- KONTEN & INFORMASI -->
                 <div>
-                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Konten & Informasi</h3>
+                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Konten &
+                        Informasi</h3>
                     <div class="space-y-1">
                         <!-- Konten Utama -->
                         <button onclick="toggleDropdown('konten-dropdown')"
@@ -128,8 +139,10 @@
                                 </svg>
                                 <span>Konten Utama</span>
                             </div>
-                            <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div id="konten-dropdown" class="ml-8 space-y-1 hidden">
@@ -138,7 +151,8 @@
                             <a href="{{ route('ourblogs.index') }}"
                                 class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Berita</a>
                             <a href="{{ route('tentangkami.index') }}"
-                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Tentang Kami</a>
+                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Tentang
+                                Kami</a>
                             <a href="{{ route('slider.index') }}"
                                 class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Slider</a>
                         </div>
@@ -153,26 +167,33 @@
                                 </svg>
                                 <span>Kategori</span>
                             </div>
-                            <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div id="kategori-dropdown" class="ml-8 space-y-1 hidden">
                             <a href="{{ route('category.index') }}"
-                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori Berita</a>
+                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori
+                                Berita</a>
                             <a href="{{ route('category-anggota.index') }}"
-                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori Anggota</a>
+                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori
+                                Anggota</a>
                             <a href="{{ route('category-kegiatan.index') }}"
-                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori Kegiatan</a>
+                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori
+                                Kegiatan</a>
                             <a href="{{ route('category-tentangkami.index') }}"
-                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori Tentangkami</a>
+                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori
+                                Tentangkami</a>
                         </div>
                     </div>
                 </div>
 
                 <!-- AKTIVITAS & LAYANAN -->
                 <div>
-                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Aktivitas & Layanan</h3>
+                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Aktivitas &
+                        Layanan</h3>
                     <div class="space-y-1">
                         <!-- Kegiatan & Event -->
                         <button onclick="toggleDropdown('kegiatan-dropdown')"
@@ -184,8 +205,10 @@
                                 </svg>
                                 <span>Kegiatan & Event</span>
                             </div>
-                            <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div id="kegiatan-dropdown" class="ml-8 space-y-1 hidden">
@@ -218,7 +241,8 @@
 
                 <!-- MANAJEMEN ORGANISASI -->
                 <div>
-                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Manajemen Organisasi</h3>
+                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Manajemen
+                        Organisasi</h3>
                     <div class="space-y-1">
                         <button onclick="toggleDropdown('organisasi-dropdown')"
                             class="group w-full flex items-center justify-between px-4 py-3 rounded-lg text-xs text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">
@@ -229,20 +253,24 @@
                                 </svg>
                                 <span>Keanggotaan</span>
                             </div>
-                            <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            <svg class="w-4 h-4 transform transition-transform" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
                             </svg>
                         </button>
                         <div id="organisasi-dropdown" class="ml-8 space-y-1 hidden">
                             <a href="{{ route('anggota.index') }}"
-                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Daftar Anggota</a>
+                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Daftar
+                                Anggota</a>
                         </div>
                     </div>
                 </div>
 
                 <!-- KARIR & PELUANG -->
                 <div>
-                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Karir & Peluang</h3>
+                    <h3 class="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Karir & Peluang
+                    </h3>
                     <a href="{{ route('career.index') }}"
                         class="group flex items-center px-4 py-3 rounded-lg text-xs text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">
                         <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

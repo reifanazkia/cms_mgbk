@@ -31,14 +31,6 @@
                                         {{ $slider->title }}
                                     </h2>
                                 @endif
-
-                                {{-- Button jika ada --}}
-                                @if ($slider->button_text && $slider->url_link)
-                                    <a href="{{ $slider->url_link }}"
-                                        class="mt-4 bg-white text-gray-800 px-6 py-2 rounded-full font-semibold hover:bg-gray-100 transition-colors duration-200">
-                                        {{ $slider->button_text }}
-                                    </a>
-                                @endif
                             </div>
                         </div>
                     </div>
