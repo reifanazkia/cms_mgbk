@@ -57,6 +57,12 @@
         window.steps = @json($steps);
     </script>
 
+    <!-- Form tersembunyi untuk delete -->
+    <form id="deleteForm" method="POST" style="display: none;">
+        @csrf
+        @method('DELETE')
+    </form>
+
     <!-- Modal Tambah -->
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
@@ -74,8 +80,7 @@
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Deskripsi <span class="text-red-500">*</span></label>
-                        <div id="addEditorContainer"></div>
-                        <textarea name="description" id="addDescriptionHidden" class="hidden"></textarea>
+                        <textarea name="description" id="editorAddDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
                     </div>
                 </div>
 
@@ -84,14 +89,14 @@
                     <label class="block mb-2 font-medium">Upload Gambar</label>
                     <div class="relative">
                         <input type="file" name="image" id="addImageInput" onchange="previewImage(this, 'addPreview')"
-                            accept="image/png,image/jpg,image/jpeg" class="hidden" />
+                            accept="image/png,image/jpg,image/jpeg" class="hidden" required />
 
                         <div id="addUploadArea" onclick="document.getElementById('addImageInput').click()"
-                             class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                            class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
                             <div class="flex flex-col items-center">
                                 <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                 </svg>
                                 <p class="text-gray-600 mb-2">Klik untuk upload atau drag and drop</p>
                                 <p class="text-sm text-gray-500">PNG, JPG, atau GIF (MAX. 2MB)</p>
@@ -133,8 +138,7 @@
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Deskripsi <span class="text-red-500">*</span></label>
-                        <div id="editEditorContainer"></div>
-                        <textarea name="description" id="editDescriptionHidden" class="hidden"></textarea>
+                        <textarea name="description" id="editorEditDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
                     </div>
                 </div>
 
@@ -146,11 +150,11 @@
                             accept="image/png,image/jpg,image/jpeg" class="hidden" />
 
                         <div id="editUploadArea" onclick="document.getElementById('editImageInput').click()"
-                             class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
+                            class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
                             <div class="flex flex-col items-center">
                                 <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                          d="M7 16a4 4 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        d="M7 16a4 4 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                 </svg>
                                 <p class="text-gray-600 mb-2">Klik untuk upload atau drag and drop</p>
                                 <p class="text-sm text-gray-500">PNG, JPG, atau GIF (MAX. 2MB) - Opsional</p>
@@ -171,232 +175,368 @@
         </div>
     </div>
 
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- CKEditor - Load only once -->
+    <!-- CKEditor -->
     <script src="https://cdn.ckeditor.com/ckeditor5/41.3.1/classic/ckeditor.js"></script>
 
     <script>
-        // Global variables
-        let addEditor = null;
-        let editEditor = null;
+        // Global variables for CKEditor instances
+        let addDescriptionEditor = null;
+        let editDescriptionEditor = null;
 
-        // Initialize when DOM is ready
+        // Initialize CKEditor when the page loads
         document.addEventListener('DOMContentLoaded', function() {
             setupDragAndDrop();
-            setupEventListeners();
 
-            // Pre-initialize edit editor to avoid timing issues (more reliable approach)
-            setTimeout(() => {
-                initializeEditEditor();
-            }, 500);
+            // Enhanced configuration for CKEditor with more features
+            const editorConfig = {
+                toolbar: {
+                    items: [
+                        'heading', '|',
+                        'bold', 'italic', 'underline', 'strikethrough', '|',
+                        'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                        'numberedList', 'bulletedList', '|',
+                        'outdent', 'indent', '|',
+                        'alignment', '|',
+                        'link', 'insertTable', '|',
+                        'blockQuote', 'insertImage', '|',
+                        'undo', 'redo', '|',
+                        'sourceEditing'
+                    ]
+                },
+                language: 'id',
+                list: {
+                    properties: {
+                        styles: true,
+                        startIndex: true,
+                        reversed: true
+                    }
+                },
+                heading: {
+                    options: [
+                        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                        { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+                    ]
+                },
+                fontSize: {
+                    options: [
+                        9,
+                        11,
+                        13,
+                        'default',
+                        17,
+                        19,
+                        21
+                    ]
+                },
+                alignment: {
+                    options: [ 'left', 'right', 'center', 'justify' ]
+                },
+                image: {
+                    toolbar: [
+                        'imageTextAlternative',
+                        'imageStyle:inline',
+                        'imageStyle:block',
+                        'imageStyle:side'
+                    ]
+                },
+                table: {
+                    contentToolbar: [
+                        'tableColumn',
+                        'tableRow',
+                        'mergeTableCells'
+                    ]
+                }
+            };
+
+            // Initialize CKEditor for Add Modal
+            ClassicEditor
+                .create(document.querySelector('#editorAddDescription'), editorConfig)
+                .then(editor => {
+                    addDescriptionEditor = editor;
+                    console.log('Add Description Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorAddDescription').value = editor.getData();
+                    });
+                })
+                .catch(error => {
+                    console.error('Error initializing add description editor:', error);
+                });
+
+            // Initialize CKEditor for Edit Modal
+            ClassicEditor
+                .create(document.querySelector('#editorEditDescription'), editorConfig)
+                .then(editor => {
+                    editDescriptionEditor = editor;
+                    console.log('Edit Description Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorEditDescription').value = editor.getData();
+                    });
+                })
+                .catch(error => {
+                    console.error('Error initializing edit description editor:', error);
+                });
+
+            // Handle Add Form Submission
+            const addForm = document.getElementById('addForm');
+            if (addForm) {
+                addForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleFormSubmission('add');
+                });
+            }
+
+            // Handle Edit Form Submission
+            const editForm = document.getElementById('editForm');
+            if (editForm) {
+                editForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleFormSubmission('edit');
+                });
+            }
+
+            // Show flash messages using SweetAlert
+            @if(session('success'))
+                showSuccessAlert("{{ session('success') }}");
+            @endif
+
+            @if(session('error'))
+                showErrorAlert("{{ session('error') }}");
+            @endif
+
+            @if($errors->any()))
+                let errorMessages = '';
+                @foreach($errors->all() as $error)
+                    errorMessages += '{{ $error }}\n';
+                @endforeach
+                showErrorAlert(errorMessages);
+            @endif
         });
 
-        // Initialize edit editor once on page load
-        function initializeEditEditor() {
-            const container = document.getElementById('editEditorContainer');
+        // SweetAlert helper functions
+        function showSuccessAlert(message) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                html: message,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                toast: true,
+                position: 'top-end'
+            });
+        }
 
-            // Create editor element
-            const editorDiv = document.createElement('div');
-            editorDiv.id = 'editEditor-initial';
-            container.appendChild(editorDiv);
+        function showErrorAlert(message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                html: message.replace(/\n/g, '<br>'),
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#d33'
+            });
+        }
 
-            ClassicEditor
-                .create(editorDiv, {
-                    toolbar: ['heading', '|', 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'undo', 'redo'],
-                    placeholder: 'Masukkan deskripsi...',
-                    height: '200px'
+        function showLoadingAlert(message = 'Memproses...') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+
+        // Handle form submission with CKEditor data
+        function handleFormSubmission(type) {
+            const isAdd = type === 'add';
+            const form = document.getElementById(isAdd ? 'addForm' : 'editForm');
+            const descriptionEditor = isAdd ? addDescriptionEditor : editDescriptionEditor;
+            const submitBtn = document.getElementById(isAdd ? 'addSubmitBtn' : 'editSubmitBtn');
+
+            // Show loading
+            showLoadingAlert('Menyimpan data...');
+
+            try {
+                // Create FormData
+                const formData = new FormData(form);
+
+                // Add CKEditor data for description
+                if (descriptionEditor) {
+                    formData.set('description', descriptionEditor.getData());
+                }
+
+                // Validate required fields
+                if (descriptionEditor && !descriptionEditor.getData().trim()) {
+                    Swal.fire('Error', 'Deskripsi harus diisi', 'error');
+                    return;
+                }
+
+                // Disable submit button
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Menyimpan...';
+
+                // Submit using fetch
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
+                    }
                 })
-                .then(editor => {
-                    editEditor = editor;
-                    console.log('Edit editor pre-initialized successfully');
+                .then(response => {
+                    const contentType = response.headers.get('content-type');
+
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json().then(data => ({
+                            success: response.ok,
+                            data: data,
+                            status: response.status
+                        }));
+                    } else {
+                        if (response.ok || response.redirected) {
+                            return {
+                                success: true,
+                                data: { message: isAdd ? 'KTA berhasil ditambahkan!' : 'KTA berhasil diperbarui!' },
+                                status: response.status
+                            };
+                        } else {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                    }
+                })
+                .then(result => {
+                    if (result.success) {
+                        if (isAdd) {
+                            closeAddModal();
+                        } else {
+                            closeEditModal();
+                        }
+                        showSuccessAlert(result.data.message || (isAdd ? 'KTA berhasil ditambahkan!' : 'KTA berhasil diperbarui!'));
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        if (result.data.errors) {
+                            let errorMessage = '';
+                            Object.values(result.data.errors).forEach(errorArray => {
+                                errorArray.forEach(error => {
+                                    errorMessage += error + '<br>';
+                                });
+                            });
+                            showErrorAlert(errorMessage);
+                        } else {
+                            showErrorAlert(result.data.message || 'Gagal menyimpan data KTA!');
+                        }
+                    }
                 })
                 .catch(error => {
-                    console.error('Edit editor pre-initialization failed:', error);
-                });
-        }
-
-        function setupEventListeners() {
-            // Modal events
-            document.getElementById('addModal').addEventListener('click', function(e) {
-                if (e.target === this) closeAddModal();
-            });
-
-            document.getElementById('editModal').addEventListener('click', function(e) {
-                if (e.target === this) closeEditModal();
-            });
-
-            // ESC key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeAddModal();
-                    closeEditModal();
-                }
-            });
-
-            // Form submissions with validation
-            document.getElementById('addForm').addEventListener('submit', function(e) {
-                if (!validateAddForm()) {
-                    e.preventDefault();
-                    return false;
-                }
-
-                // Update hidden textarea with editor content
-                if (addEditor) {
-                    const content = addEditor.getData();
-                    document.getElementById('addDescriptionHidden').value = content;
-
-                    if (!content.trim()) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Deskripsi harus diisi',
-                            confirmButtonColor: '#3b82f6'
-                        });
-                        return false;
-                    }
-                }
-
-                const btn = document.getElementById('addSubmitBtn');
-                btn.disabled = true;
-                btn.innerHTML = 'Menyimpan...';
-            });
-
-            document.getElementById('editForm').addEventListener('submit', function(e) {
-                if (!validateEditForm()) {
-                    e.preventDefault();
-                    return false;
-                }
-
-                // Update hidden textarea with editor content
-                if (editEditor) {
-                    const content = editEditor.getData();
-                    document.getElementById('editDescriptionHidden').value = content;
-
-                    if (!content.trim()) {
-                        e.preventDefault();
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: 'Deskripsi harus diisi',
-                            confirmButtonColor: '#3b82f6'
-                        });
-                        return false;
-                    }
-                }
-
-                const btn = document.getElementById('editSubmitBtn');
-                btn.disabled = true;
-                btn.innerHTML = 'Menyimpan...';
-            });
-
-            // Search functionality
-            const searchInput = document.getElementById('searchInput');
-            if (searchInput) {
-                let searchTimer;
-                searchInput.addEventListener('input', function() {
-                    clearTimeout(searchTimer);
-                    searchTimer = setTimeout(searchTable, 300);
-                });
-            }
-        }
-
-        // Form validation functions
-        function validateAddForm() {
-            const stepNumber = document.querySelector('#addModal input[name="step_number"]').value;
-            const title = document.querySelector('#addModal input[name="title"]').value;
-
-            if (!stepNumber || stepNumber < 1) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Nomor step harus diisi dan minimal 1',
-                    confirmButtonColor: '#3b82f6'
-                });
-                return false;
-            }
-
-            if (!title.trim()) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Judul harus diisi',
-                    confirmButtonColor: '#3b82f6'
-                });
-                return false;
-            }
-
-            return true;
-        }
-
-        function validateEditForm() {
-            const stepNumber = document.getElementById('editStepNumber').value;
-            const title = document.getElementById('editTitle').value;
-
-            if (!stepNumber || stepNumber < 1) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Nomor step harus diisi dan minimal 1',
-                    confirmButtonColor: '#3b82f6'
-                });
-                return false;
-            }
-
-            if (!title.trim()) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Judul harus diisi',
-                    confirmButtonColor: '#3b82f6'
-                });
-                return false;
-            }
-
-            return true;
-        }
-
-        // Create add editor with error handling
-        function createAddEditor() {
-            const container = document.getElementById('addEditorContainer');
-
-            // Clear previous content
-            container.innerHTML = '';
-
-            // Create editor element
-            const editorDiv = document.createElement('div');
-            editorDiv.id = 'addEditor-' + Date.now();
-            container.appendChild(editorDiv);
-
-            // Destroy existing editor if any
-            if (addEditor) {
-                addEditor.destroy().catch(err => console.log('Error destroying add editor:', err));
-                addEditor = null;
-            }
-
-            ClassicEditor
-                .create(editorDiv, {
-                    toolbar: ['heading', '|', 'bold', 'italic', '|', 'bulletedList', 'numberedList', '|', 'undo', 'redo'],
-                    placeholder: 'Masukkan deskripsi...',
-                    height: '200px'
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
                 })
-                .then(editor => {
-                    addEditor = editor;
-                    console.log('Add editor created successfully');
-                })
-                .catch(error => {
-                    console.error('Add editor creation failed:', error);
-                    // Fallback to textarea
-                    container.innerHTML = '<textarea name="description_fallback" class="w-full border rounded p-2 text-sm" rows="4" placeholder="Masukkan deskripsi..." required></textarea>';
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Simpan';
                 });
+
+            } catch (error) {
+                console.error('Form preparation error:', error);
+                showErrorAlert('Terjadi kesalahan saat memproses data');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Simpan';
+            }
         }
 
-        // Setup drag and drop functionality
+        function openAddModal() {
+            // Reset form
+            document.getElementById('addForm').reset();
+            document.getElementById('addPreview').innerHTML = '';
+            document.getElementById('addUploadArea').style.display = 'block';
+
+            // Reset CKEditor content
+            if (addDescriptionEditor) {
+                addDescriptionEditor.setData('');
+            }
+
+            // Show modal
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
+        }
+
+        function openEditModal(id) {
+            const stepData = window.steps?.find(step => step.id == id);
+
+            if (!stepData) {
+                showErrorAlert('Data KTA tidak ditemukan');
+                return;
+            }
+
+            // Set form action
+            const form = document.getElementById('editForm');
+            form.action = `/hows/${stepData.id}`;
+
+            // Populate form fields
+            document.getElementById('editId').value = stepData.id || '';
+            document.getElementById('editStepNumber').value = stepData.step_number || '';
+            document.getElementById('editTitle').value = stepData.title || '';
+
+            // Set description content in CKEditor
+            if (editDescriptionEditor) {
+                editDescriptionEditor.setData(stepData.description || '');
+            }
+
+            // Handle image preview
+            const editPreview = document.getElementById('editPreview');
+            const editUploadArea = document.getElementById('editUploadArea');
+
+            if (stepData.image) {
+                editPreview.innerHTML = `
+                    <div class="relative inline-block">
+                        <img src="/storage/${stepData.image}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Current image">
+                        <button type="button" onclick="removeCurrentImage('edit')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                editUploadArea.style.display = 'none';
+            } else {
+                editPreview.innerHTML = '';
+                editUploadArea.style.display = 'block';
+            }
+
+            // Show modal
+            document.getElementById('editModal').classList.remove('hidden');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+
+        function removeCurrentImage(modalType) {
+            const previewId = modalType === 'edit' ? 'editPreview' : 'addPreview';
+            const uploadAreaId = modalType === 'edit' ? 'editUploadArea' : 'addUploadArea';
+            const inputId = modalType === 'edit' ? 'editImageInput' : 'addImageInput';
+
+            document.getElementById(previewId).innerHTML = '';
+            document.getElementById(uploadAreaId).style.display = 'block';
+            document.getElementById(inputId).value = '';
+        }
+
         function setupDragAndDrop() {
             setupDragAndDropForElement('addUploadArea', 'addImageInput');
             setupDragAndDropForElement('editUploadArea', 'editImageInput');
@@ -405,8 +545,6 @@
         function setupDragAndDropForElement(uploadAreaId, inputId) {
             const uploadArea = document.getElementById(uploadAreaId);
             const fileInput = document.getElementById(inputId);
-
-            if (!uploadArea || !fileInput) return;
 
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 uploadArea.addEventListener(eventName, preventDefaults, false);
@@ -452,144 +590,20 @@
             });
         }
 
-        function openAddModal() {
-            // Reset form
-            document.getElementById('addForm').reset();
-            document.getElementById('addPreview').innerHTML = '';
-            document.getElementById('addUploadArea').style.display = 'block';
-
-            // Create fresh editor
-            createAddEditor();
-
-            // Show modal
-            document.getElementById('addModal').classList.remove('hidden');
-
-            // Focus first input after modal animation
-            setTimeout(() => {
-                const firstInput = document.querySelector('#addModal input[name="step_number"]');
-                if (firstInput) firstInput.focus();
-            }, 300);
-        }
-
-        function closeAddModal() {
-            document.getElementById('addModal').classList.add('hidden');
-
-            // Destroy editor safely
-            if (addEditor) {
-                addEditor.destroy().catch(err => console.log('Error destroying add editor:', err));
-                addEditor = null;
-            }
-
-            // Reset button
-            const btn = document.getElementById('addSubmitBtn');
-            btn.disabled = false;
-            btn.innerHTML = 'Simpan';
-        }
-
-        // Improved openEditModal function - similar to agenda approach
-        function openEditModal(id) {
-            const stepData = window.steps?.find(step => step.id == id);
-
-            if (!stepData) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Data KTA tidak ditemukan',
-                    confirmButtonColor: '#3b82f6'
-                });
-                return;
-            }
-
-            // Set form action
-            document.getElementById('editForm').action = `/hows/${stepData.id}`;
-
-            // Populate fields
-            document.getElementById('editId').value = stepData.id || '';
-            document.getElementById('editStepNumber').value = stepData.step_number || '';
-            document.getElementById('editTitle').value = stepData.title || '';
-
-            // Handle image preview
-            const editPreview = document.getElementById('editPreview');
-            const editUploadArea = document.getElementById('editUploadArea');
-
-            if (stepData.image) {
-                editPreview.innerHTML = `
-                    <div class="relative inline-block">
-                        <img src="/storage/${stepData.image}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Current image">
-                        <button type="button" onclick="removeCurrentImage('edit')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-                `;
-                editUploadArea.style.display = 'none';
-            } else {
-                editPreview.innerHTML = '';
-                editUploadArea.style.display = 'block';
-            }
-
-            // Set editor content immediately if editor exists
-            if (editEditor) {
-                editEditor.setData(stepData.description || '');
-                console.log('Editor content set:', stepData.description);
-            } else {
-                console.log('Edit editor not initialized yet');
-            }
-
-            // Show modal
-            document.getElementById('editModal').classList.remove('hidden');
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.add('hidden');
-
-            // Reset button
-            const btn = document.getElementById('editSubmitBtn');
-            btn.disabled = false;
-            btn.innerHTML = 'Simpan';
-        }
-
-        function removeCurrentImage(modalType) {
-            const previewId = modalType === 'edit' ? 'editPreview' : 'addPreview';
-            const uploadAreaId = modalType === 'edit' ? 'editUploadArea' : 'addUploadArea';
-            const inputId = modalType === 'edit' ? 'editImageInput' : 'addImageInput';
-
-            document.getElementById(previewId).innerHTML = '';
-            document.getElementById(uploadAreaId).style.display = 'block';
-            document.getElementById(inputId).value = '';
-        }
-
         function confirmDelete(id) {
             Swal.fire({
-                title: 'Apakah Anda yakin?',
+                title: 'Hapus KTA?',
                 text: "Data yang dihapus tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal',
-                reverseButtons: true
+                cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const form = document.createElement('form');
-                    form.method = 'POST';
+                    const form = document.getElementById('deleteForm');
                     form.action = `/hows/${id}`;
-
-                    const csrf = document.createElement('input');
-                    csrf.type = 'hidden';
-                    csrf.name = '_token';
-                    csrf.value = document.querySelector('meta[name="csrf-token"]').content;
-                    form.appendChild(csrf);
-
-                    const method = document.createElement('input');
-                    method.type = 'hidden';
-                    method.name = '_method';
-                    method.value = 'DELETE';
-                    form.appendChild(method);
-
-                    document.body.appendChild(form);
                     form.submit();
                 }
             });
@@ -607,24 +621,14 @@
 
                 // Validate file type
                 if (!file.type.match('image.*')) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'File harus berupa gambar (PNG/JPG)',
-                        confirmButtonColor: '#3b82f6'
-                    });
+                    Swal.fire('Error', 'File harus berupa gambar (PNG/JPG)', 'error');
                     input.value = '';
                     return;
                 }
 
                 // Validate file size (2MB)
                 if (file.size > 2 * 1024 * 1024) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Ukuran file maksimal 2MB',
-                        confirmButtonColor: '#3b82f6'
-                    });
+                    Swal.fire('Error', 'Ukuran file maksimal 2MB', 'error');
                     input.value = '';
                     return;
                 }
@@ -648,28 +652,5 @@
                 uploadArea.style.display = 'block';
             }
         }
-
-        // Session alerts
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil',
-                text: '{{ session('success') }}',
-                confirmButtonColor: '#3b82f6',
-                timer: 3000,
-                timerProgressBar: true,
-                toast: true,
-                position: 'top-end'
-            });
-        @endif
-
-        @if (session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#3b82f6'
-            });
-        @endif
     </script>
 @endsection

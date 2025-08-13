@@ -17,6 +17,141 @@
 
     <!-- CKEditor -->
     <script src="https://cdn.ckeditor.com/ckeditor5/41.3.1/classic/ckeditor.js"></script>
+    <!-- Custom CSS untuk CKEditor styling -->
+    <style>
+        /* Styling for CKEditor content */
+        .ck-editor__editable {
+            min-height: 200px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .ck.ck-editor {
+            width: 100%;
+        }
+
+        /* Ensure numbered and bulleted lists are properly styled */
+        .ck-content ol {
+            list-style-type: decimal;
+            margin-left: 1.5em;
+            padding-left: 0;
+        }
+
+        .ck-content ul {
+            list-style-type: disc;
+            margin-left: 1.5em;
+            padding-left: 0;
+        }
+
+        .ck-content ol li,
+        .ck-content ul li {
+            margin-bottom: 0.5em;
+            padding-left: 0.5em;
+        }
+
+        /* Additional styling for better list appearance */
+        .ck-content ol ol {
+            list-style-type: lower-alpha;
+            margin-top: 0.5em;
+        }
+
+        .ck-content ol ol ol {
+            list-style-type: lower-roman;
+        }
+
+        .ck-content ul ul {
+            list-style-type: circle;
+            margin-top: 0.5em;
+        }
+
+        .ck-content ul ul ul {
+            list-style-type: square;
+        }
+
+        /* Enhanced table styling */
+        .ck-content table {
+            border-collapse: collapse;
+            margin: 1em 0;
+            width: 100%;
+        }
+
+        .ck-content table td,
+        .ck-content table th {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+
+        .ck-content table th {
+            background-color: #f5f5f5;
+            font-weight: bold;
+        }
+
+        /* Blockquote styling */
+        .ck-content blockquote {
+            border-left: 4px solid #ccc;
+            margin: 1em 0;
+            padding: 0.5em 1em;
+            background-color: #f9f9f9;
+            font-style: italic;
+        }
+
+        /* Enhanced modal styling */
+        #addModal .ck.ck-editor,
+        #editModal .ck.ck-editor {
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+        }
+
+        /* Loading animation for editor initialization */
+        .editor-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            border: 1px solid #d1d5db;
+            border-radius: 0.375rem;
+            background-color: #f9fafb;
+        }
+
+        .editor-loading::after {
+            content: "Memuat editor...";
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .ck-editor__editable {
+                min-height: 150px;
+                font-size: 14px;
+            }
+
+            .ck.ck-toolbar {
+                flex-wrap: wrap;
+            }
+        }
+
+        /* Custom scrollbar for modal */
+        #addModal .overflow-y-auto::-webkit-scrollbar,
+        #editModal .overflow-y-auto::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #addModal .overflow-y-auto::-webkit-scrollbar-track,
+        #editModal .overflow-y-auto::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        #addModal .overflow-y-auto::-webkit-scrollbar-thumb,
+        #editModal .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 3px;
+        }
+
+        #addModal .overflow-y-auto::-webkit-scrollbar-thumb:hover,
+        #editModal .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
     <style>
         /* Custom scrollbar */
         ::-webkit-scrollbar {

@@ -75,7 +75,7 @@
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
             <h2 class="text-lg font-semibold">Tambah Blog</h2>
-            <form action="{{ route('ourblogs.store') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ route('ourblogs.store') }}" method="POST" enctype="multipart/form-data" id="addBlogForm">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -227,11 +227,80 @@
         document.addEventListener('DOMContentLoaded', function() {
             setupDragAndDrop();
 
+            // Enhanced configuration for CKEditor with more features
+            const editorConfig = {
+                toolbar: {
+                    items: [
+                        'heading', '|',
+                        'bold', 'italic', 'underline', 'strikethrough', '|',
+                        'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                        'numberedList', 'bulletedList', '|',
+                        'outdent', 'indent', '|',
+                        'alignment', '|',
+                        'link', 'insertTable', '|',
+                        'blockQuote', 'insertImage', '|',
+                        'undo', 'redo', '|',
+                        'sourceEditing'
+                    ]
+                },
+                language: 'id',
+                list: {
+                    properties: {
+                        styles: true,
+                        startIndex: true,
+                        reversed: true
+                    }
+                },
+                heading: {
+                    options: [
+                        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                        { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+                    ]
+                },
+                fontSize: {
+                    options: [
+                        9,
+                        11,
+                        13,
+                        'default',
+                        17,
+                        19,
+                        21
+                    ]
+                },
+                alignment: {
+                    options: [ 'left', 'right', 'center', 'justify' ]
+                },
+                image: {
+                    toolbar: [
+                        'imageTextAlternative',
+                        'imageStyle:inline',
+                        'imageStyle:block',
+                        'imageStyle:side'
+                    ]
+                },
+                table: {
+                    contentToolbar: [
+                        'tableColumn',
+                        'tableRow',
+                        'mergeTableCells'
+                    ]
+                }
+            };
+
             // Initialize CKEditor for Add Modal
             ClassicEditor
-                .create(document.querySelector('#editorAddDescription'))
+                .create(document.querySelector('#editorAddDescription'), editorConfig)
                 .then(editor => {
                     addDescriptionEditor = editor;
+                    console.log('Add Description Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorAddDescription').value = editor.getData();
+                    });
                 })
                 .catch(error => {
                     console.error('Error initializing add description editor:', error);
@@ -239,118 +308,185 @@
 
             // Initialize CKEditor for Edit Modal
             ClassicEditor
-                .create(document.querySelector('#editorEditDescription'))
+                .create(document.querySelector('#editorEditDescription'), editorConfig)
                 .then(editor => {
                     editDescriptionEditor = editor;
+                    console.log('Edit Description Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorEditDescription').value = editor.getData();
+                    });
                 })
                 .catch(error => {
                     console.error('Error initializing edit description editor:', error);
                 });
-        });
 
-        // Setup drag and drop functionality
-        function setupDragAndDrop() {
-            setupDragAndDropForElement('addUploadArea', 'addImageInput');
-            setupDragAndDropForElement('editUploadArea', 'editImageInput');
-        }
-
-        function setupDragAndDropForElement(uploadAreaId, inputId) {
-            const uploadArea = document.getElementById(uploadAreaId);
-            const fileInput = document.getElementById(inputId);
-
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, preventDefaults, false);
-            });
-
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            ['dragenter', 'dragover'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, () => {
-                    uploadArea.classList.add('border-blue-400', 'bg-blue-50');
-                }, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, () => {
-                    uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
-                }, false);
-            });
-
-            uploadArea.addEventListener('drop', (e) => {
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    fileInput.files = files;
-                    const previewId = uploadAreaId === 'addUploadArea' ? 'addPreview' : 'editPreview';
-                    previewImage(fileInput, previewId);
-                }
-            }, false);
-        }
-
-        // Fungsi search untuk blog
-        function searchTable() {
-            let input = document.getElementById("searchInput").value.toLowerCase();
-            let rows = document.querySelectorAll("#blogTable tr");
-
-            rows.forEach(row => {
-                let title = row.cells[2]?.textContent?.toLowerCase() || ''; // Kolom judul (indeks 2)
-                let category = row.cells[5]?.textContent?.toLowerCase() || ''; // Kolom kategori (indeks 5)
-
-                const shouldShow = title.includes(input) || category.includes(input);
-                row.style.display = shouldShow ? "" : "none";
-            });
-        }
-
-        // Debounce untuk meningkatkan performa saat mengetik
-        let searchTimer;
-        document.getElementById('searchInput').addEventListener('input', function() {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(searchTable, 300);
-        });
-
-        function bulkDelete() {
-            const checkedBoxes = document.querySelectorAll('.rowCheckbox:checked');
-            const ids = Array.from(checkedBoxes).map(cb => cb.value);
-
-            if (ids.length === 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Tidak ada yang dipilih',
-                    text: 'Pilih minimal satu blog untuk dihapus'
+            // Handle Add Form Submission
+            const addForm = document.getElementById('addBlogForm');
+            if (addForm) {
+                addForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleFormSubmission('add');
                 });
-                return;
             }
 
+            // Handle Edit Form Submission
+            const editForm = document.getElementById('editForm');
+            if (editForm) {
+                editForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleFormSubmission('edit');
+                });
+            }
+
+            // Show flash messages using SweetAlert
+            @if(session('success'))
+                showSuccessAlert("{{ session('success') }}");
+            @endif
+
+            @if(session('error'))
+                showErrorAlert("{{ session('error') }}");
+            @endif
+
+            @if($errors->any()))
+                let errorMessages = '';
+                @foreach($errors->all() as $error)
+                    errorMessages += '{{ $error }}\n';
+                @endforeach
+                showErrorAlert(errorMessages);
+            @endif
+        });
+
+        // SweetAlert helper functions
+        function showSuccessAlert(message) {
             Swal.fire({
-                title: `Hapus ${ids.length} blog terpilih?`,
-                text: "Data yang dihapus tidak bisa dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const form = document.getElementById('bulkDeleteForm');
-                    form.innerHTML = '@csrf';
-                    ids.forEach(id => {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = 'ids[]';
-                        input.value = id;
-                        form.appendChild(input);
-                    });
-                    form.submit();
+                icon: 'success',
+                title: 'Berhasil!',
+                html: message,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        function showErrorAlert(message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                html: message.replace(/\n/g, '<br>'),
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#d33'
+            });
+        }
+
+        function showLoadingAlert(message = 'Memproses...') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
                 }
             });
+        }
+
+        // Handle form submission with CKEditor data
+        function handleFormSubmission(type) {
+            const isAdd = type === 'add';
+            const form = document.getElementById(isAdd ? 'addBlogForm' : 'editForm');
+            const descriptionEditor = isAdd ? addDescriptionEditor : editDescriptionEditor;
+
+            // Show loading
+            showLoadingAlert('Menyimpan data...');
+
+            try {
+                // Create FormData
+                const formData = new FormData(form);
+
+                // Add CKEditor data for description
+                if (descriptionEditor) {
+                    formData.set('description', descriptionEditor.getData());
+                }
+
+                // Validate required fields
+                if (descriptionEditor && !descriptionEditor.getData().trim()) {
+                    Swal.fire('Error', 'Deskripsi harus diisi', 'error');
+                    return;
+                }
+
+                // Submit using fetch
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => {
+                    const contentType = response.headers.get('content-type');
+
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json().then(data => ({
+                            success: response.ok,
+                            data: data,
+                            status: response.status
+                        }));
+                    } else {
+                        if (response.ok || response.redirected) {
+                            return {
+                                success: true,
+                                data: { message: isAdd ? 'Blog berhasil ditambahkan!' : 'Blog berhasil diperbarui!' },
+                                status: response.status
+                            };
+                        } else {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                    }
+                })
+                .then(result => {
+                    if (result.success) {
+                        if (isAdd) {
+                            closeAddModal();
+                        } else {
+                            closeEditModal();
+                        }
+                        showSuccessAlert(result.data.message || (isAdd ? 'Blog berhasil ditambahkan!' : 'Blog berhasil diperbarui!'));
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        if (result.data.errors) {
+                            let errorMessage = '';
+                            Object.values(result.data.errors).forEach(errorArray => {
+                                errorArray.forEach(error => {
+                                    errorMessage += error + '<br>';
+                                });
+                            });
+                            showErrorAlert(errorMessage);
+                        } else {
+                            showErrorAlert(result.data.message || 'Gagal menyimpan data blog!');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
+                });
+
+            } catch (error) {
+                console.error('Form preparation error:', error);
+                showErrorAlert('Terjadi kesalahan saat memproses data');
+            }
         }
 
         function openAddModal() {
             // Reset form
-            document.querySelector('#addModal form').reset();
+            document.getElementById('addBlogForm').reset();
             document.getElementById('addPreview').innerHTML = '';
             document.getElementById('addUploadArea').style.display = 'block';
 
@@ -377,7 +513,7 @@
             document.getElementById('editCategory').value = data.category_id;
             document.getElementById('editWaktuBaca').value = data.waktu_baca || '';
 
-            // Set CKEditor content
+            // Set description content in CKEditor
             if (editDescriptionEditor) {
                 editDescriptionEditor.setData(data.description || '');
             }
@@ -477,23 +613,95 @@
             }
         }
 
-        // Show success/error messages
-        @if(session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: '{{ session('success') }}',
-                showConfirmButton: false,
-                timer: 2000
-            });
-        @endif
+        function setupDragAndDrop() {
+            setupDragAndDropForElement('addUploadArea', 'addImageInput');
+            setupDragAndDropForElement('editUploadArea', 'editImageInput');
+        }
 
-        @if(session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                text: '{{ session('error') }}'
+        function setupDragAndDropForElement(uploadAreaId, inputId) {
+            const uploadArea = document.getElementById(uploadAreaId);
+            const fileInput = document.getElementById(inputId);
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
             });
-        @endif
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.add('border-blue-400', 'bg-blue-50');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+                }, false);
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    const previewId = uploadAreaId === 'addUploadArea' ? 'addPreview' : 'editPreview';
+                    previewImage(fileInput, previewId);
+                }
+            }, false);
+        }
+
+        function searchTable() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let rows = document.querySelectorAll("#blogTable tr");
+
+            rows.forEach(row => {
+                let title = row.cells[2]?.textContent?.toLowerCase() || '';
+                let category = row.cells[5]?.textContent?.toLowerCase() || '';
+
+                const shouldShow = title.includes(input) || category.includes(input);
+                row.style.display = shouldShow ? "" : "none";
+            });
+        }
+
+        function bulkDelete() {
+            const checkedBoxes = document.querySelectorAll('.rowCheckbox:checked');
+            const ids = Array.from(checkedBoxes).map(cb => cb.value);
+
+            if (ids.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Tidak ada yang dipilih',
+                    text: 'Pilih minimal satu blog untuk dihapus'
+                });
+                return;
+            }
+
+            Swal.fire({
+                title: `Hapus ${ids.length} blog terpilih?`,
+                text: "Data yang dihapus tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.getElementById('bulkDeleteForm');
+                    form.innerHTML = '@csrf';
+                    ids.forEach(id => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'ids[]';
+                        input.value = id;
+                        form.appendChild(input);
+                    });
+                    form.submit();
+                }
+            });
+        }
     </script>
 @endsection

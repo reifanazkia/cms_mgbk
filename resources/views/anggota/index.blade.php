@@ -119,6 +119,10 @@
                         <input type="text" name="tiktok_id" class="w-full border rounded p-2 text-sm"
                             placeholder="@username atau link profil" />
                     </div>
+                    <div class="col-span-2">
+                        <label class="block mb-1 font-medium">Deskripsi</label>
+                        <textarea name="description" id="editorAddDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
+                    </div>
                 </div>
 
                 <!-- Enhanced Image Upload Section -->
@@ -207,6 +211,10 @@
                         <input type="text" name="tiktok_id" id="editTiktokId"
                             class="w-full border rounded p-2 text-sm" placeholder="@username atau link profil" />
                     </div>
+                    <div class="col-span-2">
+                        <label class="block mb-1 font-medium">Deskripsi</label>
+                        <textarea name="description" id="editorEditDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
+                    </div>
                 </div>
 
                 <!-- Enhanced Image Upload Section -->
@@ -245,10 +253,154 @@
         </div>
     </div>
 
+    <!-- jQuery dan Select2 CSS/JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- CKEditor -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.3.1/classic/ckeditor.js"></script>
+
     <script>
+        // Global variables for CKEditor instances
+        let addDescriptionEditor = null;
+        let editDescriptionEditor = null;
+
+        // Initialize CKEditor when the page loads
+        $(document).ready(function() {
+            initializeCKEditor();
+            setupDragAndDrop();
+        });
+
+        function initializeCKEditor() {
+            // Enhanced configuration for CKEditor with more features including numbering
+            const editorConfig = {
+                toolbar: {
+                    items: [
+                        'heading', '|',
+                        'bold', 'italic', 'underline', 'strikethrough', '|',
+                        'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                        'numberedList', 'bulletedList', '|',
+                        'outdent', 'indent', '|',
+                        'alignment', '|',
+                        'link', 'insertTable', '|',
+                        'blockQuote', 'insertImage', '|',
+                        'undo', 'redo', '|',
+                        'sourceEditing'
+                    ]
+                },
+                language: 'id',
+                list: {
+                    properties: {
+                        styles: true,
+                        startIndex: true,
+                        reversed: true
+                    }
+                },
+                heading: {
+                    options: [
+                        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                        { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+                    ]
+                },
+                fontSize: {
+                    options: [
+                        9,
+                        11,
+                        13,
+                        'default',
+                        17,
+                        19,
+                        21
+                    ]
+                },
+                alignment: {
+                    options: [ 'left', 'right', 'center', 'justify' ]
+                },
+                image: {
+                    toolbar: [
+                        'imageTextAlternative',
+                        'imageStyle:inline',
+                        'imageStyle:block',
+                        'imageStyle:side'
+                    ]
+                },
+                table: {
+                    contentToolbar: [
+                        'tableColumn',
+                        'tableRow',
+                        'mergeTableCells'
+                    ]
+                }
+            };
+
+            // Initialize CKEditor for Add Modal
+            ClassicEditor
+                .create(document.querySelector('#editorAddDescription'), editorConfig)
+                .then(editor => {
+                    addDescriptionEditor = editor;
+                    console.log('Add Description Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorAddDescription').value = editor.getData();
+                    });
+                })
+                .catch(error => {
+                    console.error('Error initializing add description editor:', error);
+                });
+
+            // Initialize CKEditor for Edit Modal
+            ClassicEditor
+                .create(document.querySelector('#editorEditDescription'), editorConfig)
+                .then(editor => {
+                    editDescriptionEditor = editor;
+                    console.log('Edit Description Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorEditDescription').value = editor.getData();
+                    });
+                })
+                .catch(error => {
+                    console.error('Error initializing edit description editor:', error);
+                });
+        }
+
+        // Setup drag and drop functionality
+        function setupDragAndDrop() {
+            ['addUploadArea', 'editUploadArea'].forEach(id => {
+                const element = document.getElementById(id);
+                const inputId = id === 'addUploadArea' ? 'addImageInput' : 'editImageInput';
+                const previewId = id === 'addUploadArea' ? 'addPreview' : 'editPreview';
+
+                element.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    element.classList.add('border-blue-400', 'bg-blue-50');
+                });
+
+                element.addEventListener('dragleave', () => {
+                    element.classList.remove('border-blue-400', 'bg-blue-50');
+                });
+
+                element.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    element.classList.remove('border-blue-400', 'bg-blue-50');
+
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        document.getElementById(inputId).files = files;
+                        previewImage(document.getElementById(inputId), previewId);
+                    }
+                });
+            });
+        }
+
         // Show flash messages using SweetAlert
         document.addEventListener('DOMContentLoaded', function() {
             @if(session('success'))
@@ -259,15 +411,13 @@
                 showErrorAlert("{{ session('error') }}");
             @endif
 
-            @if($errors->any())
+            @if($errors->any()))
                 let errorMessages = '';
                 @foreach($errors->all() as $error)
                     errorMessages += '{{ $error }}\n';
                 @endforeach
                 showErrorAlert(errorMessages);
             @endif
-
-            setupDragAndDrop();
 
             // Close modal when clicking outside
             document.getElementById('addModal').addEventListener('click', function(e) {
@@ -413,6 +563,11 @@
             document.getElementById('addPreview').innerHTML = '';
             document.getElementById('addUploadArea').style.display = 'block';
 
+            // Reset editor content
+            if (addDescriptionEditor) {
+                addDescriptionEditor.setData('');
+            }
+
             // Show modal
             document.getElementById('addModal').classList.remove('hidden');
         }
@@ -435,6 +590,11 @@
             document.getElementById('editInstagramId').value = data.instagram_id || '';
             document.getElementById('editTiktokId').value = data.tiktok_id || '';
 
+            // Set editor content
+            if (editDescriptionEditor) {
+                editDescriptionEditor.setData(data.description || '');
+            }
+
             // Handle image preview
             const editPreview = document.getElementById('editPreview');
             const editUploadArea = document.getElementById('editUploadArea');
@@ -448,6 +608,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
+                        <input type="hidden" name="current_image" value="${data.image}">
                     </div>
                 `;
                 editUploadArea.style.display = 'none';
@@ -517,36 +678,22 @@
             }
         }
 
-        // Setup drag and drop functionality
-        function setupDragAndDrop() {
-            ['addUploadArea', 'editUploadArea'].forEach(id => {
-                const element = document.getElementById(id);
-                const inputId = id === 'addUploadArea' ? 'addImageInput' : 'editImageInput';
-                const previewId = id === 'addUploadArea' ? 'addPreview' : 'editPreview';
+        // Form submission handlers to ensure CKEditor data is synced
+        document.querySelector('#addForm').addEventListener('submit', function(e) {
+            if (addDescriptionEditor) {
+                // Sync CKEditor content to textarea before submission
+                document.querySelector('#editorAddDescription').value = addDescriptionEditor.getData();
+            }
+        });
 
-                element.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    element.classList.add('border-blue-400', 'bg-blue-50');
-                });
+        document.querySelector('#editForm').addEventListener('submit', function(e) {
+            if (editDescriptionEditor) {
+                // Sync CKEditor content to textarea before submission
+                document.querySelector('#editorEditDescription').value = editDescriptionEditor.getData();
+            }
+        });
 
-                element.addEventListener('dragleave', () => {
-                    element.classList.remove('border-blue-400', 'bg-blue-50');
-                });
-
-                element.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    element.classList.remove('border-blue-400', 'bg-blue-50');
-
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        document.getElementById(inputId).files = files;
-                        previewImage(document.getElementById(inputId), previewId);
-                    }
-                });
-            });
-        }
-
-        // Enhanced Form Submissions with SweetAlert - FIXED VERSION
+        // Enhanced Form Submissions with SweetAlert
         document.addEventListener('DOMContentLoaded', function() {
             // Handle Add Form
             document.getElementById('addForm').addEventListener('submit', function(e) {
@@ -580,7 +727,6 @@
                     }
                 })
                 .then(response => {
-                    // Handle both JSON and redirect responses
                     const contentType = response.headers.get('content-type');
 
                     if (contentType && contentType.includes('application/json')) {
@@ -590,7 +736,6 @@
                             status: response.status
                         }));
                     } else {
-                        // If it's a redirect (typical Laravel behavior after successful form submission)
                         if (response.ok || response.redirected) {
                             return {
                                 success: true,
@@ -610,7 +755,6 @@
                             location.reload();
                         }, 1500);
                     } else {
-                        // Handle validation errors
                         if (result.data.errors) {
                             let errorMessage = '';
                             Object.values(result.data.errors).forEach(errorArray => {
@@ -660,7 +804,6 @@
                     }
                 })
                 .then(response => {
-                    // Handle both JSON and redirect responses
                     const contentType = response.headers.get('content-type');
 
                     if (contentType && contentType.includes('application/json')) {
@@ -670,7 +813,6 @@
                             status: response.status
                         }));
                     } else {
-                        // If it's a redirect (typical Laravel behavior after successful form submission)
                         if (response.ok || response.redirected) {
                             return {
                                 success: true,
@@ -690,7 +832,6 @@
                             location.reload();
                         }, 1500);
                     } else {
-                        // Handle validation errors
                         if (result.data.errors) {
                             let errorMessage = '';
                             Object.values(result.data.errors).forEach(errorArray => {

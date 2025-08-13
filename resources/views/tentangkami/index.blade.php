@@ -99,7 +99,7 @@
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Deskripsi <span class="text-red-500">*</span></label>
-                        <textarea name="description" id="addDescription" rows="4" class="w-full border rounded p-2 text-sm" required></textarea>
+                        <textarea name="description" id="editorAddDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
                         <p class="error-text text-red-500 text-xs mt-1 hidden">Deskripsi wajib diisi</p>
                     </div>
                 </div>
@@ -176,7 +176,7 @@
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Deskripsi <span class="text-red-500">*</span></label>
-                        <textarea name="description" id="editDescription" rows="4" class="w-full border rounded p-2 text-sm" required></textarea>
+                        <textarea name="description" id="editorEditDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
                         <p class="error-text text-red-500 text-xs mt-1 hidden">Deskripsi wajib diisi</p>
                     </div>
                 </div>
@@ -225,306 +225,111 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <script>
-        // Global variables
+        // Global variables for CKEditor instances
         let addDescriptionEditor = null;
         let editDescriptionEditor = null;
 
-        // Document ready
+        // Initialize CKEditor when the page loads
         $(document).ready(function() {
-            console.log('Document ready');
-
-            // Setup drag and drop
+            initializeCKEditor();
             setupDragAndDrop();
-
-            // Close modal when clicking outside
-            $('#addModal').on('click', function(e) {
-                if (e.target === this) closeAddModal();
-            });
-
-            $('#editModal').on('click', function(e) {
-                if (e.target === this) closeEditModal();
-            });
-
-            // Escape key to close modals
-            $(document).on('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeAddModal();
-                    closeEditModal();
-                }
-            });
-
-            // Form validation on submit
-            $('#addForm').on('submit', function(e) {
-                console.log('Add form submitted');
-
-                // Get CKEditor data and update textarea
-                if (addDescriptionEditor) {
-                    const editorData = addDescriptionEditor.getData();
-                    $('#addDescription').val(editorData);
-                    console.log('Description data:', editorData);
-                }
-
-                // Basic validation
-                let isValid = true;
-                const title = $('input[name="title"]').val().trim();
-                const category = $('#addCategorySelect').val();
-                const description = addDescriptionEditor ? addDescriptionEditor.getData().trim() : $(
-                    '#addDescription').val().trim();
-                const image = $('#addImageInput')[0].files.length > 0;
-
-                // Reset error states
-                $('#addForm .error-text').addClass('hidden');
-                $('#addForm [required]').removeClass('border-red-500');
-
-                // Validate fields
-                if (!title) {
-                    showFieldError('input[name="title"]', 'Judul wajib diisi');
-                    isValid = false;
-                }
-
-                if (!category) {
-                    showFieldError('#addCategorySelect', 'Kategori wajib dipilih');
-                    isValid = false;
-                }
-
-                if (!description) {
-                    showFieldError('#addDescription', 'Deskripsi wajib diisi');
-                    isValid = false;
-                }
-
-                if (!image) {
-                    $('#addImageInput').siblings('.error-text').removeClass('hidden');
-                    isValid = false;
-                }
-
-                if (!isValid) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Validasi Error',
-                        text: 'Mohon lengkapi semua field yang wajib diisi.',
-                        confirmButtonColor: '#3b82f6'
-                    });
-                    return false;
-                }
-
-                // Show loading state
-                $('#addSubmitBtn').text('Menyimpan...').prop('disabled', true);
-            });
-
-            $('#editForm').on('submit', function(e) {
-                console.log('Edit form submitted');
-
-                // Get CKEditor data and update textarea
-                if (editDescriptionEditor) {
-                    const editorData = editDescriptionEditor.getData();
-                    $('#editDescription').val(editorData);
-                    console.log('Description data:', editorData);
-                }
-
-                // Basic validation
-                let isValid = true;
-                const title = $('#editTitle').val().trim();
-                const category = $('#editCategorySelect').val();
-                const description = editDescriptionEditor ? editDescriptionEditor.getData().trim() : $(
-                    '#editDescription').val().trim();
-
-                // Reset error states
-                $('#editForm .error-text').addClass('hidden');
-                $('#editForm [required]').removeClass('border-red-500');
-
-                // Validate fields
-                if (!title) {
-                    showFieldError('#editTitle', 'Judul wajib diisi');
-                    isValid = false;
-                }
-
-                if (!category) {
-                    showFieldError('#editCategorySelect', 'Kategori wajib dipilih');
-                    isValid = false;
-                }
-
-                if (!description) {
-                    showFieldError('#editDescription', 'Deskripsi wajib diisi');
-                    isValid = false;
-                }
-
-                if (!isValid) {
-                    e.preventDefault();
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Validasi Error',
-                        text: 'Mohon lengkapi semua field yang wajib diisi.',
-                        confirmButtonColor: '#3b82f6'
-                    });
-                    return false;
-                }
-
-                // Show loading state
-                $('#editSubmitBtn').text('Menyimpan...').prop('disabled', false);
-            });
         });
 
-        function showFieldError(selector, message) {
-            $(selector).addClass('border-red-500');
-            $(selector).siblings('.error-text').text(message).removeClass('hidden');
-        }
-
-        function openAddModal() {
-            console.log('Opening add modal');
-
-            // Reset form
-            document.getElementById('addForm').reset();
-            document.getElementById('addPreview').innerHTML = '';
-            document.getElementById('addUploadArea').style.display = 'block';
-
-            // Reset button state
-            $('#addSubmitBtn').text('Simpan').prop('disabled', false);
-
-            // Reset error states
-            $('#addForm .error-text').addClass('hidden');
-            $('#addForm [required]').removeClass('border-red-500');
-
-            // Show modal
-            document.getElementById('addModal').classList.remove('hidden');
-
-            // Initialize CKEditor after modal is visible
-            setTimeout(function() {
-                if (!addDescriptionEditor) {
-                    // Remove required attribute temporarily to prevent browser validation conflict
-                    $('#addDescription').removeAttr('required');
-
-                    ClassicEditor
-                        .create(document.querySelector('#addDescription'), {
-                            toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList',
-                                '|', 'outdent', 'indent', '|', 'blockQuote', 'undo', 'redo'
-                            ]
-                        })
-                        .then(editor => {
-                            addDescriptionEditor = editor;
-                            console.log('Add editor initialized');
-                        })
-                        .catch(error => {
-                            console.error('Error initializing add editor:', error);
-                            // Restore required attribute if editor fails
-                            $('#addDescription').attr('required', 'required');
-                        });
+        function initializeCKEditor() {
+            // Enhanced configuration for CKEditor with more features including numbering
+            const editorConfig = {
+                toolbar: {
+                    items: [
+                        'heading', '|',
+                        'bold', 'italic', 'underline', 'strikethrough', '|',
+                        'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                        'numberedList', 'bulletedList', '|',
+                        'outdent', 'indent', '|',
+                        'alignment', '|',
+                        'link', 'insertTable', '|',
+                        'blockQuote', 'insertImage', '|',
+                        'undo', 'redo', '|',
+                        'sourceEditing'
+                    ]
+                },
+                language: 'id',
+                list: {
+                    properties: {
+                        styles: true,
+                        startIndex: true,
+                        reversed: true
+                    }
+                },
+                heading: {
+                    options: [
+                        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                        { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+                    ]
+                },
+                fontSize: {
+                    options: [
+                        9,
+                        11,
+                        13,
+                        'default',
+                        17,
+                        19,
+                        21
+                    ]
+                },
+                alignment: {
+                    options: [ 'left', 'right', 'center', 'justify' ]
+                },
+                image: {
+                    toolbar: [
+                        'imageTextAlternative',
+                        'imageStyle:inline',
+                        'imageStyle:block',
+                        'imageStyle:side'
+                    ]
+                },
+                table: {
+                    contentToolbar: [
+                        'tableColumn',
+                        'tableRow',
+                        'mergeTableCells'
+                    ]
                 }
-            }, 100);
-        }
+            };
 
-        function closeAddModal() {
-            document.getElementById('addModal').classList.add('hidden');
+            // Initialize CKEditor for Add Modal
+            ClassicEditor
+                .create(document.querySelector('#editorAddDescription'), editorConfig)
+                .then(editor => {
+                    addDescriptionEditor = editor;
+                    console.log('Add Description Editor initialized successfully');
 
-            // Destroy editor safely
-            if (addDescriptionEditor) {
-                try {
-                    addDescriptionEditor.destroy();
-                } catch (error) {
-                    console.warn('Error destroying add editor:', error);
-                }
-                addDescriptionEditor = null;
-            }
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorAddDescription').value = editor.getData();
+                    });
+                })
+                .catch(error => {
+                    console.error('Error initializing add description editor:', error);
+                });
 
-            // Restore required attribute
-            $('#addDescription').attr('required', 'required');
+            // Initialize CKEditor for Edit Modal
+            ClassicEditor
+                .create(document.querySelector('#editorEditDescription'), editorConfig)
+                .then(editor => {
+                    editDescriptionEditor = editor;
+                    console.log('Edit Description Editor initialized successfully');
 
-            // Reset button state
-            $('#addSubmitBtn').text('Simpan').prop('disabled', false);
-        }
-
-        function openEditModal(button) {
-            console.log('Opening edit modal');
-
-            const tentangkami = JSON.parse(button.getAttribute('data-tentangkami'));
-            const form = document.getElementById('editForm');
-
-            // Set form action and values
-            form.action = `/tentangkami/${tentangkami.id}`;
-            document.getElementById('editTitle').value = tentangkami.title || '';
-            document.getElementById('editCategorySelect').value = tentangkami.category_tentangkami_id || '';
-            document.getElementById('editDisplayOnHome').checked = tentangkami.display_on_home == 1;
-
-            // Reset button state
-            $('#editSubmitBtn').text('Simpan').prop('disabled', false);
-
-            // Handle image preview
-            const editPreview = document.getElementById('editPreview');
-            const editUploadArea = document.getElementById('editUploadArea');
-
-            if (tentangkami.image) {
-                const imageUrl = tentangkami.image.startsWith('http') ? tentangkami.image :
-                    `{{ asset('') }}${tentangkami.image}`;
-                editPreview.innerHTML = `
-            <div class="relative inline-block">
-                <img src="${imageUrl}" class="h-32 w-32 rounded-lg shadow-md object-cover border">
-                <button type="button" onclick="removeCurrentImage('edit')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                    </svg>
-                </button>
-            </div>`;
-                editUploadArea.style.display = 'none';
-            } else {
-                editPreview.innerHTML = '';
-                editUploadArea.style.display = 'block';
-            }
-
-            // Reset error states
-            $('#editForm .error-text').addClass('hidden');
-            $('#editForm [required]').removeClass('border-red-500');
-
-            // Show modal
-            document.getElementById('editModal').classList.remove('hidden');
-
-            // Initialize CKEditor after modal is visible
-            setTimeout(function() {
-                if (!editDescriptionEditor) {
-                    // Remove required attribute temporarily to prevent browser validation conflict
-                    $('#editDescription').removeAttr('required');
-
-                    ClassicEditor
-                        .create(document.querySelector('#editDescription'), {
-                            toolbar: ['heading', '|', 'bold', 'italic', 'link', 'bulletedList', 'numberedList',
-                                '|', 'outdent', 'indent', '|', 'blockQuote', 'undo', 'redo'
-                            ]
-                        })
-                        .then(editor => {
-                            editDescriptionEditor = editor;
-                            // Set content after editor is ready
-                            editor.setData(tentangkami.description || '');
-                            console.log('Edit editor initialized');
-                        })
-                        .catch(error => {
-                            console.error('Error initializing edit editor:', error);
-                            // Restore required attribute if editor fails
-                            $('#editDescription').attr('required', 'required');
-                        });
-                } else {
-                    // If editor already exists, just set the data
-                    editDescriptionEditor.setData(tentangkami.description || '');
-                }
-            }, 100);
-        }
-
-        function closeEditModal() {
-            document.getElementById('editModal').classList.add('hidden');
-
-            // Destroy editor safely
-            if (editDescriptionEditor) {
-                try {
-                    editDescriptionEditor.destroy();
-                } catch (error) {
-                    console.warn('Error destroying edit editor:', error);
-                }
-                editDescriptionEditor = null;
-            }
-
-            // Restore required attribute
-            $('#editDescription').attr('required', 'required');
-
-            // Reset button state
-            $('#editSubmitBtn').text('Simpan').prop('disabled', false);
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorEditDescription').value = editor.getData();
+                    });
+                })
+                .catch(error => {
+                    console.error('Error initializing edit description editor:', error);
+                });
         }
 
         function setupDragAndDrop() {
@@ -560,6 +365,88 @@
                     previewImage(fileInput, uploadAreaId === 'addUploadArea' ? 'addPreview' : 'editPreview');
                 }
             });
+        }
+
+        function openAddModal() {
+            console.log('Opening add modal');
+
+            // Reset form
+            document.getElementById('addForm').reset();
+            document.getElementById('addPreview').innerHTML = '';
+            document.getElementById('addUploadArea').style.display = 'block';
+
+            // Reset button state
+            $('#addSubmitBtn').text('Simpan').prop('disabled', false);
+
+            // Reset error states
+            $('#addForm .error-text').addClass('hidden');
+            $('#addForm [required]').removeClass('border-red-500');
+
+            // Reset editor content
+            if (addDescriptionEditor) {
+                addDescriptionEditor.setData('');
+            }
+
+            // Show modal
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
+        }
+
+        function openEditModal(button) {
+            console.log('Opening edit modal');
+
+            const tentangkami = JSON.parse(button.getAttribute('data-tentangkami'));
+            const form = document.getElementById('editForm');
+
+            // Set form action and values
+            form.action = `/tentangkami/${tentangkami.id}`;
+            document.getElementById('editTitle').value = tentangkami.title || '';
+            document.getElementById('editCategorySelect').value = tentangkami.category_tentangkami_id || '';
+            document.getElementById('editDisplayOnHome').checked = tentangkami.display_on_home == 1;
+
+            // Reset button state
+            $('#editSubmitBtn').text('Simpan').prop('disabled', false);
+
+            // Handle image preview
+            const editPreview = document.getElementById('editPreview');
+            const editUploadArea = document.getElementById('editUploadArea');
+
+            if (tentangkami.image) {
+                const imageUrl = tentangkami.image.startsWith('http') ? tentangkami.image :
+                    `{{ asset('') }}${tentangkami.image}`;
+                editPreview.innerHTML = `
+                    <div class="relative inline-block">
+                        <img src="${imageUrl}" class="h-32 w-32 rounded-lg shadow-md object-cover border">
+                        <button type="button" onclick="removeCurrentImage('edit')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                        </button>
+                    </div>`;
+                editUploadArea.style.display = 'none';
+            } else {
+                editPreview.innerHTML = '';
+                editUploadArea.style.display = 'block';
+            }
+
+            // Reset error states
+            $('#editForm .error-text').addClass('hidden');
+            $('#editForm [required]').removeClass('border-red-500');
+
+            // Show modal
+            document.getElementById('editModal').classList.remove('hidden');
+
+            // Set editor content
+            if (editDescriptionEditor) {
+                editDescriptionEditor.setData(tentangkami.description || '');
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
         }
 
         function previewImage(input, previewId) {
@@ -599,14 +486,14 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     preview.innerHTML = `
-                <div class="relative inline-block">
-                    <img src="${e.target.result}" class="h-32 w-32 rounded-lg shadow-md object-cover border">
-                    <button type="button" onclick="removeCurrentImage('${previewId === 'addPreview' ? 'add' : 'edit'}')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>`;
+                        <div class="relative inline-block">
+                            <img src="${e.target.result}" class="h-32 w-32 rounded-lg shadow-md object-cover border">
+                            <button type="button" onclick="removeCurrentImage('${previewId === 'addPreview' ? 'add' : 'edit'}')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>`;
                     uploadArea.style.display = 'none';
                 };
                 reader.readAsDataURL(file);
@@ -653,14 +540,29 @@
                     form.method = 'POST';
                     form.action = `/tentangkami/${id}`;
                     form.innerHTML = `
-                <input type="hidden" name="_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="_method" value="DELETE">
-            `;
+                        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="_method" value="DELETE">
+                    `;
                     document.body.appendChild(form);
                     form.submit();
                 }
             });
         }
+
+        // Form submission handlers to ensure CKEditor data is synced
+        document.querySelector('#addForm').addEventListener('submit', function(e) {
+            if (addDescriptionEditor) {
+                // Sync CKEditor content to textarea before submission
+                document.querySelector('#editorAddDescription').value = addDescriptionEditor.getData();
+            }
+        });
+
+        document.querySelector('#editForm').addEventListener('submit', function(e) {
+            if (editDescriptionEditor) {
+                // Sync CKEditor content to textarea before submission
+                document.querySelector('#editorEditDescription').value = editDescriptionEditor.getData();
+            }
+        });
 
         // Session messages
         @if (session('success'))

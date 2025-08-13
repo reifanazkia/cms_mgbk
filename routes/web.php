@@ -100,28 +100,9 @@ Route::prefix('products')->name('products.')->group(function () {
     Route::post('/bulk-delete', [ProductController::class, 'bulkDelete'])->name('bulkDelete');
 });
 
-// Route::prefix('orders')->name('orders.')->group(function () {
-//     Route::get('/', [OrderController::class, 'index'])->name('index');
-//     Route::get('/create/{product}', [OrderController::class, 'create'])->name('create');
-//     Route::get('/payment/{id}', [OrderController::class, 'payment'])->name('payment');
-//     Route::post('/', [OrderController::class, 'store'])->name('store');
-//     Route::get('/{order}', [OrderController::class, 'show'])->name('show');
-//     Route::put('/{order}', [OrderController::class, 'update'])->name('update');
-//     Route::delete('/{order}', [OrderController::class, 'destroy'])->name('destroy');
-// });
-
-
-Route::get('/checkout/step1/{product}', [CheckoutController::class, 'step1'])->name('checkout.step1');
-Route::post('/checkout/step1', [CheckoutController::class, 'processStep1'])->name('checkout.processStep1');
-Route::get('/checkout/step2', [CheckoutController::class, 'step2'])->name('checkout.step2');
-Route::post('/checkout/step2', [CheckoutController::class, 'processStep2'])->name('checkout.processStep2');
-Route::post('/duitku/callback', [PaymentWebhookController::class, 'handle'])->name('duitku.callback');
-Route::get('/checkout/success', [CheckoutController::class, 'success'])->name('checkout.success');
-Route::get('/checkout/failed', [CheckoutController::class, 'failed'])->name('checkout.failed');
-
 
 Route::prefix('tentangkami')->name('tentangkami.')->group(function () {
-    
+
     Route::get('/', [TentangkamiController::class, 'index'])->name('index');
     Route::post('/', [TentangkamiController::class, 'store'])->name('store');
     Route::put('/{id}', [TentangkamiController::class, 'update'])->name('update');

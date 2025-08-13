@@ -307,12 +307,84 @@
         $(document).ready(function() {
             initializeSelect2();
             setupDragAndDrop();
+            initializeCKEditor();
+        });
+
+        function initializeCKEditor() {
+            // Enhanced configuration for CKEditor with more features including numbering
+            const editorConfig = {
+                toolbar: {
+                    items: [
+                        'heading', '|',
+                        'bold', 'italic', 'underline', 'strikethrough', '|',
+                        'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                        'numberedList', 'bulletedList', '|',
+                        'outdent', 'indent', '|',
+                        'alignment', '|',
+                        'link', 'insertTable', '|',
+                        'blockQuote', 'insertImage', '|',
+                        'undo', 'redo', '|',
+                        'sourceEditing'
+                    ]
+                },
+                language: 'id',
+                list: {
+                    properties: {
+                        styles: true,
+                        startIndex: true,
+                        reversed: true
+                    }
+                },
+                heading: {
+                    options: [
+                        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                        { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+                    ]
+                },
+                fontSize: {
+                    options: [
+                        9,
+                        11,
+                        13,
+                        'default',
+                        17,
+                        19,
+                        21
+                    ]
+                },
+                alignment: {
+                    options: [ 'left', 'right', 'center', 'justify' ]
+                },
+                image: {
+                    toolbar: [
+                        'imageTextAlternative',
+                        'imageStyle:inline',
+                        'imageStyle:block',
+                        'imageStyle:side'
+                    ]
+                },
+                table: {
+                    contentToolbar: [
+                        'tableColumn',
+                        'tableRow',
+                        'mergeTableCells'
+                    ]
+                }
+            };
 
             // Initialize CKEditor for Add Modal
             ClassicEditor
-                .create(document.querySelector('#editorAddDescription'))
+                .create(document.querySelector('#editorAddDescription'), editorConfig)
                 .then(editor => {
                     addDescriptionEditor = editor;
+                    console.log('Add Description Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorAddDescription').value = editor.getData();
+                    });
                 })
                 .catch(error => {
                     console.error('Error initializing add description editor:', error);
@@ -320,14 +392,20 @@
 
             // Initialize CKEditor for Edit Modal
             ClassicEditor
-                .create(document.querySelector('#editorEditDescription'))
+                .create(document.querySelector('#editorEditDescription'), editorConfig)
                 .then(editor => {
                     editDescriptionEditor = editor;
+                    console.log('Edit Description Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorEditDescription').value = editor.getData();
+                    });
                 })
                 .catch(error => {
                     console.error('Error initializing edit description editor:', error);
                 });
-        });
+        }
 
         function initializeSelect2() {
             // Destroy existing instances
@@ -472,9 +550,11 @@
             document.getElementById('editType').value = agendaData.type || '';
             document.getElementById('editStatus').value = agendaData.status || 'Open';
 
-            // Set editor content
+            // Set editor content with proper HTML handling
             if (editDescriptionEditor) {
-                editDescriptionEditor.setData(agendaData.description || '');
+                // Ensure HTML content is properly loaded
+                const description = agendaData.description || '';
+                editDescriptionEditor.setData(description);
             }
 
             // Handle datetime fields with error handling
@@ -648,5 +728,221 @@
 
             return `${year}-${month}-${day}T${hours}:${minutes}`;
         }
+
+        // Form submission handlers to ensure CKEditor data is synced
+        document.querySelector('#addModal form').addEventListener('submit', function(e) {
+            if (addDescriptionEditor) {
+                // Sync CKEditor content to textarea before submission
+                document.querySelector('#editorAddDescription').value = addDescriptionEditor.getData();
+                console.log('Add form data synced:', addDescriptionEditor.getData());
+            }
+        });
+
+        document.querySelector('#editForm').addEventListener('submit', function(e) {
+            if (editDescriptionEditor) {
+                // Sync CKEditor content to textarea before submission
+                document.querySelector('#editorEditDescription').value = editDescriptionEditor.getData();
+                console.log('Edit form data synced:', editDescriptionEditor.getData());
+            }
+        });
+
+        // Additional event listeners for better user experience
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle form validation messages
+            const showAlert = (type, message) => {
+                Swal.fire({
+                    icon: type,
+                    title: type === 'success' ? 'Berhasil!' : 'Error!',
+                    text: message,
+                    timer: 3000,
+                    showConfirmButton: false
+                });
+            };
+
+            // Check for Laravel session messages
+            @if(session('success'))
+                showAlert('success', '{{ session('success') }}');
+            @endif
+
+            @if(session('error'))
+                showAlert('error', '{{ session('error') }}');
+            @endif
+
+            @if($errors->any())
+                let errorMessages = [];
+                @foreach($errors->all() as $error)
+                    errorMessages.push('{{ $error }}');
+                @endforeach
+                showAlert('error', errorMessages.join('\n'));
+            @endif
+        });
+
+        // Additional helper functions
+        function resetFormValidation(formId) {
+            const form = document.getElementById(formId);
+            const inputs = form.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.classList.remove('border-red-500', 'border-green-500');
+                const errorMsg = input.parentNode.querySelector('.error-message');
+                if (errorMsg) {
+                    errorMsg.remove();
+                }
+            });
+        }
+
+        function validateForm(formId) {
+            const form = document.getElementById(formId);
+            let isValid = true;
+
+            // Reset previous validation
+            resetFormValidation(formId);
+
+            // Required field validation
+            const requiredFields = form.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('border-red-500');
+                    showFieldError(field, 'Field ini wajib diisi');
+                    isValid = false;
+                } else {
+                    field.classList.add('border-green-500');
+                }
+            });
+
+            // Email validation
+            const emailFields = form.querySelectorAll('input[type="email"]');
+            emailFields.forEach(field => {
+                if (field.value && !isValidEmail(field.value)) {
+                    field.classList.add('border-red-500');
+                    showFieldError(field, 'Format email tidak valid');
+                    isValid = false;
+                }
+            });
+
+            // URL validation
+            const urlFields = form.querySelectorAll('input[type="url"]');
+            urlFields.forEach(field => {
+                if (field.value && !isValidURL(field.value)) {
+                    field.classList.add('border-red-500');
+                    showFieldError(field, 'Format URL tidak valid');
+                    isValid = false;
+                }
+            });
+
+            return isValid;
+        }
+
+        function showFieldError(field, message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message text-red-500 text-xs mt-1';
+            errorDiv.textContent = message;
+            field.parentNode.appendChild(errorDiv);
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function isValidURL(url) {
+            try {
+                new URL(url);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        // Enhanced drag and drop visual feedback
+        function enhanceDragDropFeedback() {
+            const dropAreas = document.querySelectorAll('[id$="UploadArea"]');
+
+            dropAreas.forEach(area => {
+                area.addEventListener('dragenter', function(e) {
+                    e.preventDefault();
+                    this.style.transform = 'scale(1.02)';
+                    this.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+                });
+
+                area.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    if (!this.contains(e.relatedTarget)) {
+                        this.style.transform = 'scale(1)';
+                        this.style.boxShadow = 'none';
+                    }
+                });
+
+                area.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.style.transform = 'scale(1)';
+                    this.style.boxShadow = 'none';
+                });
+            });
+        }
+
+        // Call enhanced drag drop on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            enhanceDragDropFeedback();
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + N for new agenda
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                openAddModal();
+            }
+
+            // Escape key to close modals
+            if (e.key === 'Escape') {
+                const addModal = document.getElementById('addModal');
+                const editModal = document.getElementById('editModal');
+
+                if (!addModal.classList.contains('hidden')) {
+                    closeAddModal();
+                }
+                if (!editModal.classList.contains('hidden')) {
+                    closeEditModal();
+                }
+            }
+        });
+
+        // Auto-save draft functionality (optional)
+        let autoSaveTimer;
+        function startAutoSave(editorInstance, storageKey) {
+            autoSaveTimer = setInterval(() => {
+                if (editorInstance) {
+                    const content = editorInstance.getData();
+                    if (content.length > 10) { // Only save if content is substantial
+                        localStorage.setItem(storageKey, content);
+                        console.log(`Auto-saved draft to ${storageKey}`);
+                    }
+                }
+            }, 30000); // Auto-save every 30 seconds
+        }
+
+        function loadDraft(editorInstance, storageKey) {
+            const draft = localStorage.getItem(storageKey);
+            if (draft && confirm('Ditemukan draft tersimpan. Muat draft?')) {
+                editorInstance.setData(draft);
+                localStorage.removeItem(storageKey);
+            }
+        }
+
+        // Initialize auto-save when editors are ready
+        function initializeAutoSave() {
+            if (addDescriptionEditor) {
+                setTimeout(() => loadDraft(addDescriptionEditor, 'agenda_add_draft'), 1000);
+                startAutoSave(addDescriptionEditor, 'agenda_add_draft');
+            }
+
+            if (editDescriptionEditor) {
+                setTimeout(() => loadDraft(editDescriptionEditor, 'agenda_edit_draft'), 1000);
+                startAutoSave(editDescriptionEditor, 'agenda_edit_draft');
+            }
+        }
+
+        // Call auto-save initialization
+        setTimeout(initializeAutoSave, 2000);
     </script>
 @endsection

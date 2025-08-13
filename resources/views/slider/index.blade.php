@@ -97,7 +97,7 @@
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Subtitle</label>
-                        <textarea name="subtitle" id="editorAddSubtitle" rows="3" class="w-full border rounded p-2 text-sm">{{ old('subtitle') }}</textarea>
+                        <textarea name="subtitle" id="editorAddSubtitle" rows="4" class="w-full border rounded p-2 text-sm">{{ old('subtitle') }}</textarea>
                         @error('subtitle')
                             <span class="text-red-500 text-xs">{{ $message }}</span>
                         @enderror
@@ -184,7 +184,7 @@
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Subtitle</label>
-                        <textarea name="subtitle" id="editorEditSubtitle" rows="3" class="w-full border rounded p-2 text-sm"></textarea>
+                        <textarea name="subtitle" id="editorEditSubtitle" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Button Text</label>
@@ -234,8 +234,14 @@
         </div>
     </div>
 
+    <!-- jQuery dan Select2 CSS/JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- CKEditor -->
     <script src="https://cdn.ckeditor.com/ckeditor5/41.3.1/classic/ckeditor.js"></script>
 
@@ -245,14 +251,86 @@
         let editSubtitleEditor = null;
 
         // Initialize CKEditor when the page loads
-        document.addEventListener('DOMContentLoaded', function() {
+        $(document).ready(function() {
+            initializeCKEditor();
             setupDragAndDrop();
+        });
+
+        function initializeCKEditor() {
+            // Enhanced configuration for CKEditor with more features including numbering
+            const editorConfig = {
+                toolbar: {
+                    items: [
+                        'heading', '|',
+                        'bold', 'italic', 'underline', 'strikethrough', '|',
+                        'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                        'numberedList', 'bulletedList', '|',
+                        'outdent', 'indent', '|',
+                        'alignment', '|',
+                        'link', 'insertTable', '|',
+                        'blockQuote', 'insertImage', '|',
+                        'undo', 'redo', '|',
+                        'sourceEditing'
+                    ]
+                },
+                language: 'id',
+                list: {
+                    properties: {
+                        styles: true,
+                        startIndex: true,
+                        reversed: true
+                    }
+                },
+                heading: {
+                    options: [
+                        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                        { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+                    ]
+                },
+                fontSize: {
+                    options: [
+                        9,
+                        11,
+                        13,
+                        'default',
+                        17,
+                        19,
+                        21
+                    ]
+                },
+                alignment: {
+                    options: [ 'left', 'right', 'center', 'justify' ]
+                },
+                image: {
+                    toolbar: [
+                        'imageTextAlternative',
+                        'imageStyle:inline',
+                        'imageStyle:block',
+                        'imageStyle:side'
+                    ]
+                },
+                table: {
+                    contentToolbar: [
+                        'tableColumn',
+                        'tableRow',
+                        'mergeTableCells'
+                    ]
+                }
+            };
 
             // Initialize CKEditor for Add Modal
             ClassicEditor
-                .create(document.querySelector('#editorAddSubtitle'))
+                .create(document.querySelector('#editorAddSubtitle'), editorConfig)
                 .then(editor => {
                     addSubtitleEditor = editor;
+                    console.log('Add Subtitle Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorAddSubtitle').value = editor.getData();
+                    });
                 })
                 .catch(error => {
                     console.error('Error initializing add subtitle editor:', error);
@@ -260,57 +338,127 @@
 
             // Initialize CKEditor for Edit Modal
             ClassicEditor
-                .create(document.querySelector('#editorEditSubtitle'))
+                .create(document.querySelector('#editorEditSubtitle'), editorConfig)
                 .then(editor => {
                     editSubtitleEditor = editor;
+                    console.log('Edit Subtitle Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorEditSubtitle').value = editor.getData();
+                    });
                 })
                 .catch(error => {
                     console.error('Error initializing edit subtitle editor:', error);
                 });
-        });
+        }
 
         // Setup drag and drop functionality
         function setupDragAndDrop() {
-            setupDragAndDropForElement('addUploadArea', 'addImageInput');
-            setupDragAndDropForElement('editUploadArea', 'editImageInput');
+            ['addUploadArea', 'editUploadArea'].forEach(id => {
+                const element = document.getElementById(id);
+                const inputId = id === 'addUploadArea' ? 'addImageInput' : 'editImageInput';
+                const previewId = id === 'addUploadArea' ? 'addPreview' : 'editPreview';
+
+                element.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    element.classList.add('border-blue-400', 'bg-blue-50');
+                });
+
+                element.addEventListener('dragleave', () => {
+                    element.classList.remove('border-blue-400', 'bg-blue-50');
+                });
+
+                element.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    element.classList.remove('border-blue-400', 'bg-blue-50');
+
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        document.getElementById(inputId).files = files;
+                        previewImage(document.getElementById(inputId), previewId);
+                    }
+                });
+            });
         }
 
-        function setupDragAndDropForElement(uploadAreaId, inputId) {
-            const uploadArea = document.getElementById(uploadAreaId);
-            const fileInput = document.getElementById(inputId);
+        // Show flash messages using SweetAlert
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(session('success'))
+                showSuccessAlert("{{ session('success') }}");
+            @endif
 
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, preventDefaults, false);
-            });
+            @if(session('error'))
+                showErrorAlert("{{ session('error') }}");
+            @endif
 
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
+            @if($errors->any()))
+                let errorMessages = '';
+                @foreach($errors->all() as $error)
+                    errorMessages += '{{ $error }}\n';
+                @endforeach
+                showErrorAlert(errorMessages);
+            @endif
 
-            ['dragenter', 'dragover'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, () => {
-                    uploadArea.classList.add('border-blue-400', 'bg-blue-50');
-                }, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                uploadArea.addEventListener(eventName, () => {
-                    uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
-                }, false);
-            });
-
-            uploadArea.addEventListener('drop', (e) => {
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    fileInput.files = files;
-                    const previewId = uploadAreaId === 'addUploadArea' ? 'addPreview' : 'editPreview';
-                    previewImage(fileInput, previewId);
+            // Close modal when clicking outside
+            document.getElementById('addModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeAddModal();
                 }
-            }, false);
+            });
+
+            document.getElementById('editModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeEditModal();
+                }
+            });
+
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeAddModal();
+                    closeEditModal();
+                }
+            });
+        });
+
+        // SweetAlert helper functions
+        function showSuccessAlert(message) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                html: message,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                toast: true,
+                position: 'top-end'
+            });
         }
 
-        // Search function
+        function showErrorAlert(message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                html: message.replace(/\n/g, '<br>'),
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#d33'
+            });
+        }
+
+        function showLoadingAlert(message = 'Memproses...') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+
+        // Search functionality
         function searchTable() {
             let input = document.getElementById("searchInput").value.toLowerCase();
             let rows = document.querySelectorAll("#sliderTable tr");
@@ -322,7 +470,7 @@
             });
         }
 
-        // Debounce for better performance
+        // Debounce search input
         let searchTimer;
         document.getElementById('searchInput').addEventListener('input', function() {
             clearTimeout(searchTimer);
@@ -338,27 +486,37 @@
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal'
+                cancelButtonText: 'Batal',
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
+                    showLoadingAlert('Menghapus slider...');
+
                     fetch(`/slider/${id}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                                'Content-Type': 'application/json',
-                            },
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.message) {
-                                Swal.fire('Terhapus!', data.message, 'success').then(() => {
-                                    location.reload();
-                                });
-                            }
-                        })
-                        .catch(error => {
-                            Swal.fire('Error!', 'Terjadi kesalahan saat menghapus slider.', 'error');
-                        });
+                        method: 'DELETE',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                        },
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                        throw new Error('Network response was not ok');
+                    })
+                    .then(data => {
+                        if (data.message) {
+                            showSuccessAlert(data.message);
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showErrorAlert('Terjadi kesalahan saat menghapus slider.');
+                    });
                 }
             });
         }
@@ -369,7 +527,7 @@
             document.getElementById('addPreview').innerHTML = '';
             document.getElementById('addUploadArea').style.display = 'block';
 
-            // Reset CKEditor content
+            // Reset editor content
             if (addSubtitleEditor) {
                 addSubtitleEditor.setData('');
             }
@@ -396,7 +554,7 @@
             document.getElementById('editUrlLink').value = slider.url_link || '';
             document.getElementById('editDisplayOnHome').checked = slider.display_on_home || false;
 
-            // Set CKEditor content
+            // Set editor content
             if (editSubtitleEditor) {
                 editSubtitleEditor.setData(slider.subtitle || '');
             }
@@ -414,6 +572,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
+                        <input type="hidden" name="current_image" value="${slider.image}">
                     </div>
                 `;
                 editUploadArea.style.display = 'none';
@@ -452,14 +611,14 @@
 
                 // Validate file type
                 if (!file.type.match('image.*')) {
-                    Swal.fire('Error', 'File harus berupa gambar (PNG/JPG/JPEG/WEBP)', 'error');
+                    showErrorAlert('File harus berupa gambar (PNG/JPG/JPEG/WEBP)!');
                     input.value = '';
                     return;
                 }
 
                 // Validate file size (2MB)
                 if (file.size > 2 * 1024 * 1024) {
-                    Swal.fire('Error', 'Ukuran file maksimal 2MB', 'error');
+                    showErrorAlert('Ukuran file maksimal 2MB!');
                     input.value = '';
                     return;
                 }
@@ -484,41 +643,164 @@
             }
         }
 
-        // REMOVED: Modal close on outside click and escape key functionality
-        // Modal can now only be closed using Cancel button
+        // Form submission handlers to ensure CKEditor data is synced
+        document.querySelector('#addSliderForm').addEventListener('submit', function(e) {
+            if (addSubtitleEditor) {
+                // Sync CKEditor content to textarea before submission
+                document.querySelector('#editorAddSubtitle').value = addSubtitleEditor.getData();
+            }
+        });
 
-        // Show success/error messages
-        @if (session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                text: '{{ session('success') }}',
-                showConfirmButton: false,
-                timer: 2000
+        document.querySelector('#editForm').addEventListener('submit', function(e) {
+            if (editSubtitleEditor) {
+                // Sync CKEditor content to textarea before submission
+                document.querySelector('#editorEditSubtitle').value = editSubtitleEditor.getData();
+            }
+        });
+
+        // Enhanced Form Submissions with SweetAlert
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle Add Form
+            document.getElementById('addSliderForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+
+                submitBtn.textContent = 'Menyimpan...';
+                submitBtn.disabled = true;
+
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => {
+                    const contentType = response.headers.get('content-type');
+
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json().then(data => ({
+                            success: response.ok,
+                            data: data,
+                            status: response.status
+                        }));
+                    } else {
+                        if (response.ok || response.redirected) {
+                            return {
+                                success: true,
+                                data: { message: 'Slider berhasil ditambahkan!' },
+                                status: response.status
+                            };
+                        } else {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                    }
+                })
+                .then(result => {
+                    if (result.success) {
+                        closeAddModal();
+                        showSuccessAlert(result.data.message || 'Slider berhasil ditambahkan!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        if (result.data.errors) {
+                            let errorMessage = '';
+                            Object.values(result.data.errors).forEach(errorArray => {
+                                errorArray.forEach(error => {
+                                    errorMessage += error + '<br>';
+                                });
+                            });
+                            showErrorAlert(errorMessage);
+                        } else {
+                            showErrorAlert(result.data.message || 'Gagal menambahkan slider!');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
+                })
+                .finally(() => {
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                });
             });
-        @endif
 
-        @if (session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                text: '{{ session('error') }}'
+            // Handle Edit Form
+            document.getElementById('editForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const originalText = submitBtn.textContent;
+
+                submitBtn.textContent = 'Menyimpan...';
+                submitBtn.disabled = true;
+
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => {
+                    const contentType = response.headers.get('content-type');
+
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json().then(data => ({
+                            success: response.ok,
+                            data: data,
+                            status: response.status
+                        }));
+                    } else {
+                        if (response.ok || response.redirected) {
+                            return {
+                                success: true,
+                                data: { message: 'Slider berhasil diperbarui!' },
+                                status: response.status
+                            };
+                        } else {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                    }
+                })
+                .then(result => {
+                    if (result.success) {
+                        closeEditModal();
+                        showSuccessAlert(result.data.message || 'Slider berhasil diperbarui!');
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        if (result.data.errors) {
+                            let errorMessage = '';
+                            Object.values(result.data.errors).forEach(errorArray => {
+                                errorArray.forEach(error => {
+                                    errorMessage += error + '<br>';
+                                });
+                            });
+                            showErrorAlert(errorMessage);
+                        } else {
+                            showErrorAlert(result.data.message || 'Gagal memperbarui slider!');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat memperbarui data. Silakan coba lagi.');
+                })
+                .finally(() => {
+                    submitBtn.textContent = originalText;
+                    submitBtn.disabled = false;
+                });
             });
-        @endif
-
-        // Show validation errors
-        @if ($errors->any())
-            let errorMessages = '';
-            @foreach ($errors->all() as $error)
-                errorMessages += '{{ $error }}\n';
-            @endforeach
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Validation Error',
-                text: errorMessages,
-                confirmButtonColor: '#d33'
-            });
-        @endif
+        });
     </script>
 @endsection

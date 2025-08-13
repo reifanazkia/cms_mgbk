@@ -234,11 +234,80 @@
 
         // Initialize CKEditor when the page loads
         document.addEventListener('DOMContentLoaded', function() {
+            // Enhanced configuration for CKEditor with more features including numbering
+            const editorConfig = {
+                toolbar: {
+                    items: [
+                        'heading', '|',
+                        'bold', 'italic', 'underline', 'strikethrough', '|',
+                        'fontSize', 'fontColor', 'fontBackgroundColor', '|',
+                        'numberedList', 'bulletedList', '|',
+                        'outdent', 'indent', '|',
+                        'alignment', '|',
+                        'link', 'insertTable', '|',
+                        'blockQuote', 'insertImage', '|',
+                        'undo', 'redo', '|',
+                        'sourceEditing'
+                    ]
+                },
+                language: 'id',
+                list: {
+                    properties: {
+                        styles: true,
+                        startIndex: true,
+                        reversed: true
+                    }
+                },
+                heading: {
+                    options: [
+                        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+                        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
+                        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
+                        { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+                    ]
+                },
+                fontSize: {
+                    options: [
+                        9,
+                        11,
+                        13,
+                        'default',
+                        17,
+                        19,
+                        21
+                    ]
+                },
+                alignment: {
+                    options: [ 'left', 'right', 'center', 'justify' ]
+                },
+                image: {
+                    toolbar: [
+                        'imageTextAlternative',
+                        'imageStyle:inline',
+                        'imageStyle:block',
+                        'imageStyle:side'
+                    ]
+                },
+                table: {
+                    contentToolbar: [
+                        'tableColumn',
+                        'tableRow',
+                        'mergeTableCells'
+                    ]
+                }
+            };
+
             // Initialize CKEditor for Add Modal - Ringkasan
             ClassicEditor
-                .create(document.querySelector('#editorAddRingkasan'))
+                .create(document.querySelector('#editorAddRingkasan'), editorConfig)
                 .then(editor => {
                     addRingkasanEditor = editor;
+                    console.log('Add Ringkasan Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorAddRingkasan').value = editor.getData();
+                    });
                 })
                 .catch(error => {
                     console.error('Error initializing add ringkasan editor:', error);
@@ -246,9 +315,15 @@
 
             // Initialize CKEditor for Edit Modal - Ringkasan
             ClassicEditor
-                .create(document.querySelector('#editorEditRingkasan'))
+                .create(document.querySelector('#editorEditRingkasan'), editorConfig)
                 .then(editor => {
                     editRingkasanEditor = editor;
+                    console.log('Edit Ringkasan Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorEditRingkasan').value = editor.getData();
+                    });
                 })
                 .catch(error => {
                     console.error('Error initializing edit ringkasan editor:', error);
@@ -256,9 +331,15 @@
 
             // Initialize CKEditor for Add Modal - First Deskripsi
             ClassicEditor
-                .create(document.querySelector('#editorAddDeskripsi0'))
+                .create(document.querySelector('#editorAddDeskripsi0'), editorConfig)
                 .then(editor => {
                     addDeskripsiEditors[0] = editor;
+                    console.log('Add Deskripsi Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorAddDeskripsi0').value = editor.getData();
+                    });
                 })
                 .catch(error => {
                     console.error('Error initializing add deskripsi editor:', error);
@@ -266,9 +347,15 @@
 
             // Initialize CKEditor for Edit Modal - First Deskripsi
             ClassicEditor
-                .create(document.querySelector('#editorEditDeskripsi0'))
+                .create(document.querySelector('#editorEditDeskripsi0'), editorConfig)
                 .then(editor => {
                     editDeskripsiEditors[0] = editor;
+                    console.log('Edit Deskripsi Editor initialized successfully');
+
+                    // Sync with form on change
+                    editor.model.document.on('change:data', () => {
+                        document.querySelector('#editorEditDeskripsi0').value = editor.getData();
+                    });
                 })
                 .catch(error => {
                     console.error('Error initializing edit deskripsi editor:', error);
@@ -291,7 +378,60 @@
                     handleFormSubmission('edit');
                 });
             }
+
+            // Show flash messages using SweetAlert
+            @if(session('success'))
+                showSuccessAlert("{{ session('success') }}");
+            @endif
+
+            @if(session('error'))
+                showErrorAlert("{{ session('error') }}");
+            @endif
+
+            @if($errors->any()))
+                let errorMessages = '';
+                @foreach($errors->all() as $error)
+                    errorMessages += '{{ $error }}\n';
+                @endforeach
+                showErrorAlert(errorMessages);
+            @endif
         });
+
+        // SweetAlert helper functions
+        function showSuccessAlert(message) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil!',
+                html: message,
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        function showErrorAlert(message) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                html: message.replace(/\n/g, '<br>'),
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#d33'
+            });
+        }
+
+        function showLoadingAlert(message = 'Memproses...') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
 
         // Handle form submission with CKEditor data
         function handleFormSubmission(type) {
@@ -301,14 +441,7 @@
             const deskripsiEditors = isAdd ? addDeskripsiEditors : editDeskripsiEditors;
 
             // Show loading
-            Swal.fire({
-                title: 'Menyimpan...',
-                text: 'Mohon tunggu sebentar',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            showLoadingAlert('Menyimpan data...');
 
             try {
                 // Create FormData
@@ -349,34 +482,64 @@
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
                     }
                 })
                 .then(response => {
-                    if (response.ok) {
-                        Swal.fire({
-                            title: 'Berhasil!',
-                            text: isAdd ? 'Data career berhasil ditambahkan' : 'Data career berhasil diupdate',
-                            icon: 'success',
-                            timer: 1500,
-                            showConfirmButton: false
-                        }).then(() => {
-                            window.location.reload();
-                        });
+                    const contentType = response.headers.get('content-type');
+
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json().then(data => ({
+                            success: response.ok,
+                            data: data,
+                            status: response.status
+                        }));
                     } else {
-                        return response.text().then(text => {
-                            throw new Error(`Server error: ${response.status} - ${text}`);
-                        });
+                        if (response.ok || response.redirected) {
+                            return {
+                                success: true,
+                                data: { message: isAdd ? 'Career berhasil ditambahkan!' : 'Career berhasil diperbarui!' },
+                                status: response.status
+                            };
+                        } else {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                    }
+                })
+                .then(result => {
+                    if (result.success) {
+                        if (isAdd) {
+                            closeAddModal();
+                        } else {
+                            closeEditModal();
+                        }
+                        showSuccessAlert(result.data.message || (isAdd ? 'Career berhasil ditambahkan!' : 'Career berhasil diperbarui!'));
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        if (result.data.errors) {
+                            let errorMessage = '';
+                            Object.values(result.data.errors).forEach(errorArray => {
+                                errorArray.forEach(error => {
+                                    errorMessage += error + '<br>';
+                                });
+                            });
+                            showErrorAlert(errorMessage);
+                        } else {
+                            showErrorAlert(result.data.message || 'Gagal menyimpan data career!');
+                        }
                     }
                 })
                 .catch(error => {
-                    console.error('Submit error:', error);
-                    Swal.fire('Error', 'Gagal menyimpan data. Silakan coba lagi.', 'error');
+                    console.error('Error:', error);
+                    showErrorAlert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
                 });
 
             } catch (error) {
                 console.error('Form preparation error:', error);
-                Swal.fire('Error', 'Terjadi kesalahan saat memproses data', 'error');
+                showErrorAlert('Terjadi kesalahan saat memproses data');
             }
         }
 
@@ -432,7 +595,7 @@
             const careerData = window.careers?.find(career => career.id == id);
 
             if (!careerData) {
-                Swal.fire('Error', 'Data career tidak ditemukan', 'error');
+                showErrorAlert('Data career tidak ditemukan');
                 return;
             }
 
@@ -460,9 +623,9 @@
                 if (careerData.klasifikasi && Array.isArray(careerData.klasifikasi) && careerData.klasifikasi.length > 0) {
                     careerData.klasifikasi.forEach((k, index) => {
                         klasifikasiHTML += `<div class="flex gap-2">
-                    <input type="text" name="klasifikasi[]" value="${escapeHtml(k || '')}" required class="w-full border rounded p-2 text-sm" />
-                    ${index > 0 ? '<button type="button" onclick="removeField(this)" class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm">×</button>' : ''}
-                </div>`;
+                            <input type="text" name="klasifikasi[]" value="${escapeHtml(k || '')}" required class="w-full border rounded p-2 text-sm" />
+                            ${index > 0 ? '<button type="button" onclick="removeField(this)" class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm">×</button>' : ''}
+                        </div>`;
                     });
                 } else {
                     klasifikasiHTML =
@@ -489,9 +652,9 @@
                 if (careerData.deskripsi && Array.isArray(careerData.deskripsi) && careerData.deskripsi.length > 0) {
                     careerData.deskripsi.forEach((d, index) => {
                         deskripsiHTML += `<div class="flex gap-2">
-                    <textarea name="deskripsi[]" id="editorEditDeskripsi${index}" rows="4" class="w-full border rounded p-2 text-sm">${escapeHtml(d || '')}</textarea>
-                    ${index > 0 ? '<button type="button" onclick="removeDeskripsiField(this, ' + index + ')" class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm self-start">×</button>' : ''}
-                </div>`;
+                            <textarea name="deskripsi[]" id="editorEditDeskripsi${index}" rows="4" class="w-full border rounded p-2 text-sm">${escapeHtml(d || '')}</textarea>
+                            ${index > 0 ? '<button type="button" onclick="removeDeskripsiField(this, ' + index + ')" class="px-3 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm self-start">×</button>' : ''}
+                        </div>`;
                     });
                 } else {
                     deskripsiHTML =
