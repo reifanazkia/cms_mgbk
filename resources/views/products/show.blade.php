@@ -114,8 +114,6 @@
                             <div class="text-gray-700 leading-relaxed">{!! $product->description !!}</div>
                         </div>
                     </div>
-                    <button onclick="window.location.href='{{ route('checkout.step1', ['product' => $product->id]) }}'"
-                        class="bg-purple-600 text-white py-2 px-6 rounded-lg">Beli Sekarang</button>
                 </div>
             </div>
         </div>
