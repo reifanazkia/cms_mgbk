@@ -13,6 +13,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OurblogController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\CategoryKegiatanController;
+use App\Http\Controllers\CategoryStoreController;
 use App\Http\Controllers\CategoryTentangkami;
 use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\ContactController;
@@ -25,6 +26,7 @@ use App\Models\CategoryKegiatan;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\PaymentWebhookController;
 use App\Http\Controllers\TentangkamiController;
+use App\Models\CategoryStore;
 use App\Models\TentangkamiCategory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -200,4 +202,11 @@ Route::prefix('category-tentangkami')->name('category-tentangkami.')->group(func
     Route::post('/store', [CategoryTentangkami::class, 'store'])->name('store');
     Route::put('/update/{id}', [CategoryTentangkami::class, 'update'])->name('update');
     Route::delete('/{id}', [CategoryTentangkami::class, 'destroy'])->name('destroy');
+});
+
+Route::prefix('category-store')->name('category-store.')->group(function () {
+    Route::get('/', [CategoryStoreController::class, 'index'])->name('index');
+    Route::post('/store', [CategoryStoreController::class, 'store'])->name('store');
+    Route::put('/update/{id}', [CategoryStoreController::class, 'update'])->name('update');
+    Route::delete('/{id}', [CategoryStoreController::class, 'destroy'])->name('destroy');
 });

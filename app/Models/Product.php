@@ -14,7 +14,9 @@ class Product extends Model
         'disusun',
         'jumlah_modul',
         'bahasa',
-        'discount'
+        'discount',
+        'category_store_id',
+        'notlp'
     ];
 
     protected $appends = ['final_price', 'formatted_price', 'formatted_final_price', 'name'];
@@ -61,8 +63,28 @@ class Product extends Model
         return 0;
     }
 
-    public function orders()
+    public function getFormattedPhoneAttribute()
     {
-        return $this->hasMany(Order::class);
+        if (!$this->no_tlp) {
+            return null;
+        }
+
+        // Format nomor telepon Indonesia
+        $phone = preg_replace('/[^0-9]/', '', $this->no_tlp);
+
+        if (substr($phone, 0, 1) === '0') {
+            $phone = '+62' . substr($phone, 1);
+        } elseif (substr($phone, 0, 2) !== '62') {
+            $phone = '+62' . $phone;
+        } else {
+            $phone = '+' . $phone;
+        }
+
+        return $phone;
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(CategoryStore::class, 'category_store_id');
     }
 }

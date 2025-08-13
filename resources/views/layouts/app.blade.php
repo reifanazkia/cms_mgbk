@@ -321,6 +321,9 @@
                             <a href="{{ route('category-tentangkami.index') }}"
                                 class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori
                                 Tentangkami</a>
+                            <a href="{{ route('category-store.index') }}"
+                                class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Kategori
+                                Store</a>
                         </div>
                     </div>
                 </div>

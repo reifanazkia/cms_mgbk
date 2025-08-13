@@ -3,7 +3,7 @@
 @section('content')
     <div class="p-4">
         <div class="flex justify-between items-center mb-4">
-            <h1 class="text-xl font-semibold">Kategori Kegiatan</h1>
+            <h1 class="text-xl font-semibold">Kategori Store</h1>
             <div class="flex gap-2">
                 <button onclick="openAddModal()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                     Tambah Kategori
@@ -27,41 +27,36 @@
                     </tr>
                 </thead>
                 <tbody id="categoryTable">
-                    @foreach ($kegiatan as $index => $category)
+                    @forelse ($store as $index => $category)
                         <tr>
                             <td class="px-4 py-2 border">{{ $index + 1 }}</td>
-                            <td class="px-4 py-2 border">{{ $category->name }}</td>
+                            <td class="px-4 py-2 border">{{ $category->nama }}</td>
                             <td class="px-4 py-2 border space-x-1">
                                 <button onclick="openEditModal(this)" data-item='@json($category)'
                                     class="text-blue-600 hover:text-blue-800 px-2 py-1 text-xs border border-blue-300 rounded hover:bg-blue-50">Edit</button>
-                                <button onclick="confirmDelete({{ $category->id }}, '{{ $category->name }}')"
+                                <button onclick="confirmDelete({{ $category->id }}, '{{ $category->nama }}')"
                                     class="text-red-600 hover:text-red-800 px-2 py-1 text-xs border border-red-300 rounded hover:bg-red-50">Hapus</button>
                             </td>
                         </tr>
-                    @endforeach
-                    @if ($kegiatan->isEmpty())
+                    @empty
                         <tr>
                             <td colspan="3" class="text-center p-4 text-gray-500">Belum ada data kategori.</td>
                         </tr>
-                    @endif
+                    @endforelse
                 </tbody>
             </table>
         </div>
     </div>
 
-    <script>
-        window.kegiatan = @json($kegiatan);
-    </script>
-
     <!-- Modal Tambah -->
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-md p-6 space-y-4 overflow-y-auto max-h-screen">
-            <h2 class="text-lg font-semibold">Tambah Kategori</h2>
-            <form id="addForm" action="{{ route('category-kegiatan.store') }}" method="POST">
+            <h2 class="text-lg font-semibold">Tambah Kategori Store</h2>
+            <form id="addForm" action="{{ route('category-store.store') }}" method="POST">
                 @csrf
                 <div class="mb-4">
                     <label class="block mb-1 font-medium">Nama Kategori <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" required
+                    <input type="text" name="nama" required
                            class="w-full border rounded p-2 text-sm"
                            placeholder="Masukkan nama kategori" />
                 </div>
@@ -78,14 +73,14 @@
     <!-- Modal Edit -->
     <div id="editModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-md p-6 space-y-4 overflow-y-auto max-h-screen">
-            <h2 class="text-lg font-semibold">Edit Kategori</h2>
+            <h2 class="text-lg font-semibold">Edit Kategori Store</h2>
             <form id="editForm" method="POST">
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="id" id="editId">
                 <div class="mb-4">
                     <label class="block mb-1 font-medium">Nama Kategori <span class="text-red-500">*</span></label>
-                    <input type="text" name="name" id="editName" required
+                    <input type="text" name="nama" id="editNama" required
                            class="w-full border rounded p-2 text-sm"
                            placeholder="Masukkan nama kategori" />
                 </div>
@@ -103,9 +98,11 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        // Initialize when page loads
+        // Data untuk JavaScript
+        window.kegiatan = @json($kegiatan);
+
         document.addEventListener('DOMContentLoaded', function() {
-            // Close modal when clicking outside
+            // Modal click outside to close
             document.getElementById('addModal').addEventListener('click', function(e) {
                 if (e.target === this) closeAddModal();
             });
@@ -114,7 +111,7 @@
                 if (e.target === this) closeEditModal();
             });
 
-            // Close modal with Escape key
+            // Escape key to close modal
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     closeAddModal();
@@ -122,7 +119,7 @@
                 }
             });
 
-            // Handle form submissions
+            // Form submit handlers
             document.getElementById('addForm').addEventListener('submit', function(e) {
                 const submitBtn = document.getElementById('addSubmitBtn');
                 submitBtn.disabled = true;
@@ -136,13 +133,12 @@
             });
         });
 
-        // Search functionality
+        // Search function
         function searchTable() {
             let input = document.getElementById("searchInput").value.toLowerCase();
             let rows = document.querySelectorAll("#categoryTable tr");
 
             rows.forEach(row => {
-                // Skip if it's the "no data" row
                 if (row.cells.length < 3) return;
 
                 let name = row.cells[1]?.textContent?.toLowerCase() || '';
@@ -151,17 +147,18 @@
             });
         }
 
-        // Debounce search input
+        // Debounced search
         let searchTimer;
         document.getElementById('searchInput').addEventListener('input', function() {
             clearTimeout(searchTimer);
             searchTimer = setTimeout(searchTable, 300);
         });
 
+        // Modal functions
         function openAddModal() {
-            // Reset form
             document.getElementById('addForm').reset();
-            // Show modal
+            document.getElementById('addSubmitBtn').disabled = false;
+            document.getElementById('addSubmitBtn').innerHTML = 'Simpan';
             document.getElementById('addModal').classList.remove('hidden');
         }
 
@@ -171,13 +168,19 @@
 
         function openEditModal(button) {
             const data = JSON.parse(button.getAttribute('data-item'));
-
             const form = document.getElementById('editForm');
-            form.action = `/category-kegiatan/update/${data.id}`;
-            document.getElementById('editId').value = data.id || '';
-            document.getElementById('editName').value = data.name || '';
 
-            // Show modal
+            // Set form action for update
+            form.action = "{{ route('category-store.update', ':id') }}".replace(':id', data.id);
+
+            // Fill form fields
+            document.getElementById('editId').value = data.id || '';
+            document.getElementById('editNama').value = data.nama || '';
+
+            // Reset button state
+            document.getElementById('editSubmitBtn').disabled = false;
+            document.getElementById('editSubmitBtn').innerHTML = 'Simpan';
+
             document.getElementById('editModal').classList.remove('hidden');
         }
 
@@ -185,6 +188,7 @@
             document.getElementById('editModal').classList.add('hidden');
         }
 
+        // Delete confirmation
         function confirmDelete(id, name) {
             Swal.fire({
                 title: `Hapus kategori "${name}"?`,
@@ -198,45 +202,44 @@
                 reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Show loading
-                    Swal.fire({
-                        title: 'Menghapus...',
-                        text: 'Sedang memproses permintaan Anda',
-                        allowOutsideClick: false,
-                        allowEscapeKey: false,
-                        showConfirmButton: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
-                    // Create form untuk delete
                     const form = document.createElement('form');
                     form.method = 'POST';
-                    form.action = `/category-kegiatan/${id}`;
+                    form.action = "{{ route('category-store.destroy', ':id') }}".replace(':id', id);
+
+                    // Get CSRF token
+                    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content ||
+                                    document.querySelector('input[name="_token"]')?.value;
+
+                    if (!csrfToken) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'CSRF token tidak ditemukan!'
+                        });
+                        return;
+                    }
 
                     // Add CSRF token
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_token';
-                    csrfInput.value = '{{ csrf_token() }}';
-                    form.appendChild(csrfInput);
+                    const csrf = document.createElement('input');
+                    csrf.type = 'hidden';
+                    csrf.name = '_token';
+                    csrf.value = csrfToken;
+                    form.appendChild(csrf);
 
-                    // Add method DELETE
-                    const methodInput = document.createElement('input');
-                    methodInput.type = 'hidden';
-                    methodInput.name = '_method';
-                    methodInput.value = 'DELETE';
-                    form.appendChild(methodInput);
+                    // Add method override
+                    const method = document.createElement('input');
+                    method.type = 'hidden';
+                    method.name = '_method';
+                    method.value = 'DELETE';
+                    form.appendChild(method);
 
-                    // Append to body and submit
                     document.body.appendChild(form);
                     form.submit();
                 }
             });
         }
 
-        // Session alerts
+        // Success message
         @if (session('success'))
             Swal.fire({
                 icon: 'success',
@@ -250,11 +253,22 @@
             });
         @endif
 
+        // Error message
         @if (session('error'))
             Swal.fire({
                 icon: 'error',
                 title: 'Gagal',
                 text: '{{ session('error') }}',
+                confirmButtonColor: '#3b82f6'
+            });
+        @endif
+
+        // Validation errors
+        @if ($errors->any())
+            Swal.fire({
+                icon: 'error',
+                title: 'Validasi Gagal',
+                html: '@foreach ($errors->all() as $error)<div>{{ $error }}</div>@endforeach',
                 confirmButtonColor: '#3b82f6'
             });
         @endif

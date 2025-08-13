@@ -10,9 +10,9 @@ use App\Http\Controllers\Api\ApiCareerController;
 use App\Http\Controllers\Api\ApiHowsController;
 use App\Http\Controllers\Api\ApiKegiatanController;
 use App\Http\Controllers\Api\ApiOurblogController;
-use App\Http\Controllers\Api\ApiProductsController;
 use App\Http\Controllers\Api\ApiSliderController;
 use App\Http\Controllers\Api\ApiTentangkamiController;
+use App\Http\Controllers\ApiProductsController;
 use App\Http\Controllers\CareerController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\HowsController;
@@ -48,8 +48,9 @@ Route::get('/career/{id}', [ApiCareerController::class, 'show']);
 Route::get('/ourblog', [ApiOurblogController::class, 'index']);
 Route::get('/ourblog/{id}', [OurblogController::class, 'show']);
 
-Route::get('/product', [ApiProductsController::class, 'index']);
-Route::get('/product/{id}', [ApiProductsController::class, 'show']);
+Route::get('/products', [ApiProductsController::class, 'index']);
+Route::get('/products/{id}', [ApiProductsController::class, 'show']);
+Route::get('/products/category/{categoryId}', [ApiProductsController::class, 'getByCategory']);
 
 Route::get('/slider', [ApiSliderController::class, 'index']);
 Route::get('/slider/home', [ApiSliderController::class, 'showHomeSlider']);

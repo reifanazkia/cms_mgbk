@@ -29,9 +29,11 @@
                         <th class="px-4 py-2 border"><input type="checkbox" id="selectAll"></th>
                         <th class="px-4 py-2 border">Gambar</th>
                         <th class="px-4 py-2 border">Judul</th>
+                        <th class="px-4 py-2 border">Kategori</th>
                         <th class="px-4 py-2 border">Harga</th>
                         <th class="px-4 py-2 border">Diskon</th>
                         <th class="px-4 py-2 border">Disusun</th>
+                        <th class="px-4 py-2 border">No. Telepon</th>
                         <th class="px-4 py-2 border">Aksi</th>
                     </tr>
                 </thead>
@@ -49,9 +51,14 @@
                                 @endif
                             </td>
                             <td class="px-4 py-2 border">{{ $item->title }}</td>
+                            <td class="px-4 py-2 border">
+                                <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
+                                    {{ $item->category ? $item->category->name : 'Tidak ada kategori' }}
+                                </span>
+                            </td>
                             <td class="px-4 py-2 border">Rp{{ number_format($item->price, 0, ',', '.') }}</td>
                             <td class="px-4 py-2 border">
-                                @if($item->discount)
+                                @if ($item->discount)
                                     <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                                         {{ $item->discount }}%
                                     </span>
@@ -60,6 +67,15 @@
                                 @endif
                             </td>
                             <td class="px-4 py-2 border">{{ $item->disusun }}</td>
+                            <td class="px-4 py-2 border">
+                                @if ($item->notlp)
+                                    <a href="tel:{{ $item->notlp }}" class="text-blue-600 hover:text-blue-800">
+                                        {{ $item->notlp }}
+                                    </a>
+                                @else
+                                    <span class="text-gray-400">Tidak ada</span>
+                                @endif
+                            </td>
                             <td class="px-4 py-2 border space-x-1">
                                 <a href="{{ route('products.show', $item->id) }}"
                                     class="text-green-600 hover:text-green-800 px-2 py-1 text-xs border border-green-300 rounded hover:bg-green-50 inline-block">Detail</a>
@@ -89,6 +105,15 @@
                         <input type="text" name="title" required class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div>
+                        <label class="block mb-1 font-medium">Kategori <span class="text-red-500">*</span></label>
+                        <select name="category_store_id" required class="w-full border rounded p-2 text-sm">
+                            <option value="">-- Pilih Kategori --</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
                         <label class="block mb-1 font-medium">Harga <span class="text-red-500">*</span></label>
                         <input type="number" name="price" required class="w-full border rounded p-2 text-sm" />
                     </div>
@@ -102,11 +127,18 @@
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Jumlah Modul <span class="text-red-500">*</span></label>
-                        <input type="number" name="jumlah_modul" required min="1" class="w-full border rounded p-2 text-sm" />
+                        <input type="number" name="jumlah_modul" required min="1"
+                            class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Bahasa <span class="text-red-500">*</span></label>
                         <input type="text" name="bahasa" required class="w-full border rounded p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Nomor Telepon</label>
+                        <input type="text" name="notlp" placeholder="08123456789"
+                            class="w-full border rounded p-2 text-sm" pattern="[0-9]*" inputmode="numeric"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="15" />
                     </div>
                     <div class="col-span-3">
                         <label class="block mb-1 font-medium">Deskripsi</label>
@@ -118,15 +150,18 @@
                 <div class="mt-4">
                     <label class="block mb-2 font-medium">Upload Gambar <span class="text-red-500">*</span></label>
                     <div class="relative">
-                        <input type="file" name="image" id="addImageInput" onchange="previewImage(this, 'addPreview')"
-                            accept="image/png,image/jpg,image/jpeg" class="hidden" required />
+                        <input type="file" name="image" id="addImageInput"
+                            onchange="previewImage(this, 'addPreview')" accept="image/png,image/jpg,image/jpeg"
+                            class="hidden" required />
 
                         <div id="addUploadArea" onclick="document.getElementById('addImageInput').click()"
                             class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
                             <div class="flex flex-col items-center">
-                                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                    </path>
                                 </svg>
                                 <p class="text-gray-600 mb-2">Klik untuk upload atau drag and drop</p>
                                 <p class="text-sm text-gray-500">PNG, JPG, atau GIF (MAX. 2MB) - Wajib</p>
@@ -161,25 +196,45 @@
                             class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div>
+                        <label class="block mb-1 font-medium">Kategori <span class="text-red-500">*</span></label>
+                        <select name="category_store_id" id="editCategory" required
+                            class="w-full border rounded p-2 text-sm">
+                            <option value="">-- Pilih Kategori --</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
                         <label class="block mb-1 font-medium">Harga <span class="text-red-500">*</span></label>
                         <input type="number" name="price" id="editPrice" required
                             class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Diskon (%)</label>
-                        <input type="number" name="discount" id="editDiscount" class="w-full border rounded p-2 text-sm" />
+                        <input type="number" name="discount" id="editDiscount"
+                            class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Disusun Oleh <span class="text-red-500">*</span></label>
-                        <input type="text" name="disusun" id="editDisusun" required class="w-full border rounded p-2 text-sm" />
+                        <input type="text" name="disusun" id="editDisusun" required
+                            class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Jumlah Modul <span class="text-red-500">*</span></label>
-                        <input type="number" name="jumlah_modul" id="editJumlahModul" required min="1" class="w-full border rounded p-2 text-sm" />
+                        <input type="number" name="jumlah_modul" id="editJumlahModul" required min="1"
+                            class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Bahasa <span class="text-red-500">*</span></label>
-                        <input type="text" name="bahasa" id="editBahasa" required class="w-full border rounded p-2 text-sm" />
+                        <input type="text" name="bahasa" id="editBahasa" required
+                            class="w-full border rounded p-2 text-sm" />
+                    </div>
+                    <div>
+                        <label class="block mb-1 font-medium">Nomor Telepon</label>
+                        <input type="text" name="notlp" id="editNotlp" placeholder="08123456789"
+                            class="w-full border rounded p-2 text-sm" pattern="[0-9]*" inputmode="numeric"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="15" />
                     </div>
                     <div class="col-span-3">
                         <label class="block mb-1 font-medium">Deskripsi</label>
@@ -191,15 +246,18 @@
                 <div class="mt-4">
                     <label class="block mb-2 font-medium">Ganti Gambar</label>
                     <div class="relative">
-                        <input type="file" name="image" id="editImageInput" onchange="previewImage(this, 'editPreview')"
-                            accept="image/png,image/jpg,image/jpeg" class="hidden" />
+                        <input type="file" name="image" id="editImageInput"
+                            onchange="previewImage(this, 'editPreview')" accept="image/png,image/jpg,image/jpeg"
+                            class="hidden" />
 
                         <div id="editUploadArea" onclick="document.getElementById('editImageInput').click()"
                             class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors duration-200">
                             <div class="flex flex-col items-center">
-                                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-12 h-12 text-gray-400 mb-4" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                    </path>
                                 </svg>
                                 <p class="text-gray-600 mb-2">Klik untuk upload atau drag and drop</p>
                                 <p class="text-sm text-gray-500">PNG, JPG, atau GIF (MAX. 2MB) - Opsional</p>
@@ -240,6 +298,9 @@
         $(document).ready(function() {
             initializeCKEditor();
             setupDragAndDrop();
+
+            // Debug: Log categories data
+            console.log('Categories loaded:', @json($categories));
         });
 
         function initializeCKEditor() {
@@ -268,11 +329,29 @@
                     }
                 },
                 heading: {
-                    options: [
-                        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-                        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
-                        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
-                        { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
+                    options: [{
+                            model: 'paragraph',
+                            title: 'Paragraph',
+                            class: 'ck-heading_paragraph'
+                        },
+                        {
+                            model: 'heading1',
+                            view: 'h1',
+                            title: 'Heading 1',
+                            class: 'ck-heading_heading1'
+                        },
+                        {
+                            model: 'heading2',
+                            view: 'h2',
+                            title: 'Heading 2',
+                            class: 'ck-heading_heading2'
+                        },
+                        {
+                            model: 'heading3',
+                            view: 'h3',
+                            title: 'Heading 3',
+                            class: 'ck-heading_heading3'
+                        }
                     ]
                 },
                 fontSize: {
@@ -287,7 +366,7 @@
                     ]
                 },
                 alignment: {
-                    options: [ 'left', 'right', 'center', 'justify' ]
+                    options: ['left', 'right', 'center', 'justify']
                 },
                 image: {
                     toolbar: [
@@ -370,17 +449,17 @@
 
         // Show flash messages using SweetAlert
         document.addEventListener('DOMContentLoaded', function() {
-            @if(session('success'))
+            @if (session('success'))
                 showSuccessAlert("{{ session('success') }}");
             @endif
 
-            @if(session('error'))
+            @if (session('error'))
                 showErrorAlert("{{ session('error') }}");
             @endif
 
-            @if($errors->any()))
+            @if ($errors->any())
                 let errorMessages = '';
-                @foreach($errors->all() as $error)
+                @foreach ($errors->all() as $error)
                     errorMessages += '{{ $error }}\n';
                 @endforeach
                 showErrorAlert(errorMessages);
@@ -545,6 +624,10 @@
             const data = JSON.parse(button.getAttribute('data-product'));
             const form = document.getElementById('editForm');
 
+            // Debug: Log the product data and categories
+            console.log('Product data:', data);
+            console.log('Category ID from product:', data.category_store_id);
+
             form.action = `/products/${data.id}`;
             document.getElementById('editTitle').value = data.title || '';
             document.getElementById('editPrice').value = data.price || '';
@@ -552,6 +635,13 @@
             document.getElementById('editDisusun').value = data.disusun || '';
             document.getElementById('editJumlahModul').value = data.jumlah_modul || '';
             document.getElementById('editBahasa').value = data.bahasa || '';
+            document.getElementById('editNotlp').value = data.notlp || '';
+
+            // Set category dengan debugging
+            const categorySelect = document.getElementById('editCategory');
+            console.log('Available options:', categorySelect.options);
+            categorySelect.value = data.category_store_id || '';
+            console.log('Set category value to:', categorySelect.value);
 
             // Set editor content
             if (editDescriptionEditor) {
@@ -567,7 +657,7 @@
                     <div class="relative inline-block">
                         <img src="/storage/${data.image}" class="h-32 w-32 rounded-lg shadow-md object-cover border" alt="Current image">
                         <button type="button" onclick="removeCurrentImage('edit')" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
@@ -668,7 +758,8 @@
 
                 // Validate required fields
                 if (!formData.get('title') || !formData.get('price') || !formData.get('disusun') ||
-                    !formData.get('jumlah_modul') || !formData.get('bahasa') || !formData.get('image')) {
+                    !formData.get('jumlah_modul') || !formData.get('bahasa') || !formData.get('image') ||
+                    !formData.get('category_store_id')) {
                     showErrorAlert('Harap isi semua field yang wajib diisi!');
                     return;
                 }
@@ -677,65 +768,103 @@
                 submitBtn.disabled = true;
 
                 fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
-                    }
-                })
-                .then(response => {
-                    const contentType = response.headers.get('content-type');
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content') || '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => {
+                        const contentType = response.headers.get('content-type');
 
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json().then(data => ({
-                            success: response.ok,
-                            data: data,
-                            status: response.status
-                        }));
-                    } else {
-                        if (response.ok || response.redirected) {
-                            return {
-                                success: true,
-                                data: { message: 'Produk berhasil ditambahkan!' },
+                        if (contentType && contentType.includes('application/json')) {
+                            return response.json().then(data => ({
+                                success: response.ok,
+                                data: data,
                                 status: response.status
-                            };
+                            }));
                         } else {
-                            throw new Error(`HTTP error! status: ${response.status}`);
+                            if (response.ok || response.redirected) {
+                                return {
+                                    success: true,
+                                    data: {
+                                        message: 'Produk berhasil ditambahkan!'
+                                    },
+                                    status: response.status
+                                };
+                            } else {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
                         }
-                    }
-                })
-                .then(result => {
-                    if (result.success) {
-                        closeAddModal();
-                        showSuccessAlert(result.data.message || 'Produk berhasil ditambahkan!');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        if (result.data.errors) {
-                            let errorMessage = '';
-                            Object.values(result.data.errors).forEach(errorArray => {
-                                errorArray.forEach(error => {
-                                    errorMessage += error + '<br>';
+                    })
+                    .then(result => {
+                        if (result.success) {
+                            closeAddModal();
+                            showSuccessAlert(result.data.message || 'Produk berhasil ditambahkan!');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            if (result.data.errors) {
+                                let errorMessage = '';
+                                Object.values(result.data.errors).forEach(errorArray => {
+                                    errorArray.forEach(error => {
+                                        errorMessage += error + '<br>';
+                                    });
                                 });
-                            });
-                            showErrorAlert(errorMessage);
-                        } else {
-                            showErrorAlert(result.data.message || 'Gagal menambahkan produk!');
+                                showErrorAlert(errorMessage);
+                            } else {
+                                showErrorAlert(result.data.message || 'Gagal menambahkan produk!');
+                            }
                         }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showErrorAlert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
-                })
-                .finally(() => {
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
-                });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showErrorAlert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
+                    })
+                    .finally(() => {
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    });
             });
 
+
+            // Fungsi untuk memvalidasi input nomor telepon
+            function validatePhoneNumber(input) {
+                let value = input.value.replace(/[^0-9]/g, '');
+                if (value.length > 15) {
+                    value = value.substring(0, 15);
+                }
+                input.value = value;
+            }
+
+            // Event listeners untuk kedua input
+            document.addEventListener('DOMContentLoaded', function() {
+                const addPhoneInput = document.querySelector('input[name="notlp"]:not(#editNotlp)');
+                const editPhoneInput = document.getElementById('editNotlp');
+
+                [addPhoneInput, editPhoneInput].forEach(input => {
+                    if (input) {
+                        input.addEventListener('input', function() {
+                            validatePhoneNumber(this);
+                        });
+
+                        input.addEventListener('paste', function(e) {
+                            e.preventDefault();
+                            let paste = (e.clipboardData || window.clipboardData).getData(
+                                'text');
+                            let numbersOnly = paste.replace(/[^0-9]/g, '');
+                            if (numbersOnly.length > 15) {
+                                numbersOnly = numbersOnly.substring(0, 15);
+                            }
+                            this.value = numbersOnly;
+                        });
+                    }
+                });
+            });
+            
             // Handle Edit Form
             document.getElementById('editForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -746,7 +875,8 @@
 
                 // Validate required fields
                 if (!formData.get('title') || !formData.get('price') || !formData.get('disusun') ||
-                    !formData.get('jumlah_modul') || !formData.get('bahasa')) {
+                    !formData.get('jumlah_modul') || !formData.get('bahasa') || !formData.get(
+                        'category_store_id')) {
                     showErrorAlert('Harap isi semua field yang wajib diisi!');
                     return;
                 }
@@ -755,63 +885,66 @@
                 submitBtn.disabled = true;
 
                 fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
-                    }
-                })
-                .then(response => {
-                    const contentType = response.headers.get('content-type');
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')
+                                ?.getAttribute('content') || '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => {
+                        const contentType = response.headers.get('content-type');
 
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json().then(data => ({
-                            success: response.ok,
-                            data: data,
-                            status: response.status
-                        }));
-                    } else {
-                        if (response.ok || response.redirected) {
-                            return {
-                                success: true,
-                                data: { message: 'Produk berhasil diperbarui!' },
+                        if (contentType && contentType.includes('application/json')) {
+                            return response.json().then(data => ({
+                                success: response.ok,
+                                data: data,
                                 status: response.status
-                            };
+                            }));
                         } else {
-                            throw new Error(`HTTP error! status: ${response.status}`);
+                            if (response.ok || response.redirected) {
+                                return {
+                                    success: true,
+                                    data: {
+                                        message: 'Produk berhasil diperbarui!'
+                                    },
+                                    status: response.status
+                                };
+                            } else {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
                         }
-                    }
-                })
-                .then(result => {
-                    if (result.success) {
-                        closeEditModal();
-                        showSuccessAlert(result.data.message || 'Produk berhasil diperbarui!');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        if (result.data.errors) {
-                            let errorMessage = '';
-                            Object.values(result.data.errors).forEach(errorArray => {
-                                errorArray.forEach(error => {
-                                    errorMessage += error + '<br>';
+                    })
+                    .then(result => {
+                        if (result.success) {
+                            closeEditModal();
+                            showSuccessAlert(result.data.message || 'Produk berhasil diperbarui!');
+                            setTimeout(() => {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            if (result.data.errors) {
+                                let errorMessage = '';
+                                Object.values(result.data.errors).forEach(errorArray => {
+                                    errorArray.forEach(error => {
+                                        errorMessage += error + '<br>';
+                                    });
                                 });
-                            });
-                            showErrorAlert(errorMessage);
-                        } else {
-                            showErrorAlert(result.data.message || 'Gagal memperbarui produk!');
+                                showErrorAlert(errorMessage);
+                            } else {
+                                showErrorAlert(result.data.message || 'Gagal memperbarui produk!');
+                            }
                         }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showErrorAlert('Terjadi kesalahan saat memperbarui data. Silakan coba lagi.');
-                })
-                .finally(() => {
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
-                });
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showErrorAlert('Terjadi kesalahan saat memperbarui data. Silakan coba lagi.');
+                    })
+                    .finally(() => {
+                        submitBtn.textContent = originalText;
+                        submitBtn.disabled = false;
+                    });
             });
         });
     </script>

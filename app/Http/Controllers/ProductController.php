@@ -2,24 +2,48 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Models\Product;
+use App\Models\CategoryStore;
 use Illuminate\Support\Facades\Storage;
-
 
 class ProductController extends Controller
 {
-
     public function index()
     {
-        $products = Product::latest()->get();
-        return view('products.index', compact('products'));
+        $products = Product::with('category')->get();
+        $categories = CategoryStore::all();
+        return view('products.index', compact('products', 'categories'));
     }
 
     public function show($id)
     {
-        $product = Product::findOrFail($id);
+        $product = Product::with('category')->findOrFail($id);
         return view('products.show', compact('product'));
+    }
+
+    // Method baru untuk menampilkan produk berdasarkan kategori
+    public function getByCategory($categoryId)
+    {
+        $category = CategoryStore::findOrFail($categoryId);
+        $products = Product::where('category_store_id', $categoryId)
+                          ->with('category')
+                          ->get();
+
+        return view('products.by-category', compact('products', 'category'));
+    }
+
+    // Method API untuk mendapatkan produk berdasarkan kategori (JSON response)
+    public function getProductsByCategory($categoryId)
+    {
+        $products = Product::where('category_store_id', $categoryId)
+                          ->with('category')
+                          ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $products
+        ]);
     }
 
     public function store(Request $request)
@@ -33,6 +57,8 @@ class ProductController extends Controller
             'disusun' => 'required|string|max:255',
             'jumlah_modul' => 'required|integer|min:1',
             'bahasa' => 'required|string|max:100',
+            'notlp' => 'nullable|string|max:20', // Field nomor telepon
+            'category_store_id' => 'required|exists:store_categories,id', // Validasi kategori
         ]);
 
         if ($request->hasFile('image')) {
@@ -56,6 +82,8 @@ class ProductController extends Controller
             'disusun' => 'required|string|max:255',
             'jumlah_modul' => 'required|integer|min:1',
             'bahasa' => 'required|string|max:100',
+            'notlp' => 'nullable|string|max:20', // Field nomor telepon
+            'category_store_id' => 'required|exists:store_categories,id', // Validasi kategori
         ]);
 
         if ($request->hasFile('image')) {
@@ -110,4 +138,5 @@ class ProductController extends Controller
             return back()->with('error', 'Gagal menghapus produk: ' . $e->getMessage());
         }
     }
+
 }

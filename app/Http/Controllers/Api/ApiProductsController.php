@@ -1,38 +1,68 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Product;
 use Illuminate\Http\Request;
+use App\Models\Product;
+use App\Models\CategoryStore;
 
 class ApiProductsController extends Controller
 {
+    /**
+     * Ambil semua produk beserta kategori
+     */
     public function index()
     {
-        $product = Product::latest()->get();
+        $products = Product::with('category')->get();
+
         return response()->json([
-            'status' => true,
-            'message' => 'List of Products',
-            'data' => $product
+            'success' => true,
+            'data' => $products
         ]);
     }
 
+    /**
+     * Ambil detail produk berdasarkan ID
+     */
     public function show($id)
     {
-        $product = Product::find($id);
+        $product = Product::with('category')->find($id);
 
         if (!$product) {
             return response()->json([
-                'status' => false,
-                'message' => 'Product not found'
+                'success' => false,
+                'message' => 'Produk tidak ditemukan'
             ], 404);
         }
 
         return response()->json([
-            'status' => true,
-            'message' => 'Product detail',
+            'success' => true,
             'data' => $product
+        ]);
+    }
+
+    /**
+     * Ambil produk berdasarkan kategori
+     */
+    public function getByCategory($categoryId)
+    {
+        $category = CategoryStore::find($categoryId);
+
+        if (!$category) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kategori tidak ditemukan'
+            ], 404);
+        }
+
+        $products = Product::where('category_store_id', $categoryId)
+            ->with('category')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'category' => $category,
+            'data' => $products
         ]);
     }
 }
