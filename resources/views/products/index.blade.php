@@ -138,7 +138,8 @@
                         <label class="block mb-1 font-medium">Nomor Telepon</label>
                         <input type="text" name="notlp" placeholder="08123456789"
                             class="w-full border rounded p-2 text-sm" pattern="[0-9]*" inputmode="numeric"
-                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="15" />
+                            oninput="validatePhoneInput(this)" maxlength="20" />
+                        <small class="text-gray-500">Maksimal 20 digit angka</small>
                     </div>
                     <div class="col-span-3">
                         <label class="block mb-1 font-medium">Deskripsi</label>
@@ -234,7 +235,8 @@
                         <label class="block mb-1 font-medium">Nomor Telepon</label>
                         <input type="text" name="notlp" id="editNotlp" placeholder="08123456789"
                             class="w-full border rounded p-2 text-sm" pattern="[0-9]*" inputmode="numeric"
-                            oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="15" />
+                            oninput="validatePhoneInput(this)" maxlength="20" />
+                        <small class="text-gray-500">Maksimal 20 digit angka</small>
                     </div>
                     <div class="col-span-3">
                         <label class="block mb-1 font-medium">Deskripsi</label>
@@ -447,6 +449,20 @@
             });
         }
 
+        // Enhanced phone number validation function
+        function validatePhoneInput(input) {
+            // Remove all non-numeric characters
+            let value = input.value.replace(/[^0-9]/g, '');
+
+            // Limit to 20 characters as per database schema
+            if (value.length > 20) {
+                value = value.substring(0, 20);
+            }
+
+            // Update input value
+            input.value = value;
+        }
+
         // Show flash messages using SweetAlert
         document.addEventListener('DOMContentLoaded', function() {
             @if (session('success'))
@@ -483,6 +499,34 @@
                 if (e.key === 'Escape') {
                     closeAddModal();
                     closeEditModal();
+                }
+            });
+
+            // Setup phone input validation for both modals
+            const addPhoneInput = document.querySelector('#addModal input[name="notlp"]');
+            const editPhoneInput = document.querySelector('#editNotlp');
+
+            [addPhoneInput, editPhoneInput].forEach(input => {
+                if (input) {
+                    // Handle paste events
+                    input.addEventListener('paste', function(e) {
+                        e.preventDefault();
+                        let paste = (e.clipboardData || window.clipboardData).getData('text');
+                        let numbersOnly = paste.replace(/[^0-9]/g, '');
+                        if (numbersOnly.length > 20) {
+                            numbersOnly = numbersOnly.substring(0, 20);
+                        }
+                        this.value = numbersOnly;
+                    });
+
+                    // Handle keypress to prevent non-numeric input
+                    input.addEventListener('keypress', function(e) {
+                        // Allow only numeric keys, backspace, delete, tab, escape, enter
+                        if (!/[0-9]/.test(e.key) &&
+                            !['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+                            e.preventDefault();
+                        }
+                    });
                 }
             });
         });
@@ -764,6 +808,13 @@
                     return;
                 }
 
+                // Validate phone number length if provided
+                const phoneNumber = formData.get('notlp');
+                if (phoneNumber && phoneNumber.length > 20) {
+                    showErrorAlert('Nomor telepon maksimal 20 digit!');
+                    return;
+                }
+
                 submitBtn.textContent = 'Menyimpan...';
                 submitBtn.disabled = true;
 
@@ -830,41 +881,6 @@
                     });
             });
 
-
-            // Fungsi untuk memvalidasi input nomor telepon
-            function validatePhoneNumber(input) {
-                let value = input.value.replace(/[^0-9]/g, '');
-                if (value.length > 15) {
-                    value = value.substring(0, 15);
-                }
-                input.value = value;
-            }
-
-            // Event listeners untuk kedua input
-            document.addEventListener('DOMContentLoaded', function() {
-                const addPhoneInput = document.querySelector('input[name="notlp"]:not(#editNotlp)');
-                const editPhoneInput = document.getElementById('editNotlp');
-
-                [addPhoneInput, editPhoneInput].forEach(input => {
-                    if (input) {
-                        input.addEventListener('input', function() {
-                            validatePhoneNumber(this);
-                        });
-
-                        input.addEventListener('paste', function(e) {
-                            e.preventDefault();
-                            let paste = (e.clipboardData || window.clipboardData).getData(
-                                'text');
-                            let numbersOnly = paste.replace(/[^0-9]/g, '');
-                            if (numbersOnly.length > 15) {
-                                numbersOnly = numbersOnly.substring(0, 15);
-                            }
-                            this.value = numbersOnly;
-                        });
-                    }
-                });
-            });
-            
             // Handle Edit Form
             document.getElementById('editForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -878,6 +894,13 @@
                     !formData.get('jumlah_modul') || !formData.get('bahasa') || !formData.get(
                         'category_store_id')) {
                     showErrorAlert('Harap isi semua field yang wajib diisi!');
+                    return;
+                }
+
+                // Validate phone number length if provided
+                const phoneNumber = formData.get('notlp');
+                if (phoneNumber && phoneNumber.length > 20) {
+                    showErrorAlert('Nomor telepon maksimal 20 digit!');
                     return;
                 }
 

@@ -138,5 +138,4 @@ class ProductController extends Controller
             return back()->with('error', 'Gagal menghapus produk: ' . $e->getMessage());
         }
     }
-
 }
