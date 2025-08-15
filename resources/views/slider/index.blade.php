@@ -49,7 +49,7 @@
                             <td class="px-4 py-2 border space-x-1">
                                 <button onclick="openEditModal(this)" data-slider='@json($item)'
                                     class="text-blue-600 hover:text-blue-800 px-2 py-1 text-xs border border-blue-300 rounded hover:bg-blue-50">Edit</button>
-                                <button onclick="deleteSlider({{ $item->id }})"
+                                <button onclick="confirmDelete({{ $item->id }})"
                                     class="text-red-600 hover:text-red-800 px-2 py-1 text-xs border border-red-300 rounded hover:bg-red-50">Hapus</button>
                             </td>
                         </tr>
@@ -65,11 +65,17 @@
         </div>
     </div>
 
+    <!-- Form tersembunyi untuk delete -->
+    <form id="deleteForm" method="POST" style="display: none;">
+        @csrf
+        @method('DELETE')
+    </form>
+
     <!-- Modal Tambah -->
     <div id="addModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div class="bg-white rounded-lg w-full max-w-2xl p-6 space-y-4 overflow-y-auto max-h-screen">
             <h2 class="text-lg font-semibold">Tambah Slider</h2>
-            <form action="{{ route('slider.store') }}" method="POST" enctype="multipart/form-data" id="addSliderForm">
+            <form action="{{ route('slider.store') }}" method="POST" enctype="multipart/form-data" id="addForm">
                 @csrf
                 <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
@@ -83,40 +89,25 @@
                         <label class="block mb-1 font-medium">Judul</label>
                         <input type="text" name="title" class="w-full border rounded p-2 text-sm"
                             value="{{ old('title') }}" />
-                        @error('title')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                        @enderror
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">YouTube ID</label>
                         <input type="text" name="youtube_id" class="w-full border rounded p-2 text-sm"
                             placeholder="Contoh: dQw4w9WgXcQ" value="{{ old('youtube_id') }}" />
-                        @error('youtube_id')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                        @enderror
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Subtitle</label>
                         <textarea name="subtitle" id="editorAddSubtitle" rows="4" class="w-full border rounded p-2 text-sm">{{ old('subtitle') }}</textarea>
-                        @error('subtitle')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                        @enderror
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Button Text</label>
                         <input type="text" name="button_text" class="w-full border rounded p-2 text-sm"
                             placeholder="Contoh: Selengkapnya" value="{{ old('button_text') }}" />
-                        @error('button_text')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                        @enderror
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">URL Link</label>
                         <input type="url" name="url_link" class="w-full border rounded p-2 text-sm"
                             placeholder="https://example.com" value="{{ old('url_link') }}" />
-                        @error('url_link')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                        @enderror
                     </div>
                 </div>
 
@@ -142,16 +133,13 @@
                         </div>
 
                         <div id="addPreview" class="mt-4"></div>
-                        @error('image')
-                            <span class="text-red-500 text-xs">{{ $message }}</span>
-                        @enderror
                     </div>
                 </div>
 
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeAddModal()"
                         class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
-                    <button type="submit"
+                    <button type="submit" id="addSubmitBtn"
                         class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
                 </div>
             </form>
@@ -227,21 +215,19 @@
                 <div class="flex justify-end space-x-2 mt-6">
                     <button type="button" onclick="closeEditModal()"
                         class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Batal</button>
-                    <button type="submit"
+                    <button type="submit" id="editSubmitBtn"
                         class="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600">Simpan</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- jQuery dan Select2 CSS/JS -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+        window.sliders = @json($sliders);
+    </script>
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
     <!-- CKEditor -->
     <script src="https://cdn.ckeditor.com/ckeditor5/41.3.1/classic/ckeditor.js"></script>
 
@@ -250,14 +236,22 @@
         let addSubtitleEditor = null;
         let editSubtitleEditor = null;
 
-        // Initialize CKEditor when the page loads
-        $(document).ready(function() {
-            initializeCKEditor();
-            setupDragAndDrop();
-        });
+        // SweetAlert helper functions - SAMA DENGAN HOWS
+        function showAlert(type, message) {
+            Swal.fire({
+                icon: type,
+                title: type === 'success' ? 'Berhasil!' : 'Error!',
+                text: message,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
 
-        function initializeCKEditor() {
-            // Enhanced configuration for CKEditor with more features including numbering
+        // Initialize CKEditor when the page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setupDragAndDrop();
+
+            // Enhanced configuration for CKEditor with more features
             const editorConfig = {
                 toolbar: {
                     items: [
@@ -351,183 +345,127 @@
                 .catch(error => {
                     console.error('Error initializing edit subtitle editor:', error);
                 });
-        }
 
-        // Setup drag and drop functionality
-        function setupDragAndDrop() {
-            ['addUploadArea', 'editUploadArea'].forEach(id => {
-                const element = document.getElementById(id);
-                const inputId = id === 'addUploadArea' ? 'addImageInput' : 'editImageInput';
-                const previewId = id === 'addUploadArea' ? 'addPreview' : 'editPreview';
-
-                element.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    element.classList.add('border-blue-400', 'bg-blue-50');
-                });
-
-                element.addEventListener('dragleave', () => {
-                    element.classList.remove('border-blue-400', 'bg-blue-50');
-                });
-
-                element.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    element.classList.remove('border-blue-400', 'bg-blue-50');
-
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        document.getElementById(inputId).files = files;
-                        previewImage(document.getElementById(inputId), previewId);
-                    }
-                });
-            });
-        }
-
-        // Show flash messages using SweetAlert
-        document.addEventListener('DOMContentLoaded', function() {
+            // Handle flash messages - SAMA DENGAN HOWS
             @if(session('success'))
-                showSuccessAlert("{{ session('success') }}");
+                showAlert('success', "{{ session('success') }}");
             @endif
 
             @if(session('error'))
-                showErrorAlert("{{ session('error') }}");
+                showAlert('error', "{{ session('error') }}");
             @endif
 
-            @if($errors->any()))
-                let errorMessages = '';
+            @if($errors->any())
+                let errorMessages = [];
                 @foreach($errors->all() as $error)
-                    errorMessages += '{{ $error }}\n';
+                    errorMessages.push('{{ $error }}');
                 @endforeach
-                showErrorAlert(errorMessages);
+                showAlert('error', errorMessages.join('\n'));
             @endif
-
-            // Close modal when clicking outside
-            document.getElementById('addModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeAddModal();
-                }
-            });
-
-            document.getElementById('editModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeEditModal();
-                }
-            });
-
-            // Close modal with Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeAddModal();
-                    closeEditModal();
-                }
-            });
         });
 
-        // SweetAlert helper functions
-        function showSuccessAlert(message) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                html: message,
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                toast: true,
-                position: 'top-end'
-            });
-        }
+        // Handle form submission with CKEditor data
+        function handleFormSubmission(type) {
+            const isAdd = type === 'add';
+            const form = document.getElementById(isAdd ? 'addForm' : 'editForm');
+            const subtitleEditor = isAdd ? addSubtitleEditor : editSubtitleEditor;
+            const submitBtn = document.getElementById(isAdd ? 'addSubmitBtn' : 'editSubmitBtn');
 
-        function showErrorAlert(message) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                html: message.replace(/\n/g, '<br>'),
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#d33'
-            });
-        }
+            // Show loading
+            showLoadingAlert('Menyimpan data...');
 
-        function showLoadingAlert(message = 'Memproses...') {
-            Swal.fire({
-                title: message,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
+            try {
+                // Create FormData
+                const formData = new FormData(form);
+
+                // Add CKEditor data for subtitle
+                if (subtitleEditor) {
+                    formData.set('subtitle', subtitleEditor.getData());
                 }
-            });
-        }
 
-        // Search functionality
-        function searchTable() {
-            let input = document.getElementById("searchInput").value.toLowerCase();
-            let rows = document.querySelectorAll("#sliderTable tr");
+                // Disable submit button
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = 'Menyimpan...';
 
-            rows.forEach(row => {
-                let title = row.cells[1]?.textContent?.toLowerCase() || '';
-                const shouldShow = title.includes(input);
-                row.style.display = shouldShow ? "" : "none";
-            });
-        }
+                // Submit using fetch
+                fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => {
+                    const contentType = response.headers.get('content-type');
 
-        // Debounce search input
-        let searchTimer;
-        document.getElementById('searchInput').addEventListener('input', function() {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(searchTable, 300);
-        });
-
-        function deleteSlider(id) {
-            Swal.fire({
-                title: 'Hapus slider ini?',
-                text: "Data yang dihapus tidak bisa dikembalikan!",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal',
-                reverseButtons: true
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    showLoadingAlert('Menghapus slider...');
-
-                    fetch(`/slider/${id}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                            'Content-Type': 'application/json',
-                        },
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            return response.json();
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json().then(data => ({
+                            success: response.ok,
+                            data: data,
+                            status: response.status
+                        }));
+                    } else {
+                        if (response.ok || response.redirected) {
+                            return {
+                                success: true,
+                                data: { message: isAdd ? 'Slider berhasil ditambahkan!' : 'Slider berhasil diperbarui!' },
+                                status: response.status
+                            };
+                        } else {
+                            throw new Error(`HTTP error! status: ${response.status}`);
                         }
-                        throw new Error('Network response was not ok');
-                    })
-                    .then(data => {
-                        if (data.message) {
-                            showSuccessAlert(data.message);
-                            setTimeout(() => {
-                                location.reload();
-                            }, 1500);
+                    }
+                })
+                .then(result => {
+                    if (result.success) {
+                        if (isAdd) {
+                            closeAddModal();
+                        } else {
+                            closeEditModal();
                         }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        showErrorAlert('Terjadi kesalahan saat menghapus slider.');
-                    });
-                }
-            });
+                        showAlert('success', result.data.message || (isAdd ? 'Slider berhasil ditambahkan!' : 'Slider berhasil diperbarui!'));
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        if (result.data.errors) {
+                            let errorMessage = '';
+                            Object.values(result.data.errors).forEach(errorArray => {
+                                errorArray.forEach(error => {
+                                    errorMessage += error + '<br>';
+                                });
+                            });
+                            showAlert('error', errorMessage);
+                        } else {
+                            showAlert('error', result.data.message || 'Gagal menyimpan data slider!');
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showAlert('error', 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
+                })
+                .finally(() => {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = 'Simpan';
+                });
+
+            } catch (error) {
+                console.error('Form preparation error:', error);
+                showAlert('error', 'Terjadi kesalahan saat memproses data');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Simpan';
+            }
         }
 
         function openAddModal() {
             // Reset form
-            document.getElementById('addSliderForm').reset();
+            document.getElementById('addForm').reset();
             document.getElementById('addPreview').innerHTML = '';
             document.getElementById('addUploadArea').style.display = 'block';
 
-            // Reset editor content
+            // Reset CKEditor content
             if (addSubtitleEditor) {
                 addSubtitleEditor.setData('');
             }
@@ -542,9 +480,9 @@
 
         function openEditModal(button) {
             const slider = JSON.parse(button.getAttribute('data-slider'));
-            const form = document.getElementById('editForm');
 
             // Set form action
+            const form = document.getElementById('editForm');
             form.action = `/slider/${slider.id}`;
 
             // Populate form fields
@@ -554,7 +492,7 @@
             document.getElementById('editUrlLink').value = slider.url_link || '';
             document.getElementById('editDisplayOnHome').checked = slider.display_on_home || false;
 
-            // Set editor content
+            // Set subtitle content in CKEditor
             if (editSubtitleEditor) {
                 editSubtitleEditor.setData(slider.subtitle || '');
             }
@@ -572,7 +510,6 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
-                        <input type="hidden" name="current_image" value="${slider.image}">
                     </div>
                 `;
                 editUploadArea.style.display = 'none';
@@ -599,6 +536,78 @@
             document.getElementById(inputId).value = '';
         }
 
+        function setupDragAndDrop() {
+            setupDragAndDropForElement('addUploadArea', 'addImageInput');
+            setupDragAndDropForElement('editUploadArea', 'editImageInput');
+        }
+
+        function setupDragAndDropForElement(uploadAreaId, inputId) {
+            const uploadArea = document.getElementById(uploadAreaId);
+            const fileInput = document.getElementById(inputId);
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.add('border-blue-400', 'bg-blue-50');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.remove('border-blue-400', 'bg-blue-50');
+                }, false);
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    const previewId = uploadAreaId === 'addUploadArea' ? 'addPreview' : 'editPreview';
+                    previewImage(fileInput, previewId);
+                }
+            }, false);
+        }
+
+        function searchTable() {
+            let input = document.getElementById("searchInput").value.toLowerCase();
+            let rows = document.querySelectorAll("#sliderTable tr");
+
+            rows.forEach(row => {
+                let title = row.cells[1]?.textContent?.toLowerCase() || '';
+
+                const shouldShow = title.includes(input);
+                row.style.display = shouldShow ? "" : "none";
+            });
+        }
+
+        // Fungsi confirmDelete - SAMA DENGAN HOWS
+        function confirmDelete(id) {
+            Swal.fire({
+                title: 'Hapus Slider?',
+                text: "Data yang dihapus tidak bisa dikembalikan!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Ya, hapus!',
+                cancelButtonText: 'Batal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const form = document.getElementById('deleteForm');
+                    form.action = `/slider/${id}`;
+                    form.submit();
+                }
+            });
+        }
+
         function previewImage(input, previewId) {
             const preview = document.getElementById(previewId);
             const uploadAreaId = previewId === 'addPreview' ? 'addUploadArea' : 'editUploadArea';
@@ -611,14 +620,14 @@
 
                 // Validate file type
                 if (!file.type.match('image.*')) {
-                    showErrorAlert('File harus berupa gambar (PNG/JPG/JPEG/WEBP)!');
+                    showAlert('error', 'File harus berupa gambar (PNG/JPG/JPEG/WEBP)');
                     input.value = '';
                     return;
                 }
 
                 // Validate file size (2MB)
                 if (file.size > 2 * 1024 * 1024) {
-                    showErrorAlert('Ukuran file maksimal 2MB!');
+                    showAlert('error', 'Ukuran file maksimal 2MB');
                     input.value = '';
                     return;
                 }
@@ -643,163 +652,31 @@
             }
         }
 
-        // Form submission handlers to ensure CKEditor data is synced
-        document.querySelector('#addSliderForm').addEventListener('submit', function(e) {
-            if (addSubtitleEditor) {
-                // Sync CKEditor content to textarea before submission
-                document.querySelector('#editorAddSubtitle').value = addSubtitleEditor.getData();
-            }
-        });
+        // Helper function for loading alert
+        function showLoadingAlert(message = 'Memproses...') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
 
-        document.querySelector('#editForm').addEventListener('submit', function(e) {
-            if (editSubtitleEditor) {
-                // Sync CKEditor content to textarea before submission
-                document.querySelector('#editorEditSubtitle').value = editSubtitleEditor.getData();
-            }
-        });
-
-        // Enhanced Form Submissions with SweetAlert
+        // Form submission handlers - SAMA DENGAN HOWS
         document.addEventListener('DOMContentLoaded', function() {
             // Handle Add Form
-            document.getElementById('addSliderForm').addEventListener('submit', function(e) {
+            document.getElementById('addForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-
-                const formData = new FormData(this);
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalText = submitBtn.textContent;
-
-                submitBtn.textContent = 'Menyimpan...';
-                submitBtn.disabled = true;
-
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
-                    }
-                })
-                .then(response => {
-                    const contentType = response.headers.get('content-type');
-
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json().then(data => ({
-                            success: response.ok,
-                            data: data,
-                            status: response.status
-                        }));
-                    } else {
-                        if (response.ok || response.redirected) {
-                            return {
-                                success: true,
-                                data: { message: 'Slider berhasil ditambahkan!' },
-                                status: response.status
-                            };
-                        } else {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                    }
-                })
-                .then(result => {
-                    if (result.success) {
-                        closeAddModal();
-                        showSuccessAlert(result.data.message || 'Slider berhasil ditambahkan!');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        if (result.data.errors) {
-                            let errorMessage = '';
-                            Object.values(result.data.errors).forEach(errorArray => {
-                                errorArray.forEach(error => {
-                                    errorMessage += error + '<br>';
-                                });
-                            });
-                            showErrorAlert(errorMessage);
-                        } else {
-                            showErrorAlert(result.data.message || 'Gagal menambahkan slider!');
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showErrorAlert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
-                })
-                .finally(() => {
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
-                });
+                handleFormSubmission('add');
             });
 
             // Handle Edit Form
             document.getElementById('editForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-
-                const formData = new FormData(this);
-                const submitBtn = this.querySelector('button[type="submit"]');
-                const originalText = submitBtn.textContent;
-
-                submitBtn.textContent = 'Menyimpan...';
-                submitBtn.disabled = true;
-
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
-                    }
-                })
-                .then(response => {
-                    const contentType = response.headers.get('content-type');
-
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json().then(data => ({
-                            success: response.ok,
-                            data: data,
-                            status: response.status
-                        }));
-                    } else {
-                        if (response.ok || response.redirected) {
-                            return {
-                                success: true,
-                                data: { message: 'Slider berhasil diperbarui!' },
-                                status: response.status
-                            };
-                        } else {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                    }
-                })
-                .then(result => {
-                    if (result.success) {
-                        closeEditModal();
-                        showSuccessAlert(result.data.message || 'Slider berhasil diperbarui!');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        if (result.data.errors) {
-                            let errorMessage = '';
-                            Object.values(result.data.errors).forEach(errorArray => {
-                                errorArray.forEach(error => {
-                                    errorMessage += error + '<br>';
-                                });
-                            });
-                            showErrorAlert(errorMessage);
-                        } else {
-                            showErrorAlert(result.data.message || 'Gagal memperbarui slider!');
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showErrorAlert('Terjadi kesalahan saat memperbarui data. Silakan coba lagi.');
-                })
-                .finally(() => {
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
-                });
+                handleFormSubmission('edit');
             });
         });
     </script>

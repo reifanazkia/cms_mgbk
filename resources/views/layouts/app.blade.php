@@ -417,6 +417,8 @@
                         </svg>
                         <span>Lowongan Kerja</span>
                     </a>
+                    <a href="{{ route('applications.index') }}"
+                        class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Agenda</a>
                 </div>
             </nav>
         </aside>

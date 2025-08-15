@@ -185,6 +185,17 @@
         let addDescriptionEditor = null;
         let editDescriptionEditor = null;
 
+        // SweetAlert helper functions - DIUBAH UNTUK SAMA DENGAN ANGGOTA
+        function showAlert(type, message) {
+            Swal.fire({
+                icon: type,
+                title: type === 'success' ? 'Berhasil!' : 'Error!',
+                text: message,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+
         // Initialize CKEditor when the page loads
         document.addEventListener('DOMContentLoaded', function() {
             setupDragAndDrop();
@@ -284,77 +295,23 @@
                     console.error('Error initializing edit description editor:', error);
                 });
 
-            // Handle Add Form Submission
-            const addForm = document.getElementById('addForm');
-            if (addForm) {
-                addForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    handleFormSubmission('add');
-                });
-            }
-
-            // Handle Edit Form Submission
-            const editForm = document.getElementById('editForm');
-            if (editForm) {
-                editForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    handleFormSubmission('edit');
-                });
-            }
-
-            // Show flash messages using SweetAlert
+            // Handle flash messages - DIUBAH UNTUK SAMA DENGAN ANGGOTA
             @if(session('success'))
-                showSuccessAlert("{{ session('success') }}");
+                showAlert('success', "{{ session('success') }}");
             @endif
 
             @if(session('error'))
-                showErrorAlert("{{ session('error') }}");
+                showAlert('error', "{{ session('error') }}");
             @endif
 
             @if($errors->any()))
-                let errorMessages = '';
+                let errorMessages = [];
                 @foreach($errors->all() as $error)
-                    errorMessages += '{{ $error }}\n';
+                    errorMessages.push('{{ $error }}');
                 @endforeach
-                showErrorAlert(errorMessages);
+                showAlert('error', errorMessages.join('\n'));
             @endif
         });
-
-        // SweetAlert helper functions
-        function showSuccessAlert(message) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                html: message,
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                toast: true,
-                position: 'top-end'
-            });
-        }
-
-        function showErrorAlert(message) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                html: message.replace(/\n/g, '<br>'),
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#d33'
-            });
-        }
-
-        function showLoadingAlert(message = 'Memproses...') {
-            Swal.fire({
-                title: message,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-        }
 
         // Handle form submission with CKEditor data
         function handleFormSubmission(type) {
@@ -377,7 +334,7 @@
 
                 // Validate required fields
                 if (descriptionEditor && !descriptionEditor.getData().trim()) {
-                    Swal.fire('Error', 'Deskripsi harus diisi', 'error');
+                    showAlert('error', 'Deskripsi harus diisi');
                     return;
                 }
 
@@ -422,7 +379,7 @@
                         } else {
                             closeEditModal();
                         }
-                        showSuccessAlert(result.data.message || (isAdd ? 'KTA berhasil ditambahkan!' : 'KTA berhasil diperbarui!'));
+                        showAlert('success', result.data.message || (isAdd ? 'KTA berhasil ditambahkan!' : 'KTA berhasil diperbarui!'));
                         setTimeout(() => {
                             location.reload();
                         }, 1500);
@@ -434,15 +391,15 @@
                                     errorMessage += error + '<br>';
                                 });
                             });
-                            showErrorAlert(errorMessage);
+                            showAlert('error', errorMessage);
                         } else {
-                            showErrorAlert(result.data.message || 'Gagal menyimpan data KTA!');
+                            showAlert('error', result.data.message || 'Gagal menyimpan data KTA!');
                         }
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showErrorAlert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
+                    showAlert('error', 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
                 })
                 .finally(() => {
                     submitBtn.disabled = false;
@@ -451,7 +408,7 @@
 
             } catch (error) {
                 console.error('Form preparation error:', error);
-                showErrorAlert('Terjadi kesalahan saat memproses data');
+                showAlert('error', 'Terjadi kesalahan saat memproses data');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Simpan';
             }
@@ -480,7 +437,7 @@
             const stepData = window.steps?.find(step => step.id == id);
 
             if (!stepData) {
-                showErrorAlert('Data KTA tidak ditemukan');
+                showAlert('error', 'Data KTA tidak ditemukan');
                 return;
             }
 
@@ -590,6 +547,7 @@
             });
         }
 
+        // Fungsi confirmDelete - DIUBAH UNTUK SAMA DENGAN ANGGOTA
         function confirmDelete(id) {
             Swal.fire({
                 title: 'Hapus KTA?',
@@ -621,14 +579,14 @@
 
                 // Validate file type
                 if (!file.type.match('image.*')) {
-                    Swal.fire('Error', 'File harus berupa gambar (PNG/JPG)', 'error');
+                    showAlert('error', 'File harus berupa gambar (PNG/JPG)');
                     input.value = '';
                     return;
                 }
 
                 // Validate file size (2MB)
                 if (file.size > 2 * 1024 * 1024) {
-                    Swal.fire('Error', 'Ukuran file maksimal 2MB', 'error');
+                    showAlert('error', 'Ukuran file maksimal 2MB');
                     input.value = '';
                     return;
                 }
@@ -651,6 +609,19 @@
             } else {
                 uploadArea.style.display = 'block';
             }
+        }
+
+        // Helper function for loading alert
+        function showLoadingAlert(message = 'Memproses...') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
         }
     </script>
 @endsection

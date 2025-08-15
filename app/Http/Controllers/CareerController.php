@@ -16,11 +16,27 @@ class CareerController extends Controller
         return view('career.index', compact('careers'));
     }
 
-    public function show($id)
-    {
-        $career = Career::findOrFail($id);
-        return view('career.show', compact('career'));
-    }
+   // Di CareerController
+
+// Method untuk menampilkan daftar pelamar dengan pagination
+public function showApplicants($id)
+{
+    $career = Career::findOrFail($id);
+    $applicants = $career->applications()->latest()->paginate(10); // Pastikan paginate digunakan, bukan get()
+
+    return view('career.applicants', compact('career', 'applicants'));
+}
+
+// Method untuk menampilkan detail pekerjaan dan pelamar
+public function show($id)
+{
+    $career = Career::with('applications')->findOrFail($id);
+    $applicants = $career->applications()->latest()->paginate(10); // Ganti get() dengan paginate() untuk pagination
+
+    return view('career.show', compact('career', 'applicants'));
+}
+
+
 
     public function store(Request $request)
     {

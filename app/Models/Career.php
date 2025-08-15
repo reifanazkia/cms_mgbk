@@ -22,4 +22,9 @@ class Career extends Model
         'klasifikasi' => 'array',
         'deskripsi' => 'array',
     ];
+
+    public function applications()
+    {
+        return $this->hasMany(Application::class);
+    }
 }

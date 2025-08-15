@@ -401,82 +401,6 @@
             });
         }
 
-        // Show flash messages using SweetAlert
-        document.addEventListener('DOMContentLoaded', function() {
-            @if(session('success'))
-                showSuccessAlert("{{ session('success') }}");
-            @endif
-
-            @if(session('error'))
-                showErrorAlert("{{ session('error') }}");
-            @endif
-
-            @if($errors->any()))
-                let errorMessages = '';
-                @foreach($errors->all() as $error)
-                    errorMessages += '{{ $error }}\n';
-                @endforeach
-                showErrorAlert(errorMessages);
-            @endif
-
-            // Close modal when clicking outside
-            document.getElementById('addModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeAddModal();
-                }
-            });
-
-            document.getElementById('editModal').addEventListener('click', function(e) {
-                if (e.target === this) {
-                    closeEditModal();
-                }
-            });
-
-            // Close modal with Escape key
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeAddModal();
-                    closeEditModal();
-                }
-            });
-        });
-
-        // SweetAlert helper functions
-        function showSuccessAlert(message) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                html: message,
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                toast: true,
-                position: 'top-end'
-            });
-        }
-
-        function showErrorAlert(message) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                html: message.replace(/\n/g, '<br>'),
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#d33'
-            });
-        }
-
-        function showLoadingAlert(message = 'Memproses...') {
-            Swal.fire({
-                title: message,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-        }
-
         // Search functionality
         function searchTable() {
             let input = document.getElementById("searchInput").value.toLowerCase();
@@ -505,28 +429,24 @@
 
             if (ids.length === 0) {
                 Swal.fire({
-                    icon: 'warning',
-                    title: 'Peringatan',
-                    text: 'Pilih minimal satu anggota untuk dihapus!',
-                    confirmButtonColor: '#3085d6'
+                    title: 'Tidak ada yang dipilih',
+                    text: '',
+                    icon: 'warning'
                 });
                 return;
             }
 
             Swal.fire({
                 title: `Hapus ${ids.length} anggota terpilih?`,
-                text: "Data yang dihapus tidak dapat dikembalikan!",
+                text: "Data yang dihapus tidak bisa dikembalikan!",
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#6c757d',
                 confirmButtonText: 'Ya, hapus!',
-                cancelButtonText: 'Batal',
-                reverseButtons: true
+                cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    showLoadingAlert('Menghapus anggota...');
-
                     const form = document.getElementById('bulkDeleteForm');
                     form.innerHTML = '@csrf';
                     ids.forEach(id => {
@@ -646,14 +566,14 @@
 
                 // Validate file type
                 if (!file.type.match('image.*')) {
-                    showErrorAlert('File harus berupa gambar (PNG/JPG/JPEG)!');
+                    Swal.fire('Error', 'File harus berupa gambar (PNG/JPG)', 'error');
                     input.value = '';
                     return;
                 }
 
                 // Validate file size (2MB)
                 if (file.size > 2 * 1024 * 1024) {
-                    showErrorAlert('Ukuran file maksimal 2MB!');
+                    Swal.fire('Error', 'Ukuran file maksimal 2MB', 'error');
                     input.value = '';
                     return;
                 }
@@ -681,179 +601,174 @@
         // Form submission handlers to ensure CKEditor data is synced
         document.querySelector('#addForm').addEventListener('submit', function(e) {
             if (addDescriptionEditor) {
-                // Sync CKEditor content to textarea before submission
                 document.querySelector('#editorAddDescription').value = addDescriptionEditor.getData();
             }
         });
 
         document.querySelector('#editForm').addEventListener('submit', function(e) {
             if (editDescriptionEditor) {
-                // Sync CKEditor content to textarea before submission
                 document.querySelector('#editorEditDescription').value = editDescriptionEditor.getData();
             }
         });
 
-        // Enhanced Form Submissions with SweetAlert
+        // Handle form validation messages
         document.addEventListener('DOMContentLoaded', function() {
-            // Handle Add Form
-            document.getElementById('addForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const formData = new FormData(this);
-                const submitBtn = document.getElementById('addSubmitBtn');
-                const originalText = submitBtn.textContent;
-
-                // Validate required fields
-                if (!formData.get('name') || !formData.get('title') || !formData.get('category_anggota_id')) {
-                    showErrorAlert('Harap isi semua field yang wajib diisi!');
-                    return;
-                }
-
-                // Validate image for add form
-                if (!formData.get('image') || !formData.get('image').size) {
-                    showErrorAlert('Foto wajib diupload!');
-                    return;
-                }
-
-                submitBtn.textContent = 'Menyimpan...';
-                submitBtn.disabled = true;
-
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
-                    }
-                })
-                .then(response => {
-                    const contentType = response.headers.get('content-type');
-
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json().then(data => ({
-                            success: response.ok,
-                            data: data,
-                            status: response.status
-                        }));
-                    } else {
-                        if (response.ok || response.redirected) {
-                            return {
-                                success: true,
-                                data: { message: 'Anggota berhasil ditambahkan!' },
-                                status: response.status
-                            };
-                        } else {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                    }
-                })
-                .then(result => {
-                    if (result.success) {
-                        closeAddModal();
-                        showSuccessAlert(result.data.message || 'Anggota berhasil ditambahkan!');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        if (result.data.errors) {
-                            let errorMessage = '';
-                            Object.values(result.data.errors).forEach(errorArray => {
-                                errorArray.forEach(error => {
-                                    errorMessage += error + '<br>';
-                                });
-                            });
-                            showErrorAlert(errorMessage);
-                        } else {
-                            showErrorAlert(result.data.message || 'Gagal menambahkan anggota!');
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showErrorAlert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
-                })
-                .finally(() => {
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
+            const showAlert = (type, message) => {
+                Swal.fire({
+                    icon: type,
+                    title: type === 'success' ? 'Berhasil!' : 'Error!',
+                    text: message,
+                    timer: 3000,
+                    showConfirmButton: false
                 });
+            };
+
+            // Check for Laravel session messages
+            @if(session('success'))
+                showAlert('success', '{{ session('success') }}');
+            @endif
+
+            @if(session('error'))
+                showAlert('error', '{{ session('error') }}');
+            @endif
+
+            @if($errors->any())
+                let errorMessages = [];
+                @foreach($errors->all() as $error)
+                    errorMessages.push('{{ $error }}');
+                @endforeach
+                showAlert('error', errorMessages.join('\n'));
+            @endif
+        });
+
+        // Additional helper functions
+        function resetFormValidation(formId) {
+            const form = document.getElementById(formId);
+            const inputs = form.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.classList.remove('border-red-500', 'border-green-500');
+                const errorMsg = input.parentNode.querySelector('.error-message');
+                if (errorMsg) {
+                    errorMsg.remove();
+                }
+            });
+        }
+
+        function validateForm(formId) {
+            const form = document.getElementById(formId);
+            let isValid = true;
+
+            // Reset previous validation
+            resetFormValidation(formId);
+
+            // Required field validation
+            const requiredFields = form.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('border-red-500');
+                    showFieldError(field, 'Field ini wajib diisi');
+                    isValid = false;
+                } else {
+                    field.classList.add('border-green-500');
+                }
             });
 
-            // Handle Edit Form
-            document.getElementById('editForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-
-                const formData = new FormData(this);
-                const submitBtn = document.getElementById('editSubmitBtn');
-                const originalText = submitBtn.textContent;
-
-                // Validate required fields
-                if (!formData.get('name') || !formData.get('title') || !formData.get('category_anggota_id')) {
-                    showErrorAlert('Harap isi semua field yang wajib diisi!');
-                    return;
+            // Email validation
+            const emailFields = form.querySelectorAll('input[type="email"]');
+            emailFields.forEach(field => {
+                if (field.value && !isValidEmail(field.value)) {
+                    field.classList.add('border-red-500');
+                    showFieldError(field, 'Format email tidak valid');
+                    isValid = false;
                 }
+            });
 
-                submitBtn.textContent = 'Menyimpan...';
-                submitBtn.disabled = true;
+            // URL validation
+            const urlFields = form.querySelectorAll('input[type="url"]');
+            urlFields.forEach(field => {
+                if (field.value && !isValidURL(field.value)) {
+                    field.classList.add('border-red-500');
+                    showFieldError(field, 'Format URL tidak valid');
+                    isValid = false;
+                }
+            });
 
-                fetch(this.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}'
-                    }
-                })
-                .then(response => {
-                    const contentType = response.headers.get('content-type');
+            return isValid;
+        }
 
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json().then(data => ({
-                            success: response.ok,
-                            data: data,
-                            status: response.status
-                        }));
-                    } else {
-                        if (response.ok || response.redirected) {
-                            return {
-                                success: true,
-                                data: { message: 'Anggota berhasil diperbarui!' },
-                                status: response.status
-                            };
-                        } else {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
+        function showFieldError(field, message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message text-red-500 text-xs mt-1';
+            errorDiv.textContent = message;
+            field.parentNode.appendChild(errorDiv);
+        }
+
+        function isValidEmail(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function isValidURL(url) {
+            try {
+                new URL(url);
+                return true;
+            } catch {
+                return false;
+            }
+        }
+
+        // Enhanced drag and drop visual feedback
+        function enhanceDragDropFeedback() {
+            const dropAreas = document.querySelectorAll('[id$="UploadArea"]');
+
+            dropAreas.forEach(area => {
+                area.addEventListener('dragenter', function(e) {
+                    e.preventDefault();
+                    this.style.transform = 'scale(1.02)';
+                    this.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+                });
+
+                area.addEventListener('dragleave', function(e) {
+                    e.preventDefault();
+                    if (!this.contains(e.relatedTarget)) {
+                        this.style.transform = 'scale(1)';
+                        this.style.boxShadow = 'none';
                     }
-                })
-                .then(result => {
-                    if (result.success) {
-                        closeEditModal();
-                        showSuccessAlert(result.data.message || 'Anggota berhasil diperbarui!');
-                        setTimeout(() => {
-                            location.reload();
-                        }, 1500);
-                    } else {
-                        if (result.data.errors) {
-                            let errorMessage = '';
-                            Object.values(result.data.errors).forEach(errorArray => {
-                                errorArray.forEach(error => {
-                                    errorMessage += error + '<br>';
-                                });
-                            });
-                            showErrorAlert(errorMessage);
-                        } else {
-                            showErrorAlert(result.data.message || 'Gagal memperbarui anggota!');
-                        }
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showErrorAlert('Terjadi kesalahan saat memperbarui data. Silakan coba lagi.');
-                })
-                .finally(() => {
-                    submitBtn.textContent = originalText;
-                    submitBtn.disabled = false;
+                });
+
+                area.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.style.transform = 'scale(1)';
+                    this.style.boxShadow = 'none';
                 });
             });
+        }
+
+        // Call enhanced drag drop on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            enhanceDragDropFeedback();
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl + N for new agenda
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                openAddModal();
+            }
+
+            // Escape key to close modals
+            if (e.key === 'Escape') {
+                const addModal = document.getElementById('addModal');
+                const editModal = document.getElementById('editModal');
+
+                if (!addModal.classList.contains('hidden')) {
+                    closeAddModal();
+                }
+                if (!editModal.classList.contains('hidden')) {
+                    closeEditModal();
+                }
+            }
         });
     </script>
 @endsection

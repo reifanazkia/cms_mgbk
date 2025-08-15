@@ -4,6 +4,7 @@ use App\Http\Controllers\AboutUsController;
 use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AgendaSpeakerController;
 use App\Http\Controllers\AnggotaController;
+use App\Http\Controllers\ApplicationController;
 use App\Http\Controllers\CareerController;
 use App\Http\Controllers\CategoryAnggotaController;
 use Illuminate\Support\Facades\Route;
@@ -153,6 +154,7 @@ Route::prefix('agenda-speakers')->name('agenda-speakers.')->group(function () {
 Route::prefix('career')->name('career.')->group(function () {
     Route::get('/', [CareerController::class, 'index'])->name('index');
     Route::get('/{id}', [CareerController::class, 'show'])->name('show');
+    Route::get('/career/{id}/applicants', [CareerController::class, 'showApplicants'])->name('career.applicants');
     Route::post('/', [CareerController::class, 'store'])->name('store');
     Route::put('/{career}', [CareerController::class, 'update'])->name('update');
     Route::delete('/{id}', [CareerController::class, 'destroy'])->name('destroy');
@@ -210,3 +212,13 @@ Route::prefix('category-store')->name('category-store.')->group(function () {
     Route::put('/update/{id}', [CategoryStoreController::class, 'update'])->name('update');
     Route::delete('/{id}', [CategoryStoreController::class, 'destroy'])->name('destroy');
 });
+
+
+Route::resource('applications', ApplicationController::class);
+
+// Untuk route tambahan yang ada di controller:
+Route::get('applications/{application}/download', [ApplicationController::class, 'downloadFile'])
+    ->name('applications.download');
+
+Route::delete('applications/bulk-delete', [ApplicationController::class, 'bulkDelete'])
+    ->name('applications.bulkDelete');

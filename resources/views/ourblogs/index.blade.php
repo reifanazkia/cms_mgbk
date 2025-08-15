@@ -223,6 +223,29 @@
         let addDescriptionEditor = null;
         let editDescriptionEditor = null;
 
+        // SweetAlert helper functions - UPDATED TO MATCH YOUR STYLE
+        function showAlert(type, message) {
+            Swal.fire({
+                icon: type,
+                title: type === 'success' ? 'Berhasil!' : 'Error!',
+                text: message,
+                timer: 3000,
+                showConfirmButton: false
+            });
+        }
+
+        function showLoadingAlert(message = 'Memproses...') {
+            Swal.fire({
+                title: message,
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+        }
+
         // Initialize CKEditor when the page loads
         document.addEventListener('DOMContentLoaded', function() {
             setupDragAndDrop();
@@ -340,59 +363,23 @@
                 });
             }
 
-            // Show flash messages using SweetAlert
+            // Show flash messages using SweetAlert - UPDATED
             @if(session('success'))
-                showSuccessAlert("{{ session('success') }}");
+                showAlert('success', "{{ session('success') }}");
             @endif
 
             @if(session('error'))
-                showErrorAlert("{{ session('error') }}");
+                showAlert('error', "{{ session('error') }}");
             @endif
 
             @if($errors->any()))
-                let errorMessages = '';
+                let errorMessages = [];
                 @foreach($errors->all() as $error)
-                    errorMessages += '{{ $error }}\n';
+                    errorMessages.push('{{ $error }}');
                 @endforeach
-                showErrorAlert(errorMessages);
+                showAlert('error', errorMessages.join('\n'));
             @endif
         });
-
-        // SweetAlert helper functions
-        function showSuccessAlert(message) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                html: message,
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                toast: true,
-                position: 'top-end'
-            });
-        }
-
-        function showErrorAlert(message) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                html: message.replace(/\n/g, '<br>'),
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#d33'
-            });
-        }
-
-        function showLoadingAlert(message = 'Memproses...') {
-            Swal.fire({
-                title: message,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-        }
 
         // Handle form submission with CKEditor data
         function handleFormSubmission(type) {
@@ -414,7 +401,7 @@
 
                 // Validate required fields
                 if (descriptionEditor && !descriptionEditor.getData().trim()) {
-                    Swal.fire('Error', 'Deskripsi harus diisi', 'error');
+                    showAlert('error', 'Deskripsi harus diisi');
                     return;
                 }
 
@@ -455,7 +442,7 @@
                         } else {
                             closeEditModal();
                         }
-                        showSuccessAlert(result.data.message || (isAdd ? 'Blog berhasil ditambahkan!' : 'Blog berhasil diperbarui!'));
+                        showAlert('success', result.data.message || (isAdd ? 'Blog berhasil ditambahkan!' : 'Blog berhasil diperbarui!'));
                         setTimeout(() => {
                             location.reload();
                         }, 1500);
@@ -467,20 +454,20 @@
                                     errorMessage += error + '<br>';
                                 });
                             });
-                            showErrorAlert(errorMessage);
+                            showAlert('error', errorMessage);
                         } else {
-                            showErrorAlert(result.data.message || 'Gagal menyimpan data blog!');
+                            showAlert('error', result.data.message || 'Gagal menyimpan data blog!');
                         }
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showErrorAlert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
+                    showAlert('error', 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
                 });
 
             } catch (error) {
                 console.error('Form preparation error:', error);
-                showErrorAlert('Terjadi kesalahan saat memproses data');
+                showAlert('error', 'Terjadi kesalahan saat memproses data');
             }
         }
 
@@ -581,14 +568,14 @@
 
                 // Validate file type
                 if (!file.type.match('image.*')) {
-                    Swal.fire('Error', 'File harus berupa gambar (PNG/JPG)', 'error');
+                    showAlert('error', 'File harus berupa gambar (PNG/JPG)');
                     input.value = '';
                     return;
                 }
 
                 // Validate file size (2MB)
                 if (file.size > 2 * 1024 * 1024) {
-                    Swal.fire('Error', 'Ukuran file maksimal 2MB', 'error');
+                    showAlert('error', 'Ukuran file maksimal 2MB');
                     input.value = '';
                     return;
                 }
@@ -671,11 +658,7 @@
             const ids = Array.from(checkedBoxes).map(cb => cb.value);
 
             if (ids.length === 0) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Tidak ada yang dipilih',
-                    text: 'Pilih minimal satu blog untuk dihapus'
-                });
+                showAlert('warning', 'Tidak ada yang dipilih');
                 return;
             }
 

@@ -381,43 +381,30 @@
 
             // Show flash messages using SweetAlert
             @if(session('success'))
-                showSuccessAlert("{{ session('success') }}");
+                showAlert('success', '{{ session('success') }}');
             @endif
 
             @if(session('error'))
-                showErrorAlert("{{ session('error') }}");
+                showAlert('error', '{{ session('error') }}');
             @endif
 
-            @if($errors->any()))
-                let errorMessages = '';
+            @if($errors->any())
+                let errorMessages = [];
                 @foreach($errors->all() as $error)
-                    errorMessages += '{{ $error }}\n';
+                    errorMessages.push('{{ $error }}');
                 @endforeach
-                showErrorAlert(errorMessages);
+                showAlert('error', errorMessages.join('\n'));
             @endif
         });
 
-        // SweetAlert helper functions
-        function showSuccessAlert(message) {
+        // Standardized alert functions
+        function showAlert(type, message) {
             Swal.fire({
-                icon: 'success',
-                title: 'Berhasil!',
-                html: message,
-                showConfirmButton: false,
+                icon: type,
+                title: type === 'success' ? 'Berhasil!' : 'Error!',
+                text: message,
                 timer: 3000,
-                timerProgressBar: true,
-                toast: true,
-                position: 'top-end'
-            });
-        }
-
-        function showErrorAlert(message) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Gagal!',
-                html: message.replace(/\n/g, '<br>'),
-                confirmButtonText: 'OK',
-                confirmButtonColor: '#d33'
+                showConfirmButton: false
             });
         }
 
@@ -468,12 +455,20 @@
 
                 // Validate required fields
                 if (!hasValidDeskripsi) {
-                    Swal.fire('Error', 'Minimal harus ada satu deskripsi yang diisi', 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Minimal harus ada satu deskripsi yang diisi'
+                    });
                     return;
                 }
 
                 if (ringkasanEditor && !ringkasanEditor.getData().trim()) {
-                    Swal.fire('Error', 'Ringkasan harus diisi', 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Ringkasan harus diisi'
+                    });
                     return;
                 }
 
@@ -514,7 +509,7 @@
                         } else {
                             closeEditModal();
                         }
-                        showSuccessAlert(result.data.message || (isAdd ? 'Career berhasil ditambahkan!' : 'Career berhasil diperbarui!'));
+                        showAlert('success', result.data.message || (isAdd ? 'Career berhasil ditambahkan!' : 'Career berhasil diperbarui!'));
                         setTimeout(() => {
                             location.reload();
                         }, 1500);
@@ -526,20 +521,36 @@
                                     errorMessage += error + '<br>';
                                 });
                             });
-                            showErrorAlert(errorMessage);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                html: errorMessage
+                            });
                         } else {
-                            showErrorAlert(result.data.message || 'Gagal menyimpan data career!');
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: result.data.message || 'Gagal menyimpan data career!'
+                            });
                         }
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showErrorAlert('Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.'
+                    });
                 });
 
             } catch (error) {
                 console.error('Form preparation error:', error);
-                showErrorAlert('Terjadi kesalahan saat memproses data');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Terjadi kesalahan saat memproses data'
+                });
             }
         }
 
@@ -595,7 +606,11 @@
             const careerData = window.careers?.find(career => career.id == id);
 
             if (!careerData) {
-                showErrorAlert('Data career tidak ditemukan');
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Data career tidak ditemukan'
+                });
                 return;
             }
 
@@ -779,7 +794,11 @@
             if (container.children.length > 1) {
                 button.parentElement.remove();
             } else {
-                Swal.fire('Peringatan', 'Minimal harus ada satu field!', 'warning');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peringatan',
+                    text: 'Minimal harus ada satu field!'
+                });
             }
         }
 
@@ -797,7 +816,11 @@
 
                 button.parentElement.remove();
             } else {
-                Swal.fire('Peringatan', 'Minimal harus ada satu field deskripsi!', 'warning');
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peringatan',
+                    text: 'Minimal harus ada satu field deskripsi!'
+                });
             }
         }
 

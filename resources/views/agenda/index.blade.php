@@ -907,28 +907,6 @@
             }
         });
 
-        // Auto-save draft functionality (optional)
-        let autoSaveTimer;
-        function startAutoSave(editorInstance, storageKey) {
-            autoSaveTimer = setInterval(() => {
-                if (editorInstance) {
-                    const content = editorInstance.getData();
-                    if (content.length > 10) { // Only save if content is substantial
-                        localStorage.setItem(storageKey, content);
-                        console.log(`Auto-saved draft to ${storageKey}`);
-                    }
-                }
-            }, 30000); // Auto-save every 30 seconds
-        }
-
-        function loadDraft(editorInstance, storageKey) {
-            const draft = localStorage.getItem(storageKey);
-            if (draft && confirm('Ditemukan draft tersimpan. Muat draft?')) {
-                editorInstance.setData(draft);
-                localStorage.removeItem(storageKey);
-            }
-        }
-
         // Initialize auto-save when editors are ready
         function initializeAutoSave() {
             if (addDescriptionEditor) {
