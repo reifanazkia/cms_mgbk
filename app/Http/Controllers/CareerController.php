@@ -18,15 +18,6 @@ class CareerController extends Controller
 
    // Di CareerController
 
-// Method untuk menampilkan daftar pelamar dengan pagination
-public function showApplicants($id)
-{
-    $career = Career::findOrFail($id);
-    $applicants = $career->applications()->latest()->paginate(10); // Pastikan paginate digunakan, bukan get()
-
-    return view('career.applicants', compact('career', 'applicants'));
-}
-
 // Method untuk menampilkan detail pekerjaan dan pelamar
 public function show($id)
 {

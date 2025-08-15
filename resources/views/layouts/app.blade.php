@@ -418,7 +418,13 @@
                         <span>Lowongan Kerja</span>
                     </a>
                     <a href="{{ route('applications.index') }}"
-                        class="block px-4 py-2 rounded-lg text-xs text-gray-600 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">Agenda</a>
+                        class="group flex items-center px-4 py-3 rounded-lg text-xs text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-all duration-200">
+                        <svg class="w-4 h-4 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2-2v2m8 0V6a2 2 0 012 2v6a2 2 0 01-2 2H6a2 2 0 01-2-2V8a2 2 0 012-2V6z" />
+                        </svg>
+                        <span>Job</span>
+                    </a>
                 </div>
             </nav>
         </aside>

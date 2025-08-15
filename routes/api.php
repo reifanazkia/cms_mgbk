@@ -6,6 +6,7 @@ use App\Http\Controllers\AgendaController;
 use App\Http\Controllers\AnggotaController;
 use App\Http\Controllers\Api\ApiAgendaController;
 use App\Http\Controllers\Api\ApiAnggotaController;
+use App\Http\Controllers\Api\ApiApplicationController;
 use App\Http\Controllers\Api\ApiCareerController;
 use App\Http\Controllers\Api\ApiHowsController;
 use App\Http\Controllers\Api\ApiKegiatanController;
@@ -61,6 +62,10 @@ Route::get('/kegiatan/category/{id}', [ApiKegiatanController::class, 'byCategory
 
 
 Route::get('/anggota', [ApiAnggotaController::class, 'index']);
+
+Route::get('/applications', [ApiApplicationController::class, 'index']);
+Route::get('/applications/{id}', [ApiApplicationController::class, 'show']);
+Route::post('/applications', [ApiApplicationController::class, 'store']);
 
 // ==============================
 //  Protected API Routes (auth:sanctum)

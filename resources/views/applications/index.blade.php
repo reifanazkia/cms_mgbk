@@ -119,12 +119,29 @@
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">No. Telepon</label>
-                        <input type="text" name="no_telepon" required class="w-full border rounded p-2 text-sm" />
+                        <input type="text" name="no_telepon" required
+                               class="w-full border rounded p-2 text-sm"
+                               pattern="[0-9]*"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
                     </div>
-                    <div>
+                    <div class="col-span-2">
                         <label class="block mb-1 font-medium">Upload CV</label>
-                        <input type="file" name="file" accept=".pdf,.doc,.docx" class="w-full border rounded p-2 text-sm" />
-                        <small class="text-gray-500">Format: PDF, DOC, DOCX (Max: 2MB)</small>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center" id="dropZone">
+                            <div class="flex flex-col items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <p class="mt-2 text-sm text-gray-600">Drop Your CV files or Browse</p>
+                                <p class="text-xs text-gray-500 mt-1">Supported format: PDF</p>
+                            </div>
+                            <input type="file" name="file" id="fileInput"
+                                   accept=".pdf"
+                                   class="hidden" />
+                            <label for="fileInput" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer">
+                                Browse Files
+                            </label>
+                            <div id="fileNameDisplay" class="mt-2 text-sm text-gray-600"></div>
+                        </div>
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Cover Letter</label>
@@ -190,13 +207,29 @@
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">No. Telepon</label>
-                        <input type="text" name="no_telepon" id="editNoTelepon" required class="w-full border rounded p-2 text-sm" />
+                        <input type="text" name="no_telepon" id="editNoTelepon" required
+                               class="w-full border rounded p-2 text-sm"
+                               pattern="[0-9]*"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Ganti CV (Opsional)</label>
-                        <input type="file" name="file" accept=".pdf,.doc,.docx" class="w-full border rounded p-2 text-sm" />
-                        <small class="text-gray-500">Format: PDF, DOC, DOCX (Max: 2MB)</small>
-                        <div id="currentFile" class="mt-2 text-sm text-blue-600"></div>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center" id="editDropZone">
+                            <div class="flex flex-col items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <p class="mt-1 text-sm text-gray-600">Drop Your CV files or Browse</p>
+                                <p class="text-xs text-gray-500 mt-1">Format: PDF (Max: 2MB)</p>
+                            </div>
+                            <input type="file" name="file" id="editFileInput"
+                                   accept=".pdf"
+                                   class="hidden" />
+                            <label for="editFileInput" class="mt-3 inline-flex items-center px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer text-sm">
+                                Browse Files
+                            </label>
+                            <div id="editFileNameDisplay" class="mt-1 text-sm text-blue-600"></div>
+                        </div>
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Cover Letter</label>
@@ -278,6 +311,7 @@
 
         function openAddModal() {
             document.querySelector('#addModal form').reset();
+            document.getElementById('fileNameDisplay').textContent = '';
             document.getElementById('addModal').classList.remove('hidden');
         }
 
@@ -372,18 +406,9 @@
                         document.getElementById('editNoTelepon').value = application.no_telepon;
                         document.getElementById('editCoverLetter').value = application.cover_letter || '';
 
-                        // Show current file info
-                        const currentFileDiv = document.getElementById('currentFile');
-                        if (application.file) {
-                            currentFileDiv.innerHTML = `
-                                <span>File saat ini: </span>
-                                <a href="/applications/${application.id}/download" class="underline">
-                                    Download CV
-                                </a>
-                            `;
-                        } else {
-                            currentFileDiv.innerHTML = '<span class="text-gray-500">Tidak ada file saat ini</span>';
-                        }
+                        // Reset file input
+                        document.getElementById('editFileInput').value = '';
+                        document.getElementById('editFileNameDisplay').textContent = '';
 
                         document.getElementById('editModal').classList.remove('hidden');
                     }
@@ -446,6 +471,144 @@
             updateBulkDeleteButton();
         });
 
+        // File input handling for the new UI
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const fileNameDisplay = document.getElementById('fileNameDisplay');
+            if (this.files.length > 0) {
+                fileNameDisplay.textContent = this.files[0].name;
+            } else {
+                fileNameDisplay.textContent = '';
+            }
+        });
+
+        document.getElementById('editFileInput').addEventListener('change', function(e) {
+            const fileNameDisplay = document.getElementById('editFileNameDisplay');
+            if (this.files.length > 0) {
+                fileNameDisplay.textContent = this.files[0].name;
+            } else {
+                fileNameDisplay.textContent = '';
+            }
+        });
+
+        // Drag and drop functionality
+        const dropZone = document.getElementById('dropZone');
+        if (dropZone) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                dropZone.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                dropZone.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight() {
+                dropZone.classList.add('border-blue-500');
+            }
+
+            function unhighlight() {
+                dropZone.classList.remove('border-blue-500');
+            }
+
+            dropZone.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                const fileInput = document.getElementById('fileInput');
+                fileInput.files = files;
+                const event = new Event('change');
+                fileInput.dispatchEvent(event);
+            }
+        }
+
+        // Edit modal drag and drop
+        const editDropZone = document.getElementById('editDropZone');
+        if (editDropZone) {
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                editDropZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                editDropZone.addEventListener(eventName, highlightEdit, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                editDropZone.addEventListener(eventName, unhighlightEdit, false);
+            });
+
+            function highlightEdit() {
+                editDropZone.classList.add('border-blue-500');
+            }
+
+            function unhighlightEdit() {
+                editDropZone.classList.remove('border-blue-500');
+            }
+
+            editDropZone.addEventListener('drop', handleEditDrop, false);
+
+            function handleEditDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                const fileInput = document.getElementById('editFileInput');
+                fileInput.files = files;
+                const event = new Event('change');
+                fileInput.dispatchEvent(event);
+            }
+        }
+
+        // Phone number validation
+        document.querySelectorAll('input[name="no_telepon"]').forEach(input => {
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
+        });
+
+        // File validation (only accept PDF)
+        document.querySelectorAll('input[type="file"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    // Check file size (2MB)
+                    if (file.size > 2 * 1024 * 1024) {
+                        Swal.fire('Error', 'Ukuran file maksimal 2MB', 'error');
+                        this.value = '';
+                        if (this.id === 'fileInput') {
+                            document.getElementById('fileNameDisplay').textContent = '';
+                        } else {
+                            document.getElementById('editFileNameDisplay').textContent = '';
+                        }
+                        return;
+                    }
+
+                    // Check file type (only PDF)
+                    if (file.type !== 'application/pdf') {
+                        Swal.fire('Error', 'File harus berupa PDF', 'error');
+                        this.value = '';
+                        if (this.id === 'fileInput') {
+                            document.getElementById('fileNameDisplay').textContent = '';
+                        } else {
+                            document.getElementById('editFileNameDisplay').textContent = '';
+                        }
+                        return;
+                    }
+                }
+            });
+        });
+
         // Form validation
         document.querySelector('#addModal form').addEventListener('submit', function(e) {
             const requiredFields = this.querySelectorAll('[required]');
@@ -483,29 +646,6 @@
                 e.preventDefault();
                 Swal.fire('Error', 'Mohon lengkapi semua field yang wajib diisi', 'error');
             }
-        });
-
-        // File validation
-        document.querySelectorAll('input[type="file"]').forEach(input => {
-            input.addEventListener('change', function() {
-                const file = this.files[0];
-                if (file) {
-                    // Check file size (2MB)
-                    if (file.size > 2 * 1024 * 1024) {
-                        Swal.fire('Error', 'Ukuran file maksimal 2MB', 'error');
-                        this.value = '';
-                        return;
-                    }
-
-                    // Check file type
-                    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-                    if (!allowedTypes.includes(file.type)) {
-                        Swal.fire('Error', 'File harus berupa PDF, DOC, atau DOCX', 'error');
-                        this.value = '';
-                        return;
-                    }
-                }
-            });
         });
 
         // Keyboard shortcuts

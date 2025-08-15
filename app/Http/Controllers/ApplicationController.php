@@ -45,7 +45,7 @@ class ApplicationController extends Controller
             'email' => 'required|email|max:255',
             'no_telepon' => 'required|string|max:20',
             'cover_letter' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx|max:2048', // Max 2MB
+            'file' => 'nullable|file|mimes:pdf|max:2048', // Max 2MB
         ]);
 
         if ($validator->fails()) {
@@ -121,7 +121,7 @@ class ApplicationController extends Controller
             'email' => 'required|email|max:255',
             'no_telepon' => 'required|string|max:20',
             'cover_letter' => 'nullable|string',
-            'file' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
+            'file' => 'nullable|file|mimes:pdf|max:2048',
         ]);
 
         if ($validator->fails()) {

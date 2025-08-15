@@ -19,21 +19,14 @@ class ApiCareerController extends Controller
         ]);
     }
 
-    
+
     public function show($id)
     {
-        $career = Career::find($id);
-
-        if (!$career) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Career not found'
-            ], 404);
-        }
+        $career = Career::with('applications')->findOrFail($id);
 
         return response()->json([
             'status' => true,
-            'message' => 'Career detail',
+            'message' => 'Detail career berhasil diambil',
             'data' => $career
         ]);
     }
