@@ -21,7 +21,7 @@
             <div class="container mx-auto px-4">
                 <nav class="flex space-x-8">
                     <button onclick="showTab('detail')" id="tab-detail"
-                        class="tab-button active py-4 px-2 border-b-2 border-blue-500 text-blue-600 font-medium text-sm focus:outline-none">
+                        class="tab-button py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm focus:outline-none">
                         Detail Pekerjaan
                     </button>
                     <button onclick="showTab('pelamar')" id="tab-pelamar"
@@ -40,7 +40,7 @@
 
         <div class="container mx-auto px-4 py-8 max-w-6xl">
             {{-- Tab Content: Detail Pekerjaan --}}
-            <div id="content-detail" class="tab-content">
+            <div id="content-detail" class="tab-content hidden">
                 <div class="bg-white rounded-xl shadow-sm border p-8 mb-8">
                     <div class="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
                         <div class="flex-1">
@@ -161,7 +161,7 @@
 
                     @if (isset($applicants) && $applicants->hasPages())
                         <div class="px-6 py-3 border-t border-gray-200">
-                            {{ $applicants->links() }}
+                            {{ $applicants->appends(['tab' => 'pelamar'])->links() }}
                         </div>
                     @endif
                 </div>
@@ -171,12 +171,31 @@
 
     <script>
         function showTab(tabName) {
+            // Update URL dengan parameter tab tanpa reload
+            const url = new URL(window.location);
+            url.searchParams.set('tab', tabName);
+            window.history.replaceState({}, '', url);
+
+            // Hide semua tab content dan reset button states
             document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active', 'border-blue-500',
-                'text-blue-600'));
+            document.querySelectorAll('.tab-button').forEach(b => {
+                b.classList.remove('active', 'border-blue-500', 'text-blue-600');
+                b.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // Show tab yang dipilih dan update button state
             document.getElementById('content-' + tabName).classList.remove('hidden');
-            document.getElementById('tab-' + tabName).classList.add('active', 'border-blue-500', 'text-blue-600');
+            const activeButton = document.getElementById('tab-' + tabName);
+            activeButton.classList.remove('border-transparent', 'text-gray-500');
+            activeButton.classList.add('active', 'border-blue-500', 'text-blue-600');
         }
+
+        // Inisialisasi tab berdasarkan URL parameter atau default
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activeTab = urlParams.get('tab') || 'detail';
+            showTab(activeTab);
+        });
     </script>
 
     <style>

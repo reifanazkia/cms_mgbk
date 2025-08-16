@@ -40,8 +40,8 @@
                     @foreach ($applications as $item)
                         <tr>
                             <td class="px-4 py-2 border">
-                                <input type="checkbox" name="application_ids[]" value="{{ $item->id }}" class="rowCheckbox"
-                                    onchange="updateBulkDeleteButton()">
+                                <input type="checkbox" name="application_ids[]" value="{{ $item->id }}"
+                                    class="rowCheckbox" onchange="updateBulkDeleteButton()">
                             </td>
                             <td class="px-4 py-2 border">
                                 <span class="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full">
@@ -102,8 +102,8 @@
                         <label class="block mb-1 font-medium">Posisi Lamaran</label>
                         <select name="career_id" id="addCareerSelect" required class="w-full border rounded p-2 text-sm">
                             <option value="">Pilih Posisi...</option>
-                            @if(isset($careers))
-                                @foreach($careers as $career)
+                            @if (isset($careers))
+                                @foreach ($careers as $career)
                                     <option value="{{ $career->id }}">{{ $career->position_title }}</option>
                                 @endforeach
                             @endif
@@ -119,25 +119,24 @@
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">No. Telepon</label>
-                        <input type="text" name="no_telepon" required
-                               class="w-full border rounded p-2 text-sm"
-                               pattern="[0-9]*"
-                               oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
+                        <input type="text" name="no_telepon" required class="w-full border rounded p-2 text-sm"
+                            pattern="[0-9]*" oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Upload CV</label>
                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center" id="dropZone">
                             <div class="flex flex-col items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-400" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                 </svg>
                                 <p class="mt-2 text-sm text-gray-600">Drop Your CV files or Browse</p>
                                 <p class="text-xs text-gray-500 mt-1">Supported format: PDF</p>
                             </div>
-                            <input type="file" name="file" id="fileInput"
-                                   accept=".pdf"
-                                   class="hidden" />
-                            <label for="fileInput" class="mt-4 inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer">
+                            <input type="file" name="file" id="fileInput" accept=".pdf" class="hidden" />
+                            <label for="fileInput"
+                                class="mt-4 inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer">
                                 Browse Files
                             </label>
                             <div id="fileNameDisplay" class="mt-2 text-sm text-gray-600"></div>
@@ -145,7 +144,8 @@
                     </div>
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Cover Letter</label>
-                        <textarea name="cover_letter" id="addCoverLetter" rows="4" class="w-full border rounded p-2 text-sm" placeholder="Tuliskan cover letter Anda..."></textarea>
+                        <textarea name="cover_letter" id="addCoverLetter" rows="4" class="w-full border rounded p-2 text-sm"
+                            placeholder="Tuliskan cover letter Anda..."></textarea>
                     </div>
                 </div>
 
@@ -166,7 +166,8 @@
                 <h2 class="text-lg font-semibold">Detail Lamaran</h2>
                 <button onclick="closeShowModal()" class="text-gray-500 hover:text-gray-700">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
                     </svg>
                 </button>
             </div>
@@ -188,10 +189,11 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div class="col-span-2">
                         <label class="block mb-1 font-medium">Posisi Lamaran</label>
-                        <select name="career_id" id="editCareerSelect" required class="w-full border rounded p-2 text-sm">
+                        <select name="career_id" id="editCareerSelect" required
+                            class="w-full border rounded p-2 text-sm">
                             <option value="">Pilih Posisi...</option>
-                            @if(isset($careers))
-                                @foreach($careers as $career)
+                            @if (isset($careers))
+                                @foreach ($careers as $career)
                                     <option value="{{ $career->id }}">{{ $career->position_title }}</option>
                                 @endforeach
                             @endif
@@ -199,33 +201,35 @@
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Nama Lengkap</label>
-                        <input type="text" name="nama" id="editNama" required class="w-full border rounded p-2 text-sm" />
+                        <input type="text" name="nama" id="editNama" required
+                            class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Email</label>
-                        <input type="email" name="email" id="editEmail" required class="w-full border rounded p-2 text-sm" />
+                        <input type="email" name="email" id="editEmail" required
+                            class="w-full border rounded p-2 text-sm" />
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">No. Telepon</label>
                         <input type="text" name="no_telepon" id="editNoTelepon" required
-                               class="w-full border rounded p-2 text-sm"
-                               pattern="[0-9]*"
-                               oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
+                            class="w-full border rounded p-2 text-sm" pattern="[0-9]*"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, '');" />
                     </div>
                     <div>
                         <label class="block mb-1 font-medium">Ganti CV (Opsional)</label>
                         <div class="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center" id="editDropZone">
                             <div class="flex flex-col items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-gray-400" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                 </svg>
                                 <p class="mt-1 text-sm text-gray-600">Drop Your CV files or Browse</p>
                                 <p class="text-xs text-gray-500 mt-1">Format: PDF (Max: 2MB)</p>
                             </div>
-                            <input type="file" name="file" id="editFileInput"
-                                   accept=".pdf"
-                                   class="hidden" />
-                            <label for="editFileInput" class="mt-3 inline-flex items-center px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer text-sm">
+                            <input type="file" name="file" id="editFileInput" accept=".pdf" class="hidden" />
+                            <label for="editFileInput"
+                                class="mt-3 inline-flex items-center px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 cursor-pointer text-sm">
                                 Browse Files
                             </label>
                             <div id="editFileNameDisplay" class="mt-1 text-sm text-blue-600"></div>
@@ -254,7 +258,7 @@
     <script>
         $(document).ready(function() {
             // Handle success/error messages
-            @if(session('success'))
+            @if (session('success'))
                 Swal.fire({
                     icon: 'success',
                     title: 'Berhasil!',
@@ -264,7 +268,7 @@
                 });
             @endif
 
-            @if(session('error'))
+            @if (session('error'))
                 Swal.fire({
                     icon: 'error',
                     title: 'Error!',
@@ -274,9 +278,9 @@
                 });
             @endif
 
-            @if($errors->any())
+            @if ($errors->any())
                 let errorMessages = [];
-                @foreach($errors->all() as $error)
+                @foreach ($errors->all() as $error)
                     errorMessages.push('{{ $error }}');
                 @endforeach
                 Swal.fire({
@@ -349,9 +353,9 @@
                                     <label class="block text-sm font-medium text-gray-700 mb-2">File CV</label>
                                     ${application.file
                                         ? `<a href="/applications/${application.id}/download"
-                                             class="text-blue-600 hover:text-blue-800 text-sm underline">
-                                             Download CV
-                                           </a>`
+                                                 class="text-blue-600 hover:text-blue-800 text-sm underline">
+                                                 Download CV
+                                               </a>`
                                         : '<p class="text-sm text-gray-500">Tidak ada file</p>'
                                     }
                                 </div>
@@ -443,8 +447,19 @@
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const form = document.getElementById('bulkDeleteForm');
-                    form.innerHTML = '@csrf';
+                    // Buat form dinamis dengan method POST
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ route('applications.bulkDelete') }}';
+
+                    // Tambahkan CSRF token
+                    const csrfToken = document.createElement('input');
+                    csrfToken.type = 'hidden';
+                    csrfToken.name = '_token';
+                    csrfToken.value = '{{ csrf_token() }}';
+                    form.appendChild(csrfToken);
+
+                    // Tambahkan IDs yang dipilih
                     ids.forEach(id => {
                         const input = document.createElement('input');
                         input.type = 'hidden';
@@ -452,6 +467,9 @@
                         input.value = id;
                         form.appendChild(input);
                     });
+
+                    // Tambahkan ke body dan submit
+                    document.body.appendChild(form);
                     form.submit();
                 }
             });

@@ -220,5 +220,5 @@ Route::resource('applications', ApplicationController::class);
 Route::get('applications/{application}/download', [ApplicationController::class, 'downloadFile'])
     ->name('applications.download');
 
-Route::delete('applications/bulk-delete', [ApplicationController::class, 'bulkDelete'])
+Route::post('applications/bulk-delete', [ApplicationController::class, 'bulkDelete'])
     ->name('applications.bulkDelete');
