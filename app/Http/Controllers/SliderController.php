@@ -6,8 +6,6 @@ use App\Models\Slider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
-
-
 class SliderController extends Controller
 {
     public function index()
@@ -44,16 +42,49 @@ class SliderController extends Controller
             $slider = Slider::create($validated);
 
             if ($slider) {
+                // Check if request is AJAX
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Slider berhasil ditambahkan.'
+                    ]);
+                }
+
                 return redirect()->route('slider.index')->with('success', 'Slider berhasil ditambahkan.');
             } else {
+                // Check if request is AJAX
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Gagal menambahkan slider.'
+                    ], 500);
+                }
+
                 return redirect()->back()->with('error', 'Gagal menambahkan slider.');
             }
         } catch (\Illuminate\Validation\ValidationException $e) {
+            // Check if request is AJAX
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal. Periksa data yang dimasukkan.',
+                    'errors' => $e->validator->errors()
+                ], 422);
+            }
+
             return redirect()->back()
                 ->withErrors($e->validator)
                 ->withInput()
                 ->with('error', 'Validasi gagal. Periksa data yang dimasukkan.');
         } catch (\Exception $e) {
+            // Check if request is AJAX
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                ], 500);
+            }
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
@@ -92,8 +123,38 @@ class SliderController extends Controller
 
             $slider->update($validated);
 
+            // Check if request is AJAX
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Slider berhasil diperbarui.'
+                ]);
+            }
+
             return redirect()->route('slider.index')->with('success', 'Slider berhasil diperbarui.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Check if request is AJAX
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal. Periksa data yang dimasukkan.',
+                    'errors' => $e->validator->errors()
+                ], 422);
+            }
+
+            return redirect()->back()
+                ->withErrors($e->validator)
+                ->withInput()
+                ->with('error', 'Validasi gagal. Periksa data yang dimasukkan.');
         } catch (\Exception $e) {
+            // Check if request is AJAX
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                ], 500);
+            }
+
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
@@ -103,7 +164,7 @@ class SliderController extends Controller
     /**
      * Hapus slider
      */
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         try {
             $slider = Slider::findOrFail($id);
@@ -115,9 +176,25 @@ class SliderController extends Controller
 
             $slider->delete();
 
-            return response()->json(['message' => 'Slider berhasil dihapus.']);
+            // Check if request is AJAX
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Slider berhasil dihapus.'
+                ]);
+            }
+
+            return redirect()->route('slider.index')->with('success', 'Slider berhasil dihapus.');
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Gagal menghapus slider: ' . $e->getMessage()], 500);
+            // Check if request is AJAX
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }
     }
 

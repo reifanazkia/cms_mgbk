@@ -47,7 +47,7 @@ Route::get('/career', [ApiCareerController::class, 'index']);
 Route::get('/career/{id}', [ApiCareerController::class, 'show']);
 
 Route::get('/ourblog', [ApiOurblogController::class, 'index']);
-Route::get('/ourblog/{id}', [OurblogController::class, 'show']);
+Route::get('/ourblog/{id}', [ApiOurblogController::class, 'show']);
 
 Route::get('/products', [ApiProductsController::class, 'index']);
 Route::get('/products/{id}', [ApiProductsController::class, 'show']);

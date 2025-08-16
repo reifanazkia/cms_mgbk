@@ -222,10 +222,6 @@
         </div>
     </div>
 
-    <script>
-        window.sliders = @json($sliders);
-    </script>
-
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- CKEditor -->
@@ -236,11 +232,11 @@
         let addSubtitleEditor = null;
         let editSubtitleEditor = null;
 
-        // SweetAlert helper functions - SAMA DENGAN HOWS
+        // SweetAlert helper functions
         function showAlert(type, message) {
             Swal.fire({
                 icon: type,
-                title: type === 'success' ? 'Berhasil!' : 'Error!',
+                title: type === 'success' ? 'Berhasil!' : type === 'error' ? 'Error!' : 'Info',
                 text: message,
                 timer: 3000,
                 showConfirmButton: false
@@ -346,7 +342,7 @@
                     console.error('Error initializing edit subtitle editor:', error);
                 });
 
-            // Handle flash messages - SAMA DENGAN HOWS
+            // Handle flash messages
             @if(session('success'))
                 showAlert('success', "{{ session('success') }}");
             @endif
@@ -358,21 +354,55 @@
             @if($errors->any())
                 let errorMessages = [];
                 @foreach($errors->all() as $error)
-                    errorMessages.push('{{ $error }}');
+                    errorMessages.push('{{ addslashes($error) }}');
                 @endforeach
                 showAlert('error', errorMessages.join('\n'));
             @endif
+
+            // Form submission handlers
+            const addForm = document.getElementById('addForm');
+            if (addForm) {
+                addForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleFormSubmission('add');
+                });
+            }
+
+            const editForm = document.getElementById('editForm');
+            if (editForm) {
+                editForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    handleFormSubmission('edit');
+                });
+            }
         });
 
-        // Handle form submission with CKEditor data
+        // Handle form submission with proper AJAX response handling
         function handleFormSubmission(type) {
             const isAdd = type === 'add';
             const form = document.getElementById(isAdd ? 'addForm' : 'editForm');
             const subtitleEditor = isAdd ? addSubtitleEditor : editSubtitleEditor;
             const submitBtn = document.getElementById(isAdd ? 'addSubmitBtn' : 'editSubmitBtn');
 
+            if (!form || !submitBtn) {
+                console.error('Form or submit button not found');
+                return;
+            }
+
             // Show loading
-            showLoadingAlert('Menyimpan data...');
+            Swal.fire({
+                title: 'Menyimpan data...',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Menyimpan...';
 
             try {
                 // Create FormData
@@ -382,10 +412,6 @@
                 if (subtitleEditor) {
                     formData.set('subtitle', subtitleEditor.getData());
                 }
-
-                // Disable submit button
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = 'Menyimpan...';
 
                 // Submit using fetch
                 fetch(form.action, {
@@ -397,62 +423,58 @@
                     }
                 })
                 .then(response => {
-                    const contentType = response.headers.get('content-type');
-
-                    if (contentType && contentType.includes('application/json')) {
-                        return response.json().then(data => ({
-                            success: response.ok,
-                            data: data,
-                            status: response.status
-                        }));
-                    } else {
-                        if (response.ok || response.redirected) {
-                            return {
-                                success: true,
-                                data: { message: isAdd ? 'Slider berhasil ditambahkan!' : 'Slider berhasil diperbarui!' },
-                                status: response.status
-                            };
-                        } else {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                    }
+                    return response.json().then(data => {
+                        return {
+                            ok: response.ok,
+                            status: response.status,
+                            data: data
+                        };
+                    });
                 })
                 .then(result => {
-                    if (result.success) {
+                    Swal.close();
+
+                    if (result.ok && result.data.success) {
+                        // Success
                         if (isAdd) {
                             closeAddModal();
                         } else {
                             closeEditModal();
                         }
-                        showAlert('success', result.data.message || (isAdd ? 'Slider berhasil ditambahkan!' : 'Slider berhasil diperbarui!'));
+
+                        showAlert('success', result.data.message);
+
+                        // Reload page after delay
                         setTimeout(() => {
-                            location.reload();
+                            window.location.reload();
                         }, 1500);
                     } else {
+                        // Error
+                        let errorMessage = result.data.message || 'Terjadi kesalahan saat menyimpan data';
+
+                        // Handle validation errors
                         if (result.data.errors) {
-                            let errorMessage = '';
-                            Object.values(result.data.errors).forEach(errorArray => {
-                                errorArray.forEach(error => {
-                                    errorMessage += error + '<br>';
-                                });
-                            });
-                            showAlert('error', errorMessage);
-                        } else {
-                            showAlert('error', result.data.message || 'Gagal menyimpan data slider!');
+                            const errors = Object.values(result.data.errors).flat();
+                            errorMessage = errors.join('\n');
                         }
+
+                        showAlert('error', errorMessage);
                     }
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    showAlert('error', 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.');
+                    Swal.close();
+                    showAlert('error', 'Terjadi kesalahan saat menyimpan data');
                 })
                 .finally(() => {
+                    // Re-enable submit button
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = 'Simpan';
                 });
 
             } catch (error) {
                 console.error('Form preparation error:', error);
+                Swal.close();
                 showAlert('error', 'Terjadi kesalahan saat memproses data');
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Simpan';
@@ -545,6 +567,8 @@
             const uploadArea = document.getElementById(uploadAreaId);
             const fileInput = document.getElementById(inputId);
 
+            if (!uploadArea || !fileInput) return;
+
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 uploadArea.addEventListener(eventName, preventDefaults, false);
             });
@@ -582,13 +606,12 @@
 
             rows.forEach(row => {
                 let title = row.cells[1]?.textContent?.toLowerCase() || '';
-
                 const shouldShow = title.includes(input);
                 row.style.display = shouldShow ? "" : "none";
             });
         }
 
-        // Fungsi confirmDelete - SAMA DENGAN HOWS
+        // Fixed confirmDelete function
         function confirmDelete(id) {
             Swal.fire({
                 title: 'Hapus Slider?',
@@ -601,9 +624,60 @@
                 cancelButtonText: 'Batal'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const form = document.getElementById('deleteForm');
-                    form.action = `/slider/${id}`;
-                    form.submit();
+                    // Show loading
+                    Swal.fire({
+                        title: 'Menghapus data...',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        showConfirmButton: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    // Create form data
+                    const formData = new FormData();
+                    formData.append('_token', '{{ csrf_token() }}');
+                    formData.append('_method', 'DELETE');
+
+                    // Submit delete request
+                    fetch(`/slider/${id}`, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        return response.json().then(data => {
+                            return {
+                                ok: response.ok,
+                                status: response.status,
+                                data: data
+                            };
+                        });
+                    })
+                    .then(result => {
+                        Swal.close();
+
+                        if (result.ok && result.data.success) {
+                            // Success
+                            showAlert('success', result.data.message);
+
+                            // Reload page after delay
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            // Error
+                            showAlert('error', result.data.message || 'Terjadi kesalahan saat menghapus data');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Delete error:', error);
+                        Swal.close();
+                        showAlert('error', 'Terjadi kesalahan saat menghapus data');
+                    });
                 }
             });
         }
@@ -651,33 +725,5 @@
                 uploadArea.style.display = 'block';
             }
         }
-
-        // Helper function for loading alert
-        function showLoadingAlert(message = 'Memproses...') {
-            Swal.fire({
-                title: message,
-                allowOutsideClick: false,
-                allowEscapeKey: false,
-                showConfirmButton: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-        }
-
-        // Form submission handlers - SAMA DENGAN HOWS
-        document.addEventListener('DOMContentLoaded', function() {
-            // Handle Add Form
-            document.getElementById('addForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                handleFormSubmission('add');
-            });
-
-            // Handle Edit Form
-            document.getElementById('editForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                handleFormSubmission('edit');
-            });
-        });
     </script>
 @endsection
