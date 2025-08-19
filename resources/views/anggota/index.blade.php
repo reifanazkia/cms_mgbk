@@ -119,10 +119,6 @@
                         <input type="text" name="tiktok_id" class="w-full border rounded p-2 text-sm"
                             placeholder="@username atau link profil" />
                     </div>
-                    <div class="col-span-2">
-                        <label class="block mb-1 font-medium">Deskripsi</label>
-                        <textarea name="description" id="editorAddDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
-                    </div>
                 </div>
 
                 <!-- Enhanced Image Upload Section -->
@@ -210,10 +206,6 @@
                         <label class="block mb-1 font-medium">TikTok ID</label>
                         <input type="text" name="tiktok_id" id="editTiktokId"
                             class="w-full border rounded p-2 text-sm" placeholder="@username atau link profil" />
-                    </div>
-                    <div class="col-span-2">
-                        <label class="block mb-1 font-medium">Deskripsi</label>
-                        <textarea name="description" id="editorEditDescription" rows="4" class="w-full border rounded p-2 text-sm"></textarea>
                     </div>
                 </div>
 
