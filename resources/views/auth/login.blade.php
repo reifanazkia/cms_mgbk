@@ -70,9 +70,9 @@
           <button class="btn btn-purple text-white">Login</button>
         </div>
       </form>
-      <div class="text-center mt-3">
+      {{-- <div class="text-center mt-3">
         <a href="{{ route('password.request') }}" class="text-decoration-none text-secondary">Lupa password?</a>
-      </div>
+      </div> --}}
     </div>
   </div>
 
